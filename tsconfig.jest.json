@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "baseUrl": "./src",
+    "types": ["node", "jest"],
+    "paths": {
+      "@common/*": ["common/*"],
+      "@auth/*": ["auth/*"],
+      "@user/*": ["user/*"],
+      "@src/*": ["./*"]
+    }
+  },
+  "include": ["src/**/*", "src/**/__tests__/**/*", "src/**/*.test.ts", "src/**/*.spec.ts"],
+  "exclude": ["node_modules", "dist"]
+}

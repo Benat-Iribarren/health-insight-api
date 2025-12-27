@@ -1,0 +1,39 @@
+{
+  "name": "health-insight-api",
+  "version": "1.0.0",
+  "description": "Backend modular para telerehabilitación",
+  "main": "dist/common/infrastructure/server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon --ext ts --watch src --exec \"ts-node -r tsconfig-paths/register src/common/infrastructure/server/index.ts\"",
+    "build": "tsc --project tsconfig.build.json",
+    "start": "node -r tsconfig-paths/register dist/common/infrastructure/server/index.js",
+    "test": "cross-env NODE_ENV=test jest --passWithNoTests"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.12",
+    "eslint": "^9.31.0",
+    "husky": "^9.1.7",
+    "jest": "^30.0.5",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.3",
+    "cross-env": "^10.0.0",
+    "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "fastify": "^5.4.0",
+    "fastify-plugin": "^5.0.1",
+    "kysely": "^0.28.3",
+    "pg": "^8.11.0",
+    "dotenv": "^17.2.1",
+    "pino-pretty": "^13.0.0",
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^5.2.3"
+  }
+}
