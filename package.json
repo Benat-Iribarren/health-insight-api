@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.12",
+    "@types/nodemailer": "^7.0.4",
     "@types/pg": "^8.16.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
@@ -35,6 +36,7 @@
     "fastify": "^5.4.0",
     "fastify-plugin": "^5.0.1",
     "kysely": "^0.28.3",
+    "nodemailer": "^7.0.12",
     "pg": "^8.16.3",
     "pino-pretty": "^13.0.0"
   }

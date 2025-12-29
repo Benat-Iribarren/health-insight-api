@@ -1,17 +1,20 @@
 import fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import { supabaseClient } from '../storage/infrastructure/supabaseClient';
+import { NodemailerEmailRepository } from '@src/messaging/infrastructure/NodemailerEmailRepository';
+import { SendPatientEmailUseCase, SendEmailCommand } from '@src/messaging/application/SendPatientEmailUseCase';
 
 export const buildServer = async () => {
     const server = fastify({
         logger: {
             transport: {
                 target: 'pino-pretty',
+                options: { colorize: true }
             },
         },
     });
 
-    // Configuración de Swagger para la documentación
     await server.register(swagger, {
         openapi: {
             info: {
@@ -26,8 +29,28 @@ export const buildServer = async () => {
         routePrefix: '/docs',
     });
 
-    // Aquí registraremos los módulos más adelante (auth, therapy, etc.)
-    // server.register(therapyRoutes);
+    const emailRepo = new NodemailerEmailRepository();
+    const sendEmailUseCase = new SendPatientEmailUseCase(emailRepo, supabaseClient);
+
+    server.post<{ Body: SendEmailCommand }>(
+        '/messaging/send-to-patient',
+        async (request, reply) => {
+            try {
+                await sendEmailUseCase.execute(request.body);
+                return reply.status(200).send({
+                    success: true,
+                    message: 'Message delivered to patient'
+                });
+            } catch (error: any) {
+                server.log.error(error);
+                const status = error.message === 'PATIENT_NOT_FOUND' ? 404 : 500;
+                return reply.status(status).send({
+                    success: false,
+                    error: error.message || 'INTERNAL_MESSAGING_ERROR'
+                });
+            }
+        }
+    );
 
     return server;
 };
