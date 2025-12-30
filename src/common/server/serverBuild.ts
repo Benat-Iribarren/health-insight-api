@@ -4,6 +4,7 @@ import swaggerUi from '@fastify/swagger-ui';
 import { supabaseClient } from '../storage/infrastructure/supabaseClient';
 import { NodemailerEmailRepository } from '@src/messaging/infrastructure/NodemailerEmailRepository';
 import { SendPatientEmailUseCase, SendEmailCommand } from '@src/messaging/application/SendPatientEmailUseCase';
+import {verifyProfessional} from "@common/server/authHook";
 
 export const buildServer = async () => {
     const server = fastify({
@@ -34,6 +35,7 @@ export const buildServer = async () => {
 
     server.post<{ Body: SendEmailCommand }>(
         '/messaging/send-to-patient',
+        { preHandler: [verifyProfessional] },
         async (request, reply) => {
             try {
                 await sendEmailUseCase.execute(request.body);
