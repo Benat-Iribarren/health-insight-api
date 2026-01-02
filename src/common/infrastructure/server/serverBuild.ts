@@ -1,20 +1,16 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
+import jwt from '@fastify/jwt'; // <-- Nuevo import
 import { registerRoutes } from '../endpoints/routes';
 
 export function build(): FastifyInstance {
     const app = Fastify({
-        logger: {
-            transport: {
-                target: 'pino-pretty',
-                options: {
-                    colorize: true,
-                    translateTime: 'SYS:standard',
-                    ignore: 'pid,hostname',
-                },
-            },
-        },
+        logger: true
+    });
+
+    app.register(jwt, {
+        secret: process.env.SUPABASE_JWT_SECRET || 'super-secret-key'
     });
 
     registerSwagger(app);
