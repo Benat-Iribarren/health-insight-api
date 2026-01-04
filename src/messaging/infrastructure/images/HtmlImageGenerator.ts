@@ -2,15 +2,22 @@ import nodeHtmlToImage from "node-html-to-image";
 
 export class HtmlImageGenerator {
     async generateWeeklyDashboard(stats: any): Promise<Buffer> {
-        const total = stats.completed + stats.inProgress + stats.notStarted || 1;
-
+        const total = (stats.completed + stats.inProgress + stats.notStarted) || 1;
         const completedPct = Math.round((stats.completed / total) * 100);
         const inProgressPct = Math.round((stats.inProgress / total) * 100);
-
         const inProgressEnd = completedPct + inProgressPct;
 
         return await nodeHtmlToImage({
             transparent: true,
+            puppeteerArgs: {
+                executablePath: '/usr/bin/google-chrome',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu'
+                ]
+            },
             html: `
       <html>
         <head>
