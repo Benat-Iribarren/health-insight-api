@@ -2,7 +2,11 @@ import { FastifyInstance } from 'fastify';
 import { supabaseClient } from '../database/supabaseClient';
 import { SupabaseUserRepository } from '@src/identity/infrastructure/database/repositories/SupabaseUserRepository';
 import { authenticate } from '@src/identity/infrastructure/http/authenticate';
-import { verifyProfessional, verifyPatient } from '@src/identity/infrastructure/http/verifyUser';
+import {
+    verifyProfessional,
+    verifyPatient,
+    verifyProfessionalOrCron
+} from '@src/identity/infrastructure/http/verifyUser';
 import sendToPatient from '@src/messaging/infrastructure/endpoints/sendToPatient';
 import sendWeeklyStats from '@src/messaging/infrastructure/endpoints/sendWeeklyStats';
 import { SupabasePatientContactRepository } from '@src/messaging/infrastructure/database/SupabasePatientContactRepository';
@@ -16,6 +20,7 @@ export function registerRoutes(fastify: FastifyInstance) {
     const statsRepo = new SupabaseStatsRepository(supabaseClient);
     const patientContactRepo = new SupabasePatientContactRepository(supabaseClient);
     const imageGen = new HtmlImageGenerator();
+    const isProOrCron = verifyProfessionalOrCron(userRepository);
 
     const isProfessional = verifyProfessional(userRepository);
     const isPatient = verifyPatient(userRepository);
