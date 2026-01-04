@@ -1,3 +1,5 @@
+import 'tsconfig-paths/register';
+
 import { build, start } from './serverBuild';
 
 const fastify = build();

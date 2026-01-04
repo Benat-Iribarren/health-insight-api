@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon --ext ts --watch src --exec \"ts-node -r dotenv/config -r tsconfig-paths/register src/common/infrastructure/server/index.ts\"",
     "build": "tsc --project tsconfig.build.json",
-    "start": "NODE_OPTIONS='--conditions=typescript' TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/common/infrastructure/server/index.js",
+    "start": "NODE_ENV=production node -r tsconfig-paths/register dist/common/infrastructure/server/index.js",
     "test": "cross-env NODE_ENV=test jest --passWithNoTests"
   },
   "dependencies": {
@@ -42,5 +42,11 @@
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.0"
+  },
+  "_moduleAliases": {
+    "@src": "dist",
+    "@common": "dist/common",
+    "@auth": "dist/auth",
+    "@user": "dist/user"
   }
 }
