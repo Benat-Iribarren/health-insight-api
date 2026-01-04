@@ -2,8 +2,6 @@ import { build, start } from './serverBuild';
 
 const fastify = build();
 
-if (require.main === module) {
-    const PORT = 3000; start(fastify, PORT);
-}
+const PORT = Number(process.env.PORT) || 3000;
 
-export default fastify;
+start(fastify, PORT);
