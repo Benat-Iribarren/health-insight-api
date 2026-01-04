@@ -20,10 +20,10 @@ export function registerRoutes(fastify: FastifyInstance) {
     const statsRepo = new SupabaseStatsRepository(supabaseClient);
     const patientContactRepo = new SupabasePatientContactRepository(supabaseClient);
     const imageGen = new HtmlImageGenerator();
-    const isProOrCron = verifyProfessionalOrCron(userRepository);
 
     const isProfessional = verifyProfessional(userRepository);
     const isPatient = verifyPatient(userRepository);
+    const isProOrCron = verifyProfessionalOrCron(userRepository);
 
     fastify.get('/ping', async () => {
         return { status: 'ok' };
@@ -33,7 +33,7 @@ export function registerRoutes(fastify: FastifyInstance) {
         // authenticatedApp.addHook('preHandler', authenticate);
 
         authenticatedApp.register(async (professionalApp) => {
-            professionalApp.addHook('preHandler', isProOrCron);
+            // professionalApp.addHook('preHandler', isProfessional);
 
             professionalApp.register(
                 sendToPatient({
@@ -42,13 +42,16 @@ export function registerRoutes(fastify: FastifyInstance) {
                 })
             );
 
-            professionalApp.register(
-                sendWeeklyStats({
-                    imageGen,
-                    statsRepo,
-                    mailRepo,
-                })
-            );
+            professionalApp.register(async (statsApp) => {
+                statsApp.addHook('preHandler', isProOrCron);
+                statsApp.register(
+                    sendWeeklyStats({
+                        imageGen,
+                        statsRepo,
+                        mailRepo,
+                    })
+                );
+            });
         });
 
         authenticatedApp.register(async (patientApp) => {
