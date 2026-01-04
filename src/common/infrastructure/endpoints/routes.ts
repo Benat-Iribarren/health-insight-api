@@ -33,7 +33,7 @@ export function registerRoutes(fastify: FastifyInstance) {
         // authenticatedApp.addHook('preHandler', authenticate);
 
         authenticatedApp.register(async (professionalApp) => {
-            // professionalApp.addHook('preHandler', isProfessional);
+            professionalApp.addHook('preHandler', isProOrCron);
 
             professionalApp.register(
                 sendToPatient({
