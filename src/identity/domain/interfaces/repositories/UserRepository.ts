@@ -1,4 +1,4 @@
-import { UserId } from "@common/domain/model/UserParamaters";
+import { UserId } from "@common/domain/model/UserParameters";
 
 export interface UserRepository {
     isProfessional(userId: UserId): Promise<boolean>;

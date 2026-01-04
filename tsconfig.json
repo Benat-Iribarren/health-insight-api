@@ -7,12 +7,12 @@
     "isolatedModules": true,
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@common/*": ["common/*"],
-      "@auth/*": ["auth/*"],
-      "@user/*": ["user/*"],
-      "@src/*": ["./*"]
+      "@src/*": ["src/*"],
+      "@common/*": ["src/common/*"],
+      "@auth/*": ["src/auth/*"],
+      "@user/*": ["src/user/*"]
     },
     "strict": true,
     "esModuleInterop": true,
@@ -22,5 +22,5 @@
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

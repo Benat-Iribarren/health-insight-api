@@ -1,5 +1,5 @@
 import { UserRepository } from '../../../domain/interfaces/repositories/UserRepository';
-import { UserId } from "@common/domain/model/UserParamaters";
+import { UserId } from "@common/domain/model/UserParameters";
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 
 type DBClient = typeof supabaseClient;
