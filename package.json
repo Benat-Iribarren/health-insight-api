@@ -6,8 +6,8 @@
   "type": "commonjs",
   "scripts": {
     "dev": "nodemon --ext ts --watch src --exec \"ts-node -r dotenv/config -r tsconfig-paths/register src/common/infrastructure/server/index.ts\"",
-    "build": "tsc --project tsconfig.build.json",
-    "start": "TS_NODE_BASEURL=./dist NODE_ENV=production node -r tsconfig-paths/register dist/common/infrastructure/server/index.js",
+    "build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "start": "NODE_ENV=production node dist/common/infrastructure/server/index.js",
     "test": "cross-env NODE_ENV=test jest --passWithNoTests"
   },
   "dependencies": {
@@ -41,6 +41,7 @@
     "prettier": "^3.2.0",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.4.0"
   }
 }
