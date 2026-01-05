@@ -4,8 +4,7 @@ import { SupabaseUserRepository } from '@src/identity/infrastructure/database/re
 import { authenticate } from '@src/identity/infrastructure/http/authenticate';
 import {
     verifyProfessional,
-    verifyPatient,
-    verifyProfessionalOrCron
+    verifyPatient
 } from '@src/identity/infrastructure/http/verifyUser';
 import sendToPatient from '@src/messaging/infrastructure/endpoints/sendToPatient';
 import sendWeeklyStats from '@src/messaging/infrastructure/endpoints/sendWeeklyStats';
@@ -23,7 +22,6 @@ export function registerRoutes(fastify: FastifyInstance) {
 
     const isProfessional = verifyProfessional(userRepository);
     const isPatient = verifyPatient(userRepository);
-    const isProOrCron = verifyProfessionalOrCron(userRepository);
 
     fastify.get('/ping', async () => {
         return { status: 'ok' };
@@ -43,7 +41,7 @@ export function registerRoutes(fastify: FastifyInstance) {
             );
 
             professionalApp.register(async (statsApp) => {
-                statsApp.addHook('preHandler', isProOrCron);
+                // statsApp.addHook('preHandler', isProfessional);
                 statsApp.register(
                     sendWeeklyStats({
                         imageGen,

@@ -30,28 +30,3 @@ export const verifyPatient = (userRepository: UserRepository) => {
         }
     };
 };
-
-export const verifyProfessionalOrCron = (userRepository: UserRepository) => {
-    return async (request: FastifyRequest, reply: FastifyReply) => {
-        const cronKey = request.headers['x-cron-key'];
-        const masterKey = process.env.CRON_SECRET_KEY;
-
-        if (cronKey && cronKey === masterKey) {
-            return;
-        }
-
-        try {
-            await request.jwtVerify();
-            const userId = (request.user as { id?: string })?.id;
-            if (userId) {
-                const isPro = await userRepository.isProfessional(userId);
-                if (isPro) return;
-            }
-        } catch (err) {}
-
-        return reply.status(401).send({
-            error: 'Unauthorized',
-            message: 'Se requiere API Key de Cron o sesión de Profesional'
-        });
-    };
-};
