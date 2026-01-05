@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { SendToPatient, patientEmailNotFoundErrorMsg } from '../../application/SendToPatient';
+import { SendToPatient } from '../../application/SendToPatient';
 import { PatientContactRepository } from '../../domain/interfaces/PatientContactRepository';
 import { MailRepository } from '../../domain/interfaces/MailRepository';
+import { MESSAGING_RESPONSES } from '../../domain/MessagingError';
 
 interface SendToPatientDependencies {
     patientContactRepo: PatientContactRepository;
@@ -21,14 +22,26 @@ export default function sendToPatient(deps: SendToPatientDependencies) {
                 const service = new SendToPatient(deps.patientContactRepo, deps.mailRepo);
                 const result = await service.execute({ patientId, subject, body });
 
-                if (result === patientEmailNotFoundErrorMsg) {
-                    return reply.status(404).send({ error: 'Patient email not found' });
+                if (result === MESSAGING_RESPONSES.ERRORS.PATIENT_EMAIL_NOT_FOUND.code) {
+                    const errorConfig = MESSAGING_RESPONSES.ERRORS.PATIENT_EMAIL_NOT_FOUND;
+                    return reply.status(errorConfig.status).send({
+                        status: 'error',
+                        error: { code: errorConfig.code, message: errorConfig.message }
+                    });
                 }
 
-                return reply.status(200).send({ status: 'success' });
+                const successConfig = MESSAGING_RESPONSES.SUCCESS.SEND_TO_PATIENT;
+                return reply.status(successConfig.code).send({
+                    status: successConfig.status,
+                    message: successConfig.message
+                });
             } catch (error) {
                 fastify.log.error(error);
-                return reply.status(500).send({ error: 'Internal Server Error' });
+                const internal = MESSAGING_RESPONSES.ERRORS.INTERNAL_ERROR;
+                return reply.status(internal.status).send({
+                    status: 'error',
+                    error: { code: internal.code, message: internal.message }
+                });
             }
         });
     };
