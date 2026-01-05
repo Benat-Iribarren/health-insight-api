@@ -5,3 +5,6 @@ data/*.sqlite
 .DS_Store
 data
 .env
+.env.test
+.env.production
+.env.local
