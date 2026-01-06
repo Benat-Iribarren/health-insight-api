@@ -1,12 +1,11 @@
 FROM node:20-slim
 
-# Instalamos las librerías necesarias para Puppeteer y Chrome
+# Instalamos las librerías necesarias para Puppeteer en Debian Bookworm
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     ca-certificates \
     procps \
-    libgconf-2-4 \
     libatk1.0-0 \
     libatk-bridge2.0-0 \
     libgdk-pixbuf2.0-0 \
@@ -16,10 +15,8 @@ RUN apt-get update && apt-get install -y \
     libxss1 \
     libasound2 \
     libxshmfence1 \
-    libglu1 \
-    libgobject-2.0-0 \
+    libglib2.0-0 \
     fonts-liberation \
-    libappindicator3-1 \
     libxdamage1 \
     libpangocairo-1.0-0 \
     libpango-1.0-0 \
@@ -31,6 +28,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
+# Instalamos dependencias
 RUN npm install
 
 COPY . .
@@ -39,6 +37,7 @@ RUN npm run build
 
 EXPOSE 3000
 
+# Forzamos que Puppeteer descargue su propio Chrome durante el build
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 
 CMD [ "npm", "start" ]
