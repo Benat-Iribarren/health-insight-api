@@ -13,6 +13,9 @@ export class SmtpMailRepository implements MailRepository {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
             },
+            tls: {
+                rejectUnauthorized: false
+            }
         });
     }
 
@@ -93,16 +96,14 @@ export class SmtpMailRepository implements MailRepository {
         let attachments: any[] = [];
 
         if (stats && imageBuffer) {
-            // Generamos el contenido que incluye la referencia a la imagen adjunta
             const statsContent = `
             <div style="text-align: center; margin-bottom: 20px;">
-                <img src="cid:weekly-chart" width="200" style="display: block; margin: 0 auto;">
+                <img src="cid:weekly-chart" width="220" style="display: block; margin: 0 auto;">
             </div>
             ${this.getWeeklyStatsContent(stats)}
         `;
             htmlContent = this.getMasterLayout(statsContent);
 
-            // El 'cid' aquí debe coincidir exactamente con el del 'src' de arriba
             attachments = [{
                 filename: 'stats-chart.png',
                 content: imageBuffer,
