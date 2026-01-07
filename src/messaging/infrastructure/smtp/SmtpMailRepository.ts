@@ -6,14 +6,13 @@ export class SmtpMailRepository implements MailRepository {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
+            host: 'smtp.zoho.eu',
             port: 465,
             secure: true,
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
             },
-            connectionTimeout: 10000
         });
     }
 
@@ -94,7 +93,16 @@ export class SmtpMailRepository implements MailRepository {
         let attachments: any[] = [];
 
         if (stats && imageBuffer) {
-            htmlContent = this.getMasterLayout(this.getWeeklyStatsContent(stats));
+            // Generamos el contenido que incluye la referencia a la imagen adjunta
+            const statsContent = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="cid:weekly-chart" width="200" style="display: block; margin: 0 auto;">
+            </div>
+            ${this.getWeeklyStatsContent(stats)}
+        `;
+            htmlContent = this.getMasterLayout(statsContent);
+
+            // El 'cid' aquí debe coincidir exactamente con el del 'src' de arriba
             attachments = [{
                 filename: 'stats-chart.png',
                 content: imageBuffer,
