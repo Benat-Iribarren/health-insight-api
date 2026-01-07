@@ -6,14 +6,11 @@ export class SmtpMailRepository implements MailRepository {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true,
+            service: 'gmail',
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
             },
-            connectionTimeout: 10000,
         });
     }
 
@@ -54,6 +51,34 @@ export class SmtpMailRepository implements MailRepository {
     </html>`;
     }
 
+    private getWeeklyStatsContent(stats: any): string {
+        return `
+    <div style="color: #1a2a6c; font-weight: 600; font-size: 20px; margin-bottom: 20px; text-align: center;">Tu Resumen Semanal</div>
+    <p style="text-align: center;">Hola <strong>${stats.patientName}</strong>, este es el balance de tu actividad terapéutica:</p>
+    
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 30px 0; background-color: #f8fafc; border: 1px solid #edf2f7; border-radius: 10px;">
+      <tr>
+        <td align="center" style="padding: 20px; border-right: 1px solid #edf2f7;">
+          <span style="display: block; font-size: 32px; font-weight: bold; color: #10b981;">${stats.completed}</span>
+          <span style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Hechas</span>
+        </td>
+        <td align="center" style="padding: 20px; border-right: 1px solid #edf2f7;">
+          <span style="display: block; font-size: 32px; font-weight: bold; color: #f59e0b;">${stats.inProgress}</span>
+          <span style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">En curso</span>
+        </td>
+        <td align="center" style="padding: 20px;">
+          <span style="display: block; font-size: 32px; font-weight: bold; color: #ef4444;">${stats.notStarted}</span>
+          <span style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Pendientes</span>
+        </td>
+      </tr>
+    </table>
+
+    <div style="background-color: #ffffff; border: 1px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center;">
+      <p style="margin: 0; color: #475569;">Planificación para la próxima semana: <br>
+      <strong style="font-size: 18px; color: #1a2a6c;">${stats.nextWeekSessions} sesiones programadas</strong></p>
+    </div>`;
+    }
+
     private getMessageContent(body: string): string {
         return `
     <div style="color: #1a2a6c; font-weight: 600; font-size: 18px; margin-bottom: 20px;">Comunicación del especialista</div>
@@ -62,14 +87,33 @@ export class SmtpMailRepository implements MailRepository {
     </div>`;
     }
 
-    async send(to: string, subject: string, body: string): Promise<void> {
-        const htmlContent = this.getMasterLayout(this.getMessageContent(body));
+    async send(to: string, subject: string, body: string, stats?: any, imageBuffer?: Buffer): Promise<void> {
+        let htmlContent = "";
+        let attachments: any[] = [];
+
+        if (stats && imageBuffer) {
+            const statsContent = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="cid:weekly-chart" width="250" style="display: block; margin: 0 auto;">
+                </div>
+                ${this.getWeeklyStatsContent(stats)}
+            `;
+            htmlContent = this.getMasterLayout(statsContent);
+            attachments = [{
+                filename: 'stats-chart.png',
+                content: imageBuffer,
+                cid: 'weekly-chart'
+            }];
+        } else {
+            htmlContent = this.getMasterLayout(this.getMessageContent(body));
+        }
 
         await this.transporter.sendMail({
             from: `"Health Insight Professional" <${process.env.SMTP_USER}>`,
             to,
             subject: `Health Insight | ${subject}`,
             html: htmlContent,
+            attachments
         });
     }
 }

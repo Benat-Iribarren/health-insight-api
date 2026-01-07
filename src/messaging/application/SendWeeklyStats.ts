@@ -57,7 +57,7 @@ export class SendWeeklyStats {
 
             for (const [_, stats] of patientMap) {
                 const chartBuffer = await this.imageGen.generateWeeklyDashboard(stats);
-                await this.mailRepo.send(stats.email, "Tu Resumen Semanal", "", stats, chartBuffer);
+                await this.mailRepo.send(stats.email, "Tu Resumen Semanal", "Aquí tienes el balance de tu actividad de la última semana. ¡Sigue adelante con tu recuperación!", stats, chartBuffer);
             }
 
             return { processed: patientMap.size };

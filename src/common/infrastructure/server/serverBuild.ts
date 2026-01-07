@@ -5,11 +5,11 @@ import jwt from '@fastify/jwt';
 import { registerRoutes } from '../endpoints/routes';
 
 export function build(): FastifyInstance {
+    const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+
     const app = Fastify({
         logger: {
-            transport: process.env.NODE_ENV === 'development'
-                ? { target: 'pino-pretty' }
-                : undefined
+            transport: isDev ? { target: 'pino-pretty' } : undefined
         }
     });
 
