@@ -81,9 +81,8 @@ export class SmtpMailRepository implements MailRepository {
 
     private getMessageContent(body: string): string {
         return `
-    <div style="color: #1a2a6c; font-weight: 600; font-size: 18px; margin-bottom: 20px;">Comunicación del especialista</div>
-    <div style="background: #fdfdfd; border-left: 5px solid #3498db; padding: 25px; margin: 25px 0; font-style: italic; color: #2d3748; font-size: 16px;">
-      "${body}"
+    <div style="background: #fdfdfd; border-left: 5px solid #3498db; padding: 25px; margin: 10px 0; color: #2d3748; font-size: 16px;">
+      ${body}
     </div>`;
     }
 
@@ -92,13 +91,7 @@ export class SmtpMailRepository implements MailRepository {
         let attachments: any[] = [];
 
         if (stats && imageBuffer) {
-            const statsContent = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <img src="cid:weekly-chart" width="250" style="display: block; margin: 0 auto;">
-                </div>
-                ${this.getWeeklyStatsContent(stats)}
-            `;
-            htmlContent = this.getMasterLayout(statsContent);
+            htmlContent = this.getMasterLayout(this.getWeeklyStatsContent(stats));
             attachments = [{
                 filename: 'stats-chart.png',
                 content: imageBuffer,
