@@ -26,10 +26,9 @@ export async function initTestDatabase() {
     }
 
     const { data: sessionData, error: sError } = await supabaseClient.from('Session').upsert({
-        id: 1,
         number: 1,
         day_offset: 1
-    }, { onConflict: 'id' }).select();
+    }).select();
 
     if (sError || !sessionData || sessionData.length === 0) {
         throw new Error(`Error seeding Session: ${sError?.message}`);

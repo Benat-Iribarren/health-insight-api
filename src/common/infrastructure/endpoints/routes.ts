@@ -9,7 +9,7 @@ import { SupabaseStatsRepository } from '@src/messaging/infrastructure/database/
 import { HtmlImageGenerator } from "@src/messaging/infrastructure/images/HtmlImageGenerator";
 
 import predictDropout from '@src/clinical-intelligence/infrastructure/endpoints/predictDropout';
-import { SupabaseDropoutRepository } from '@src/clinical-intelligence/infrastructure/repositories/SupabaseDropoutRepository';
+import { SupabaseDropoutRepository } from '@src/clinical-intelligence/infrastructure/database/SupabaseDropoutRepository';
 
 export function registerRoutes(fastify: FastifyInstance) {
     const userRepository = new SupabaseUserRepository(supabaseClient);
