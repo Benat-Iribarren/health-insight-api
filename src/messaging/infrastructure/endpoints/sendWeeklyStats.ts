@@ -1,17 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { SendWeeklyStats } from '../../application/SendWeeklyStats';
-import { StatsRepository } from '../../domain/interfaces/StatsRepository';
-import { MailRepository } from '../../domain/interfaces/MailRepository';
-import { HtmlImageGenerator } from '../images/HtmlImageGenerator';
 import { MESSAGING_RESPONSES } from '../../domain/MessagingError';
 
-interface Dependencies {
-    statsRepo: StatsRepository;
-    mailRepo: MailRepository;
-    imageGen: HtmlImageGenerator;
-}
-
-export default function sendWeeklyStats(deps: Dependencies) {
+export default function sendWeeklyStats(deps: any) {
     return async function (fastify: FastifyInstance) {
         fastify.post('/messaging/send-weekly-stats', async (request, reply) => {
             try {
@@ -21,6 +12,14 @@ export default function sendWeeklyStats(deps: Dependencies) {
                 if ('type' in result) {
                     const errorKey = result.type as keyof typeof MESSAGING_RESPONSES.ERRORS;
                     const errorConfig = MESSAGING_RESPONSES.ERRORS[errorKey];
+
+                    if (!errorConfig) {
+                        return reply.status(500).send({
+                            status: 'error',
+                            message: 'Clave de error no encontrada: ' + result.type
+                        });
+                    }
+
                     return reply.status(errorConfig.status).send({
                         status: 'error',
                         error: { code: errorConfig.code, message: errorConfig.message }

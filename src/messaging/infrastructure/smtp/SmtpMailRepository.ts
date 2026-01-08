@@ -2,20 +2,23 @@ import nodemailer from 'nodemailer';
 import { MailRepository } from '../../domain/interfaces/MailRepository';
 
 export class SmtpMailRepository implements MailRepository {
-    private transporter;
+    private transporter: nodemailer.Transporter;
 
     constructor() {
         this.transporter = nodemailer.createTransport({
             host: 'smtp.zoho.eu',
-            port: 465,
-            secure: true,
+            port: 587,
+            secure: false,
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
             },
             tls: {
-                rejectUnauthorized: false
-            }
+                rejectUnauthorized: false,
+                minVersion: 'TLSv1.2'
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000
         });
     }
 
@@ -45,7 +48,7 @@ export class SmtpMailRepository implements MailRepository {
               <tr>
                 <td style="background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #edf2f7;">
                   <p style="font-size: 12px; color: #94a3b8; margin: 5px 0;"><strong>Health Insight API</strong> | Centro de Telerehabilitación</p>
-                  <p style="font-size: 10px; color: #cbd5e1; margin-top: 20px; text-align: justify; line-height: 1.4;">AVISO DE CONFIDENCIALIDAD: Este mensaje contiene información de salud protegida y está destinado únicamente al destinatario.</p>
+                  <p style="font-size: 10px; color: #cbd5e1; margin-top: 20px; text-align: justify; line-height: 1.4;">AVISO DE CONFIDENCIALIDAD: Este mensaje contiene información de salud protegida.</p>
                 </td>
               </tr>
             </table>
@@ -59,29 +62,24 @@ export class SmtpMailRepository implements MailRepository {
     private getWeeklyStatsContent(stats: any): string {
         return `
     <div style="color: #1a2a6c; font-weight: 600; font-size: 20px; margin-bottom: 20px; text-align: center;">Tu Resumen Semanal</div>
-    <p style="text-align: center;">Hola <strong>${stats.patientName}</strong>, este es el balance de tu actividad terapéutica:</p>
+    <p style="text-align: center;">Balance de tu actividad terapéutica:</p>
     
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 30px 0; background-color: #f8fafc; border: 1px solid #edf2f7; border-radius: 10px;">
       <tr>
         <td align="center" style="padding: 20px; border-right: 1px solid #edf2f7;">
-          <span style="display: block; font-size: 32px; font-weight: bold; color: #10b981;">${stats.completed}</span>
+          <span style="display: block; font-size: 32px; font-weight: bold; color: #10b981;">${stats.completed || 0}</span>
           <span style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Hechas</span>
         </td>
         <td align="center" style="padding: 20px; border-right: 1px solid #edf2f7;">
-          <span style="display: block; font-size: 32px; font-weight: bold; color: #f59e0b;">${stats.inProgress}</span>
+          <span style="display: block; font-size: 32px; font-weight: bold; color: #f59e0b;">${stats.inProgress || 0}</span>
           <span style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">En curso</span>
         </td>
         <td align="center" style="padding: 20px;">
-          <span style="display: block; font-size: 32px; font-weight: bold; color: #ef4444;">${stats.notStarted}</span>
+          <span style="display: block; font-size: 32px; font-weight: bold; color: #ef4444;">${stats.notStarted || 0}</span>
           <span style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Pendientes</span>
         </td>
       </tr>
-    </table>
-
-    <div style="background-color: #ffffff; border: 1px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center;">
-      <p style="margin: 0; color: #475569;">Planificación para la próxima semana: <br>
-      <strong style="font-size: 18px; color: #1a2a6c;">${stats.nextWeekSessions} sesiones programadas</strong></p>
-    </div>`;
+    </table>`;
     }
 
     private getMessageContent(body: string): string {
@@ -91,34 +89,39 @@ export class SmtpMailRepository implements MailRepository {
     </div>`;
     }
 
-    async send(to: string, subject: string, body: string, stats?: any, imageBuffer?: Buffer): Promise<void> {
-        let htmlContent = "";
-        let attachments: any[] = [];
+    async send(to: string, subject: string, body: string, stats?: any, imageBuffer?: Buffer): Promise<any> {
+        try {
+            let htmlContent = "";
+            let attachments: any[] = [];
 
-        if (stats && imageBuffer) {
-            const statsContent = `
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img src="cid:weekly-chart" width="220" style="display: block; margin: 0 auto;">
-            </div>
-            ${this.getWeeklyStatsContent(stats)}
-        `;
-            htmlContent = this.getMasterLayout(statsContent);
+            if (stats && imageBuffer) {
+                const statsContent = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="cid:weekly-chart" width="220" style="display: block; margin: 0 auto;">
+                </div>
+                ${this.getWeeklyStatsContent(stats)}
+            `;
+                htmlContent = this.getMasterLayout(statsContent);
+                attachments = [{
+                    filename: 'stats-chart.png',
+                    content: imageBuffer,
+                    cid: 'weekly-chart'
+                }];
+            } else {
+                htmlContent = this.getMasterLayout(this.getMessageContent(body));
+            }
 
-            attachments = [{
-                filename: 'stats-chart.png',
-                content: imageBuffer,
-                cid: 'weekly-chart'
-            }];
-        } else {
-            htmlContent = this.getMasterLayout(this.getMessageContent(body));
+            const info = await this.transporter.sendMail({
+                from: `"Health Insight Professional" <${process.env.SMTP_USER}>`,
+                to,
+                subject: `Health Insight | ${subject}`,
+                html: htmlContent,
+                attachments
+            });
+
+            return { success: true, messageId: info.messageId };
+        } catch (error) {
+            return { success: false, error: (error as Error).message };
         }
-
-        await this.transporter.sendMail({
-            from: `"Health Insight Professional" <${process.env.SMTP_USER}>`,
-            to,
-            subject: `Health Insight | ${subject}`,
-            html: htmlContent,
-            attachments
-        });
     }
 }

@@ -15,7 +15,7 @@ describe('Messaging System E2E Flow', () => {
         await app.close();
     });
 
-    test('should complete the weekly reporting cycle for all active patients', async () => {
+    it('should complete the weekly reporting cycle for all active patients', async () => {
         const response = await app.inject({
             method: 'POST',
             url: '/messaging/send-weekly-stats'
@@ -30,7 +30,7 @@ describe('Messaging System E2E Flow', () => {
         });
     });
 
-    test('should complete a manual message send flow to a specific patient', async () => {
+    it('should complete a manual message send flow to a specific patient', async () => {
         const response = await app.inject({
             method: 'POST',
             url: '/messaging/send-to-patient',
@@ -50,7 +50,7 @@ describe('Messaging System E2E Flow', () => {
         });
     });
 
-    test('should return 404 when sending to a non-existent patient', async () => {
+    it('should return 404 when sending to a non-existent patient', async () => {
         const response = await app.inject({
             method: 'POST',
             url: '/messaging/send-to-patient',

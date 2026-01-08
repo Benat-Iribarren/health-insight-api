@@ -11,9 +11,9 @@ describe('SendToPatient Service', () => {
         jest.clearAllMocks();
     });
 
-    test('should return success code when patient has an email and mail is sent', async () => {
+    it('should return SUCCESSFUL when patient email exists and mail is sent', async () => {
         mockPatientRepo.getEmailByPatientId.mockResolvedValue('test@patient.com');
-        mockMailRepo.send.mockResolvedValue(undefined);
+        mockMailRepo.send.mockResolvedValue({ success: true });
 
         const result = await service.execute({
             patientId: 1,
@@ -25,7 +25,7 @@ describe('SendToPatient Service', () => {
         expect(mockMailRepo.send).toHaveBeenCalledWith('test@patient.com', 'Test', 'Body');
     });
 
-    test('should return error code when patient email is not found', async () => {
+    it('should return error code when patient email is not found', async () => {
         mockPatientRepo.getEmailByPatientId.mockResolvedValue(null);
 
         const result = await service.execute({

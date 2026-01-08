@@ -9,7 +9,7 @@ describe('SupabaseStatsRepository', () => {
         await initTestDatabase();
     });
 
-    test('should fetch sessions within a specific date range', async () => {
+    it('should fetch sessions within a specific date range', async () => {
         const start = new Date();
         start.setDate(start.getDate() - 10);
         const end = new Date();
@@ -22,7 +22,7 @@ describe('SupabaseStatsRepository', () => {
         expect(result[0]).toHaveProperty('email', 'benat@test.com');
     });
 
-    test('should return empty array if no sessions exist in range', async () => {
+    it('should return empty array if no sessions exist in range', async () => {
         const futureStart = new Date();
         futureStart.setFullYear(futureStart.getFullYear() + 1);
         const futureEnd = new Date();

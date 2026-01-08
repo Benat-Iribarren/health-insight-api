@@ -12,17 +12,17 @@ describe('SupabasePatientContactRepository', () => {
         seededPatientId = seed.patientId;
     });
 
-    test('should return the correct email for the dynamic seeded patient', async () => {
+    it('should return the correct email for the dynamic seeded patient', async () => {
         const email = await repository.getEmailByPatientId(seededPatientId);
         expect(email).toBe('benat@test.com');
     });
 
-    test('should return null when the patient id does not exist', async () => {
+    it('should return null when the patient id does not exist', async () => {
         const email = await repository.getEmailByPatientId(999999);
         expect(email).toBeNull();
     });
 
-    test('should return null when the patient email is an empty string', async () => {
+    it('should return null when the patient email is an empty string', async () => {
         const uniqueUser = randomUUID();
 
         const { data, error } = await supabaseClient.from('Patient').insert({

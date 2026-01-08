@@ -1,7 +1,7 @@
-import { StatsRepository } from "@src/messaging/domain/interfaces/StatsRepository";
-import { MailRepository } from "@src/messaging/domain/interfaces/MailRepository";
-import { HtmlImageGenerator } from "@src/messaging/infrastructure/images/HtmlImageGenerator";
-import { MESSAGING_RESPONSES } from "@src/messaging/domain/MessagingError";
+import { StatsRepository } from "../domain/interfaces/StatsRepository";
+import { MailRepository } from "../domain/interfaces/MailRepository";
+import { HtmlImageGenerator } from "../infrastructure/images/HtmlImageGenerator";
+import { MESSAGING_RESPONSES } from "../domain/MessagingError";
 
 export class SendWeeklyStats {
     constructor(
@@ -28,7 +28,7 @@ export class SendWeeklyStats {
 
             const allSessions = await this.statsRepo.getSessionsInRange(startOfLastWeek, endOfCurrentWeek);
 
-            if (allSessions.length === 0) {
+            if (!allSessions || allSessions.length === 0) {
                 return { type: MESSAGING_RESPONSES.ERRORS.NO_STATS_DATA.code };
             }
 
@@ -55,14 +55,21 @@ export class SendWeeklyStats {
                 }
             });
 
+            let processedCount = 0;
             for (const [_, stats] of patientMap) {
                 const chartBuffer = await this.imageGen.generateWeeklyDashboard(stats);
-                await this.mailRepo.send(stats.email, "Tu Resumen Semanal", "Aquí tienes el balance de tu actividad de la última semana. ¡Sigue adelante con tu recuperación!", stats, chartBuffer);
+                const mailResult = await this.mailRepo.send(stats.email, "Resumen", "Balance semanal", stats, chartBuffer);
+
+                if (mailResult && mailResult.success) {
+                    processedCount++;
+                } else {
+                    return { type: MESSAGING_RESPONSES.ERRORS.MAIL_FAILURE.code };
+                }
             }
 
-            return { processed: patientMap.size };
+            return { processed: processedCount };
         } catch (error) {
-            return { type: MESSAGING_RESPONSES.ERRORS.MAIL_FAILURE.code };
+            return { type: MESSAGING_RESPONSES.ERRORS.INTERNAL_ERROR.code };
         }
     }
 }

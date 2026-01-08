@@ -16,19 +16,45 @@ describe('SendWeeklyStats Service', () => {
         jest.clearAllMocks();
     });
 
-    test('should return NO_STATS_DATA when no sessions exist', async () => {
+    it('should return NO_STATS_DATA when no sessions exist', async () => {
         mockStatsRepo.getSessionsInRange.mockResolvedValue([]);
         const result = await service.execute();
         expect(result).toEqual({ type: MESSAGING_RESPONSES.ERRORS.NO_STATS_DATA.code });
     });
 
-    test('should process patients correctly', async () => {
+    it('should process patients correctly', async () => {
         const mockSessions = [{
-            patient_id: 1, patient_name: 'P1', email: 'p1@t.com', state: 'completed', assigned_date: new Date().toISOString()
+            patient_id: 1,
+            patient_name: 'P1',
+            email: 'p1@t.com',
+            state: 'completed',
+            assigned_date: new Date().toISOString()
         }];
+
         mockStatsRepo.getSessionsInRange.mockResolvedValue(mockSessions);
         mockImageGen.generateWeeklyDashboard.mockResolvedValue(Buffer.from('img'));
+        mockMailRepo.send.mockResolvedValue({ success: true });
+
         const result = await service.execute();
+
         expect(result).toEqual({ processed: 1 });
+    });
+
+    it('should return MAIL_FAILURE when email sending fails', async () => {
+        const mockSessions = [{
+            patient_id: 1,
+            patient_name: 'P1',
+            email: 'p1@t.com',
+            state: 'completed',
+            assigned_date: new Date().toISOString()
+        }];
+
+        mockStatsRepo.getSessionsInRange.mockResolvedValue(mockSessions);
+        mockImageGen.generateWeeklyDashboard.mockResolvedValue(Buffer.from('img'));
+        mockMailRepo.send.mockResolvedValue({ success: false });
+
+        const result = await service.execute();
+
+        expect(result).toEqual({ type: MESSAGING_RESPONSES.ERRORS.MAIL_FAILURE.code });
     });
 });

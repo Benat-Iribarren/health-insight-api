@@ -17,7 +17,7 @@ describe('POST /messaging/send-to-patient', () => {
         await app.close();
     });
 
-    test('should return 200 and success message when sending to a valid patient', async () => {
+    it('should return 200 and success message when sending to a valid patient', async () => {
         const successConfig = MESSAGING_RESPONSES.SUCCESS.SEND_TO_PATIENT;
 
         const response = await app.inject({
@@ -37,7 +37,7 @@ describe('POST /messaging/send-to-patient', () => {
         });
     });
 
-    test('should return 404 when the patient does not exist in the database', async () => {
+    it('should return 404 when the patient does not exist in the database', async () => {
         const errorConfig = MESSAGING_RESPONSES.ERRORS.PATIENT_EMAIL_NOT_FOUND;
 
         const response = await app.inject({

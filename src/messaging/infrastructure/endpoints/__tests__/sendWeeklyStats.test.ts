@@ -1,7 +1,17 @@
 import { build } from '@common/infrastructure/server/serverBuild';
 import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
 import { MESSAGING_RESPONSES } from '../../../domain/MessagingError';
+jest.mock('../../smtp/SmtpMailRepository', () => ({
+    SmtpMailRepository: jest.fn().mockImplementation(() => ({
+        send: jest.fn().mockResolvedValue({ success: true })
+    }))
+}));
 
+jest.mock('../../images/HtmlImageGenerator', () => ({
+    HtmlImageGenerator: jest.fn().mockImplementation(() => ({
+        generateWeeklyDashboard: jest.fn().mockResolvedValue(Buffer.from('fake-image-buffer'))
+    }))
+}));
 describe('POST /messaging/send-weekly-stats', () => {
     let app: any;
 
@@ -15,7 +25,7 @@ describe('POST /messaging/send-weekly-stats', () => {
         await app.close();
     });
 
-    test('should process weekly stats and return success with the number of patients processed', async () => {
+    it('should process weekly stats and return success with the number of patients processed', async () => {
         const successConfig = MESSAGING_RESPONSES.SUCCESS.SEND_WEEKLY_STATS;
 
         const response = await app.inject({
@@ -30,7 +40,7 @@ describe('POST /messaging/send-weekly-stats', () => {
         });
     });
 
-    test('should return 404 if no sessions are found for the statistics period', async () => {
+    it('should return 404 if no sessions are found for the statistics period', async () => {
         const { supabaseClient } = require('@common/infrastructure/database/supabaseClient');
         await supabaseClient.from('PatientSession').delete().neq('id', 0);
 

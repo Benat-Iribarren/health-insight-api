@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { DropoutAnalysisService } from '../../application/DropoutAnalysisService';
 import { DropoutRepository } from '../../domain/interfaces/DropoutRepository';
+import { CLINICAL_RESPONSES } from '../../domain/ClinicalError';
 
 export default function predictDropout(dependencies: { dropoutRepo: DropoutRepository }) {
     return async function (fastify: FastifyInstance) {
@@ -8,15 +9,60 @@ export default function predictDropout(dependencies: { dropoutRepo: DropoutRepos
 
         fastify.get('/clinical-intelligence/predict-dropout/:patientId?', async (request, reply) => {
             const { patientId } = request.params as { patientId?: string };
+
+            if (patientId && isNaN(Number(patientId))) {
+                const noData = CLINICAL_RESPONSES.ERRORS.NO_DATA;
+                return reply.status(noData.status).send({
+                    status: 'error',
+                    error: { code: noData.code, message: noData.message }
+                });
+            }
+
             try {
-                const analysis = await service.execute(patientId);
-                if (patientId && (!analysis || analysis.length === 0)) {
-                    return reply.status(404).send({ error: 'Patient not found' });
+                const result = await service.execute(patientId);
+
+                if ('type' in result) {
+                    const errorConfig = Object.values(CLINICAL_RESPONSES.ERRORS).find(
+                        (e) => e.code === result.type
+                    );
+
+                    if (!errorConfig) {
+                        const internal = CLINICAL_RESPONSES.ERRORS.ANALYSIS_FAILED;
+                        return reply.status(internal.status).send({
+                            status: 'error',
+                            error: { code: internal.code, message: internal.message }
+                        });
+                    }
+
+                    return reply.status(errorConfig.status).send({
+                        status: 'error',
+                        error: { code: errorConfig.code, message: errorConfig.message }
+                    });
                 }
-                return reply.send(patientId ? analysis[0] : analysis);
+
+                const successConfig = CLINICAL_RESPONSES.SUCCESS.ANALYSIS_COMPLETED;
+
+                if (patientId && (result as any[]).length === 0) {
+                    const noData = CLINICAL_RESPONSES.ERRORS.NO_DATA;
+                    return reply.status(noData.status).send({
+                        status: 'error',
+                        error: { code: noData.code, message: noData.message }
+                    });
+                }
+
+                return reply.status(successConfig.code).send({
+                    status: successConfig.status,
+                    message: successConfig.message,
+                    data: patientId ? result[0] : result
+                });
+
             } catch (error) {
                 fastify.log.error(error);
-                return reply.status(500).send({ error: 'Internal Server Error' });
+                const internal = CLINICAL_RESPONSES.ERRORS.ANALYSIS_FAILED;
+                return reply.status(internal.status).send({
+                    status: 'error',
+                    error: { code: internal.code, message: internal.message }
+                });
             }
         });
     };
