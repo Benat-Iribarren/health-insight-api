@@ -14,6 +14,7 @@ export class HtmlImageGenerator {
         return await nodeHtmlToImage({
             transparent: true,
             puppeteerArgs: {
+                executablePath: '/usr/bin/google-chrome',
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
