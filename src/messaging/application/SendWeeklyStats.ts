@@ -1,13 +1,11 @@
 import { StatsRepository } from "../domain/interfaces/StatsRepository";
-import { MailRepository } from "../domain/interfaces/MailRepository";
-import { HtmlImageGenerator } from "../infrastructure/images/HtmlImageGenerator";
+import { OutboxRepository } from "../domain/interfaces/OutboxRepository";
 import { MESSAGING_RESPONSES } from "../domain/MessagingError";
 
 export class SendWeeklyStats {
     constructor(
         private readonly statsRepo: StatsRepository,
-        private readonly mailRepo: MailRepository,
-        private readonly imageGen: HtmlImageGenerator
+        private readonly outboxRepo: OutboxRepository
     ) {}
 
     async execute(): Promise<{ processed: number } | { type: string }> {
@@ -56,15 +54,17 @@ export class SendWeeklyStats {
             });
 
             let processedCount = 0;
-            for (const [_, stats] of patientMap) {
-                const chartBuffer = await this.imageGen.generateWeeklyDashboard(stats);
-                const mailResult = await this.mailRepo.send(stats.email, "Resumen", "Balance semanal", stats, chartBuffer);
-
-                if (mailResult && mailResult.success) {
-                    processedCount++;
-                } else {
-                    return { type: MESSAGING_RESPONSES.ERRORS.MAIL_FAILURE.code };
-                }
+            for (const [patientId, stats] of patientMap) {
+                await this.outboxRepo.save({
+                    patientId: patientId,
+                    type: 'WEEKLY_STATS',
+                    payload: {
+                        email: stats.email,
+                        subject: "Resumen Balance Semanal",
+                        stats: stats
+                    }
+                });
+                processedCount++;
             }
 
             return { processed: processedCount };
