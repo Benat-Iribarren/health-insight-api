@@ -3,11 +3,13 @@ import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import jwt from '@fastify/jwt';
 import { registerRoutes } from '../endpoints/routes';
+import { securityLogger } from './securityLogger';
 
 export function build(): FastifyInstance {
     const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
 
     const app = Fastify({
+        trustProxy: true,
         logger: {
             transport: isDev ? { target: 'pino-pretty' } : undefined
         }
@@ -19,6 +21,9 @@ export function build(): FastifyInstance {
 
     registerSwagger(app);
     registerSwaggerUI(app);
+
+    app.addHook('preHandler', securityLogger);
+
     registerRoutes(app);
 
     return app;

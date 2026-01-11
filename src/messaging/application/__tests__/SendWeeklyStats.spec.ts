@@ -8,8 +8,7 @@ describe('SendWeeklyStats Service', () => {
 
     const service = new SendWeeklyStats(
         mockStatsRepo as any,
-        mockMailRepo as any,
-        mockImageGen as any
+        mockMailRepo as any
     );
 
     beforeEach(() => {
