@@ -5,23 +5,23 @@ export const securityLogger = async (
     request: FastifyRequest,
     _reply: FastifyReply
 ): Promise<void> => {
-    const user = request.user as any;
-    const userId = user?.id || 'ANONYMOUS';
+    if (request.url === '/ping' || request.routeOptions.url === '/ping') {
+        return;
+    }
 
+    const user = request.user as any;
     const logEntry = {
-        user_id: userId,
+        user_id: user?.id || 'ANONYMOUS',
         endpoint: `${request.method} ${request.url}`,
         ip_address: request.ip,
         user_agent: request.headers['user-agent'] || 'UNKNOWN',
-        created_at: new Date().toISOString(),
+        created_at: new Date().toISOString()
     };
 
     supabaseClient
         .from('SecurityLogs')
         .insert([logEntry])
         .then(({ error }) => {
-            if (error) {
-                console.error('Security Log Error:', error.message);
-            }
+            if (error) console.error('Security Log Error:', error.message);
         });
 };
