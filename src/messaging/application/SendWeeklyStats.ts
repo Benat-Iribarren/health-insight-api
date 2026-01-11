@@ -1,13 +1,11 @@
 import { StatsRepository } from "../domain/interfaces/StatsRepository";
-import { MailRepository } from "../domain/interfaces/MailRepository";
-import { HtmlImageGenerator } from "../infrastructure/images/HtmlImageGenerator";
+import { OutboxRepository } from "../domain/interfaces/OutboxRepository";
 import { MESSAGING_RESPONSES } from "../domain/MessagingError";
 
 export class SendWeeklyStats {
     constructor(
         private readonly statsRepo: StatsRepository,
-        private readonly mailRepo: MailRepository,
-        private readonly imageGen: HtmlImageGenerator
+        private readonly outboxRepo: OutboxRepository
     ) {}
 
     async execute(): Promise<{ processed: number } | { type: string }> {
@@ -33,10 +31,11 @@ export class SendWeeklyStats {
             }
 
             const patientMap = new Map<number, any>();
+
             allSessions.forEach(s => {
                 if (!patientMap.has(s.patient_id)) {
                     patientMap.set(s.patient_id, {
-                        patientName: s.patient_name,
+                        patientName: s.patient_name || 'Paciente',
                         email: s.email,
                         completed: 0,
                         inProgress: 0,
@@ -44,8 +43,10 @@ export class SendWeeklyStats {
                         nextWeekSessions: 0
                     });
                 }
+
                 const p = patientMap.get(s.patient_id);
                 const sessionDate = new Date(s.assigned_date);
+
                 if (sessionDate <= endOfLastWeek) {
                     if (s.state === 'completed') p.completed++;
                     else if (s.state === 'in_progress') p.inProgress++;
@@ -56,15 +57,17 @@ export class SendWeeklyStats {
             });
 
             let processedCount = 0;
-            for (const [_, stats] of patientMap) {
-                const chartBuffer = await this.imageGen.generateWeeklyDashboard(stats);
-                const mailResult = await this.mailRepo.send(stats.email, "Resumen", "Balance semanal", stats, chartBuffer);
-
-                if (mailResult && mailResult.success) {
-                    processedCount++;
-                } else {
-                    return { type: MESSAGING_RESPONSES.ERRORS.MAIL_FAILURE.code };
-                }
+            for (const [patientId, stats] of patientMap) {
+                await this.outboxRepo.save({
+                    patientId: patientId,
+                    type: 'WEEKLY_STATS',
+                    payload: {
+                        email: stats.email,
+                        subject: "Resumen Balance Semanal",
+                        stats: stats
+                    }
+                });
+                processedCount++;
             }
 
             return { processed: processedCount };

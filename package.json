@@ -5,6 +5,8 @@
   "main": "dist/common/infrastructure/server/index.js",
   "type": "commonjs",
   "scripts": {
+    "dev:worker": "ts-node -r dotenv/config -r tsconfig-paths/register src/messaging/infrastructure/worker/MessagingWorker.ts",
+    "start:worker": "NODE_ENV=production node dist/messaging/infrastructure/worker/MessagingWorker.js",
     "dev": "nodemon --ext ts --watch src --exec \"ts-node -r dotenv/config -r tsconfig-paths/register src/common/infrastructure/server/index.ts\"",
     "build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "NODE_ENV=production node dist/common/infrastructure/server/index.js",
