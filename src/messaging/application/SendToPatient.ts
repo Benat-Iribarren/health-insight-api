@@ -1,25 +1,29 @@
 import { PatientContactRepository } from "../domain/interfaces/PatientContactRepository";
-import { MailRepository } from "../domain/interfaces/MailRepository";
-
-export const patientEmailNotFoundErrorMsg = 'PATIENT_EMAIL_NOT_FOUND' as const;
-export const successfulStatusMsg = 'SUCCESSFUL' as const;
-
-export type SendToPatientResult = typeof patientEmailNotFoundErrorMsg | typeof successfulStatusMsg;
+import { OutboxRepository } from "../domain/interfaces/OutboxRepository";
 
 export class SendToPatient {
     constructor(
         private readonly patientContactRepo: PatientContactRepository,
-        private readonly mailRepo: MailRepository
+        private readonly outboxRepo: OutboxRepository
     ) {}
 
-    async execute(input: { patientId: number; subject: string; body: string }): Promise<SendToPatientResult> {
+    async execute(input: { patientId: number; subject: string; body: string }): Promise<boolean> {
         const email = await this.patientContactRepo.getEmailByPatientId(input.patientId);
 
         if (!email) {
-            return patientEmailNotFoundErrorMsg;
+            return false;
         }
 
-        await this.mailRepo.send(email, input.subject, input.body);
-        return successfulStatusMsg;
+        await this.outboxRepo.save({
+            patientId: input.patientId,
+            type: 'DIRECT_MESSAGE',
+            payload: {
+                email: email,
+                subject: input.subject,
+                body: input.body
+            }
+        });
+
+        return true;
     }
 }

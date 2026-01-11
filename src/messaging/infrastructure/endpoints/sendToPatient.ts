@@ -1,15 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { SendToPatient } from '../../application/SendToPatient';
-import { PatientContactRepository } from '../../domain/interfaces/PatientContactRepository';
-import { MailRepository } from '../../domain/interfaces/MailRepository';
 import { MESSAGING_RESPONSES } from '../../domain/MessagingError';
 
-interface SendToPatientDependencies {
-    patientContactRepo: PatientContactRepository;
-    mailRepo: MailRepository;
-}
-
-export default function sendToPatient(deps: SendToPatientDependencies) {
+export default function sendToPatient(deps: any) {
     return async function (fastify: FastifyInstance) {
         fastify.post('/messaging/send-to-patient', async (request, reply) => {
             try {
@@ -19,10 +12,10 @@ export default function sendToPatient(deps: SendToPatientDependencies) {
                     body: string
                 };
 
-                const service = new SendToPatient(deps.patientContactRepo, deps.mailRepo);
-                const result = await service.execute({ patientId, subject, body });
+                const service = new SendToPatient(deps.patientContactRepo, deps.outboxRepo);
+                const success = await service.execute({ patientId, subject, body });
 
-                if (result === MESSAGING_RESPONSES.ERRORS.PATIENT_EMAIL_NOT_FOUND.code) {
+                if (!success) {
                     const errorConfig = MESSAGING_RESPONSES.ERRORS.PATIENT_EMAIL_NOT_FOUND;
                     return reply.status(errorConfig.status).send({
                         status: 'error',

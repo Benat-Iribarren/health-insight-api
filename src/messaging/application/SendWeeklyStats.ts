@@ -31,10 +31,11 @@ export class SendWeeklyStats {
             }
 
             const patientMap = new Map<number, any>();
+
             allSessions.forEach(s => {
                 if (!patientMap.has(s.patient_id)) {
                     patientMap.set(s.patient_id, {
-                        patientName: s.patient_name,
+                        patientName: s.patient_name || 'Paciente',
                         email: s.email,
                         completed: 0,
                         inProgress: 0,
@@ -42,8 +43,10 @@ export class SendWeeklyStats {
                         nextWeekSessions: 0
                     });
                 }
+
                 const p = patientMap.get(s.patient_id);
                 const sessionDate = new Date(s.assigned_date);
+
                 if (sessionDate <= endOfLastWeek) {
                     if (s.state === 'completed') p.completed++;
                     else if (s.state === 'in_progress') p.inProgress++;
