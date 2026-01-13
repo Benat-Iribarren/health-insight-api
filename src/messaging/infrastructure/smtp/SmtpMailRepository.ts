@@ -6,9 +6,9 @@ export class SmtpMailRepository implements MailRepository {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            host: 'smtp.zoho.eu',
-            port: 587,
-            secure: false,
+            host: 'smtp.gmail.com',
+            port: 2525,             // 2. Puerto 2525 habilitado por DO
+            secure: false,          // 3. STARTTLS requiere false en este puerto
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
@@ -17,8 +17,8 @@ export class SmtpMailRepository implements MailRepository {
                 rejectUnauthorized: false,
                 minVersion: 'TLSv1.2'
             },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000
+            connectionTimeout: 15000,
+            greetingTimeout: 15000
         });
     }
 

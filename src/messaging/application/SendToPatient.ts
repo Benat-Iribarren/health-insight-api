@@ -1,10 +1,10 @@
 import { PatientContactRepository } from "../domain/interfaces/PatientContactRepository";
-import { OutboxRepository } from "../domain/interfaces/OutboxRepository";
+import { MailRepository } from "../domain/interfaces/MailRepository"; // Cambiado de OutboxRepository
 
 export class SendToPatient {
     constructor(
         private readonly patientContactRepo: PatientContactRepository,
-        private readonly outboxRepo: OutboxRepository
+        private readonly mailRepo: MailRepository // Ahora inyectamos el MailRepository
     ) {}
 
     async execute(input: { patientId: number; subject: string; body: string }): Promise<boolean> {
@@ -14,16 +14,9 @@ export class SendToPatient {
             return false;
         }
 
-        await this.outboxRepo.save({
-            patientId: input.patientId,
-            type: 'DIRECT_MESSAGE',
-            payload: {
-                email: email,
-                subject: input.subject,
-                body: input.body
-            }
-        });
+        // ENVÍO DIRECTO: Llamamos al repositorio SMTP de forma síncrona
+        const result = await this.mailRepo.send(email, input.subject, input.body);
 
-        return true;
+        return result.success;
     }
 }

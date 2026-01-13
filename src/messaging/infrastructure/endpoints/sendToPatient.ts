@@ -11,8 +11,7 @@ export default function sendToPatient(deps: any) {
                     subject: string,
                     body: string
                 };
-
-                const service = new SendToPatient(deps.patientContactRepo, deps.outboxRepo);
+                const service = new SendToPatient(deps.patientContactRepo, deps.mailRepo);
                 const success = await service.execute({ patientId, subject, body });
 
                 if (!success) {

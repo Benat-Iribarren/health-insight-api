@@ -5,8 +5,6 @@
   "main": "dist/common/infrastructure/server/index.js",
   "type": "commonjs",
   "scripts": {
-    "dev:worker": "ts-node -r dotenv/config -r tsconfig-paths/register src/messaging/infrastructure/worker/MessagingWorker.ts",
-    "start:worker": "NODE_ENV=production node dist/messaging/infrastructure/worker/MessagingWorker.js",
     "dev": "nodemon --ext ts --watch src --exec \"ts-node -r dotenv/config -r tsconfig-paths/register src/common/infrastructure/server/index.ts\"",
     "build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "NODE_ENV=production node dist/common/infrastructure/server/index.js",
@@ -21,9 +19,9 @@
     "dotenv": "^16.4.0",
     "fastify": "^5.0.0",
     "fastify-plugin": "^5.0.1",
+    "googleapis": "^128.0.0",
     "kysely": "^0.27.0",
     "node-html-to-image": "^5.0.0",
-    "nodemailer": "^6.9.0",
     "pg": "^8.11.0",
     "pino-pretty": "^11.0.0",
     "tsconfig-paths": "^4.2.0"
@@ -31,7 +29,6 @@
   "devDependencies": {
     "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
-    "@types/nodemailer": "^6.4.0",
     "@types/pg": "^8.11.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
@@ -39,7 +36,6 @@
     "eslint": "^8.57.0",
     "husky": "^9.0.0",
     "jest": "^29.7.0",
-    "jest-runner-groups": "^2.2.0",
     "nodemon": "^3.1.0",
     "prettier": "^3.2.0",
     "ts-jest": "^29.4.6",
