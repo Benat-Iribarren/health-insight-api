@@ -1,12 +1,13 @@
 import { FastifyInstance } from 'fastify';
 import { supabaseClient } from '../database/supabaseClient';
-import { SupabaseUserRepository } from '@src/identity/infrastructure/database/repositories/SupabaseUserRepository';
-import sendToPatient from '@src/messaging/infrastructure/endpoints/sendToPatient';
-import sendWeeklyStats from '@src/messaging/infrastructure/endpoints/sendWeeklyStats';
-import predictDropout from '@src/clinical-intelligence/infrastructure/endpoints/predictDropout';
+import { GmailApiMailRepository } from "@src/messaging/infrastructure/smtp/GmailApiMailRepository";
 import { SupabasePatientContactRepository } from '@src/messaging/infrastructure/database/SupabasePatientContactRepository';
 import { SupabaseStatsRepository } from '@src/messaging/infrastructure/database/SupabaseStatsRepository';
-import { GmailApiMailRepository } from "@src/messaging/infrastructure/smtp/GmailApiMailRepository";
+
+import presenceMinute from '@src/biometrics/infrastructure/endpoints/presenceMinute';
+
+import sendToPatient from '@src/messaging/infrastructure/endpoints/sendToPatient';
+import sendWeeklyStats from '@src/messaging/infrastructure/endpoints/sendWeeklyStats';
 
 export function registerRoutes(fastify: FastifyInstance) {
     const statsRepo = new SupabaseStatsRepository(supabaseClient);
@@ -17,7 +18,13 @@ export function registerRoutes(fastify: FastifyInstance) {
         return { status: 'ok' };
     });
 
+    // 2. Registra el endpoint de presencia aquí.
+    // Al estar fuera de 'professionalApp', permites que los pacientes (autenticados)
+    // puedan enviar su heartbeat minutal.
+    fastify.register(presenceMinute());
+
     fastify.register(async (authenticatedApp) => {
+        // Los endpoints dentro de professionalApp requieren verificación extra
         authenticatedApp.register(async (professionalApp) => {
             professionalApp.register(
                 sendToPatient({
