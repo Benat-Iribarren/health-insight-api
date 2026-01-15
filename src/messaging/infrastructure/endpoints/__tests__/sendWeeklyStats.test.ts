@@ -1,7 +1,7 @@
 import { build } from '@common/infrastructure/server/serverBuild';
 import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
 import { MESSAGING_RESPONSES } from '../../../domain/MessagingError';
-jest.mock('../../smtp/SmtpMailRepository', () => ({
+jest.mock('@src/messaging/infrastructure/gmail/SmtpMailRepository', () => ({
     SmtpMailRepository: jest.fn().mockImplementation(() => ({
         send: jest.fn().mockResolvedValue({ success: true })
     }))

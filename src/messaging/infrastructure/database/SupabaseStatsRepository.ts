@@ -1,34 +1,38 @@
-import { StatsRepository, RawSessionData } from "../../domain/interfaces/StatsRepository";
-import { DBClientService } from "@common/infrastructure/database/supabaseClient";
+import { StatsRepository, PatientStats } from "../../domain/interfaces/StatsRepository";
+import { DBClientService } from "@src/common/infrastructure/database/supabaseClient";
 
 export class SupabaseStatsRepository implements StatsRepository {
     constructor(private readonly supabase: DBClientService) {}
 
-    async getSessionsInRange(startDate: Date, endDate: Date): Promise<RawSessionData[]> {
-        const { data, error } = await this.supabase
+    async getPatientStats(patientId: number): Promise<PatientStats> {
+        const { data: patient, error: pError } = await this.supabase
+            .from('Patient')
+            .select('email')
+            .eq('id', patientId)
+            .single();
+
+        if (pError || !patient) throw new Error("PATIENT_NOT_FOUND");
+
+        const { data: sessions, error: sError } = await this.supabase
             .from('PatientSession')
-            .select(`
-                state,
-                assigned_date,
-                patient_id,
-                Patient!inner ( 
-                    name, 
-                    email 
-                )
-            `)
-            .gte('assigned_date', startDate.toISOString())
-            .lte('assigned_date', endDate.toISOString());
+            .select('state')
+            .eq('patient_id', patientId);
 
-        if (error || !data) {
-            return [];
-        }
+        if (sError) throw new Error("STATS_QUERY_ERROR");
 
-        return data.map((s: any) => ({
-            patient_id: s.patient_id,
-            patient_name: s.Patient.name,
-            email: s.Patient.email,
-            state: s.state,
-            assigned_date: s.assigned_date
-        }));
+        const stats: PatientStats = {
+            email: patient.email,
+            completed: 0,
+            inProgress: 0,
+            notStarted: 0
+        };
+
+        sessions?.forEach(session => {
+            if (session.state === 'completed') stats.completed++;
+            else if (session.state === 'in_progress') stats.inProgress++;
+            else if (session.state === 'not_started') stats.notStarted++;
+        });
+
+        return stats;
     }
 }

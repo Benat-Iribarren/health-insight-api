@@ -1,11 +1,10 @@
-export interface RawSessionData {
-    patient_id: number;
-    patient_name: string;
+export interface PatientStats {
     email: string;
-    state: string;
-    assigned_date: string;
+    completed: number;
+    inProgress: number;
+    notStarted: number;
 }
 
 export interface StatsRepository {
-    getSessionsInRange(startDate: Date, endDate: Date): Promise<RawSessionData[]>;
+    getPatientStats(patientId: number): Promise<PatientStats>;
 }

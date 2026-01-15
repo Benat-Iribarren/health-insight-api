@@ -14,49 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
-      MessagingOutbox: {
+      biometric_minutes: {
         Row: {
-          attempts: number | null
-          created_at: string | null
-          id: string
-          last_error: string | null
-          patient_id: number | null
-          payload: Json
-          status: string | null
-          type: string
-          updated_at: string | null
+          attempt_no: number | null
+          context_type: string | null
+          created_at: string
+          device_sn: string | null
+          eda_scl_usiemens: number | null
+          id: number
+          import_batch_id: string | null
+          participant_full_id: string
+          patient_id: string | null
+          prv_rmssd_ms: number | null
+          pulse_rate_bpm: number | null
+          respiratory_rate_brpm: number | null
+          session_id: string | null
+          spo2_percentage: number | null
+          temperature_celsius: number | null
+          timestamp_iso: string
+          timestamp_unix_ms: number
         }
         Insert: {
-          attempts?: number | null
-          created_at?: string | null
-          id?: string
-          last_error?: string | null
-          patient_id?: number | null
-          payload: Json
-          status?: string | null
-          type: string
-          updated_at?: string | null
+          attempt_no?: number | null
+          context_type?: string | null
+          created_at?: string
+          device_sn?: string | null
+          eda_scl_usiemens?: number | null
+          id?: number
+          import_batch_id?: string | null
+          participant_full_id: string
+          patient_id?: string | null
+          prv_rmssd_ms?: number | null
+          pulse_rate_bpm?: number | null
+          respiratory_rate_brpm?: number | null
+          session_id?: string | null
+          spo2_percentage?: number | null
+          temperature_celsius?: number | null
+          timestamp_iso: string
+          timestamp_unix_ms: number
         }
         Update: {
-          attempts?: number | null
-          created_at?: string | null
-          id?: string
-          last_error?: string | null
-          patient_id?: number | null
-          payload?: Json
-          status?: string | null
-          type?: string
-          updated_at?: string | null
+          attempt_no?: number | null
+          context_type?: string | null
+          created_at?: string
+          device_sn?: string | null
+          eda_scl_usiemens?: number | null
+          id?: number
+          import_batch_id?: string | null
+          participant_full_id?: string
+          patient_id?: string | null
+          prv_rmssd_ms?: number | null
+          pulse_rate_bpm?: number | null
+          respiratory_rate_brpm?: number | null
+          session_id?: string | null
+          spo2_percentage?: number | null
+          temperature_celsius?: number | null
+          timestamp_iso?: string
+          timestamp_unix_ms?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "MessagingOutbox_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "Patient"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      context_intervals: {
+        Row: {
+          attempt_no: number | null
+          context_type: string
+          created_at: string
+          end_minute_utc: string
+          id: number
+          patient_id: string
+          session_id: string | null
+          start_minute_utc: string
+        }
+        Insert: {
+          attempt_no?: number | null
+          context_type: string
+          created_at?: string
+          end_minute_utc: string
+          id?: number
+          patient_id: string
+          session_id?: string | null
+          start_minute_utc: string
+        }
+        Update: {
+          attempt_no?: number | null
+          context_type?: string
+          created_at?: string
+          end_minute_utc?: string
+          id?: number
+          patient_id?: string
+          session_id?: string | null
+          start_minute_utc?: string
+        }
+        Relationships: []
       }
       Patient: {
         Row: {
@@ -96,6 +145,41 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      patientnotifications: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          patient_id: number | null
+          subject: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          patient_id?: number | null
+          subject: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          patient_id?: number | null
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patientnotifications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "Patient"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       PatientSession: {
         Row: {

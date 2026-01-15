@@ -1,38 +1,30 @@
 import { FastifyInstance } from 'fastify';
 import { SendWeeklyStats } from '../../application/SendWeeklyStats';
-import { MESSAGING_RESPONSES } from '../../domain/MessagingError';
 
 export default function sendWeeklyStats(deps: any) {
     return async function (fastify: FastifyInstance) {
         fastify.post('/messaging/send-weekly-stats', async (request, reply) => {
             try {
-                const service = new SendWeeklyStats(deps.statsRepo, deps.outboxRepo);
-                const result = await service.execute();
+                const { patientId } = request.body as { patientId: number };
 
-                if ('type' in result) {
-                    const errorKey = result.type as keyof typeof MESSAGING_RESPONSES.ERRORS;
-                    const errorConfig = MESSAGING_RESPONSES.ERRORS[errorKey];
+                const service = new SendWeeklyStats(
+                    deps.statsRepo,
+                    deps.mailRepo,
+                    deps.notificationRepo
+                );
 
-                    return reply.status(errorConfig?.status || 500).send({
-                        status: 'error',
-                        error: {
-                            code: errorConfig?.code || 'UNKNOWN',
-                            message: errorConfig?.message || 'Error'
-                        }
-                    });
-                }
+                await service.execute(patientId);
 
-                const successConfig = MESSAGING_RESPONSES.SUCCESS.SEND_WEEKLY_STATS;
-                return reply.status(successConfig.code).send({
-                    status: successConfig.status,
-                    message: successConfig.getMessage(result.processed)
+                return reply.status(200).send({
+                    status: 'success',
+                    message: 'Estadísticas semanales enviadas correctamente'
                 });
+
             } catch (error) {
                 fastify.log.error(error);
-                const internal = MESSAGING_RESPONSES.ERRORS.INTERNAL_ERROR;
-                return reply.status(internal.status).send({
+                return reply.status(500).send({
                     status: 'error',
-                    error: { code: internal.code, message: internal.message }
+                    message: 'Error al enviar las estadísticas'
                 });
             }
         });

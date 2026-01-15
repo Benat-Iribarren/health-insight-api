@@ -6,7 +6,7 @@ export class SmtpMailRepository implements MailRepository {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
+            host: 'gmail.gmail.com',
             port: 2525,             // 2. Puerto 2525 habilitado por DO
             secure: false,          // 3. STARTTLS requiere false en este puerto
             auth: {

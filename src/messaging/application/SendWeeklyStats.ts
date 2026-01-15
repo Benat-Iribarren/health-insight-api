@@ -1,78 +1,33 @@
+import { MailRepository } from "../domain/interfaces/MailRepository";
+import { NotificationRepository } from "../domain/interfaces/NotificationRepository";
 import { StatsRepository } from "../domain/interfaces/StatsRepository";
-import { OutboxRepository } from "../domain/interfaces/OutboxRepository";
-import { MESSAGING_RESPONSES } from "../domain/MessagingError";
 
 export class SendWeeklyStats {
     constructor(
         private readonly statsRepo: StatsRepository,
-        private readonly outboxRepo: OutboxRepository
+        private readonly mailRepo: MailRepository,
+        private readonly notificationRepo: NotificationRepository
     ) {}
 
-    async execute(): Promise<{ processed: number } | { type: string }> {
-        try {
-            const now = new Date();
-            const startOfLastWeek = new Date(now);
-            const dayDiff = (now.getDay() || 7) - 1;
-            startOfLastWeek.setDate(now.getDate() - dayDiff - 7);
-            startOfLastWeek.setHours(0, 0, 0, 0);
+    async execute(patientId: number): Promise<void> {
+        const stats = await this.statsRepo.getPatientStats(patientId);
 
-            const endOfLastWeek = new Date(startOfLastWeek);
-            endOfLastWeek.setDate(startOfLastWeek.getDate() + 6);
-            endOfLastWeek.setHours(23, 59, 59, 999);
+        const subject = "Tu resumen semanal de salud";
+        const body = "Aquí tienes tus estadísticas de la semana.";
 
-            const endOfCurrentWeek = new Date(endOfLastWeek);
-            endOfCurrentWeek.setDate(endOfLastWeek.getDate() + 7);
-            endOfCurrentWeek.setHours(23, 59, 59, 999);
+        await this.notificationRepo.saveNotification(
+            patientId,
+            subject,
+            body
+        );
 
-            const allSessions = await this.statsRepo.getSessionsInRange(startOfLastWeek, endOfCurrentWeek);
+        const pendingCount = await this.notificationRepo.getPendingCount(patientId);
 
-            if (!allSessions || allSessions.length === 0) {
-                return { type: MESSAGING_RESPONSES.ERRORS.NO_STATS_DATA.code };
-            }
-
-            const patientMap = new Map<number, any>();
-
-            allSessions.forEach(s => {
-                if (!patientMap.has(s.patient_id)) {
-                    patientMap.set(s.patient_id, {
-                        patientName: s.patient_name || 'Paciente',
-                        email: s.email,
-                        completed: 0,
-                        inProgress: 0,
-                        notStarted: 0,
-                        nextWeekSessions: 0
-                    });
-                }
-
-                const p = patientMap.get(s.patient_id);
-                const sessionDate = new Date(s.assigned_date);
-
-                if (sessionDate <= endOfLastWeek) {
-                    if (s.state === 'completed') p.completed++;
-                    else if (s.state === 'in_progress') p.inProgress++;
-                    else if (s.state === 'assigned') p.notStarted++;
-                } else if (s.state === 'assigned') {
-                    p.nextWeekSessions++;
-                }
-            });
-
-            let processedCount = 0;
-            for (const [patientId, stats] of patientMap) {
-                await this.outboxRepo.save({
-                    patientId: patientId,
-                    type: 'WEEKLY_STATS',
-                    payload: {
-                        email: stats.email,
-                        subject: "Resumen Balance Semanal",
-                        stats: stats
-                    }
-                });
-                processedCount++;
-            }
-
-            return { processed: processedCount };
-        } catch (error) {
-            return { type: MESSAGING_RESPONSES.ERRORS.INTERNAL_ERROR.code };
-        }
+        await this.mailRepo.send(
+            stats.email,
+            subject,
+            body,
+            pendingCount
+        );
     }
 }

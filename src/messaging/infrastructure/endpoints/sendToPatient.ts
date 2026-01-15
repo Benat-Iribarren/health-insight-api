@@ -1,38 +1,45 @@
 import { FastifyInstance } from 'fastify';
 import { SendToPatient } from '../../application/SendToPatient';
-import { MESSAGING_RESPONSES } from '../../domain/MessagingError';
 
 export default function sendToPatient(deps: any) {
     return async function (fastify: FastifyInstance) {
         fastify.post('/messaging/send-to-patient', async (request, reply) => {
             try {
                 const { patientId, subject, body } = request.body as {
-                    patientId: number,
-                    subject: string,
-                    body: string
+                    patientId: number;
+                    subject: string;
+                    body: string;
                 };
-                const service = new SendToPatient(deps.patientContactRepo, deps.mailRepo);
-                const success = await service.execute({ patientId, subject, body });
+
+                const service = new SendToPatient(
+                    deps.patientContactRepo,
+                    deps.mailRepo,
+                    deps.notificationRepo
+                );
+
+                const success = await service.execute({
+                    patientId,
+                    subject,
+                    body
+                });
 
                 if (!success) {
-                    const errorConfig = MESSAGING_RESPONSES.ERRORS.PATIENT_EMAIL_NOT_FOUND;
-                    return reply.status(errorConfig.status).send({
+                    return reply.status(404).send({
                         status: 'error',
-                        error: { code: errorConfig.code, message: errorConfig.message }
+                        message: 'No se pudo encontrar el contacto del paciente'
                     });
                 }
 
-                const successConfig = MESSAGING_RESPONSES.SUCCESS.SEND_TO_PATIENT;
-                return reply.status(successConfig.code).send({
-                    status: successConfig.status,
-                    message: successConfig.message
+                return reply.status(200).send({
+                    status: 'success',
+                    message: 'Mensaje guardado y notificación enviada correctamente'
                 });
+
             } catch (error) {
                 fastify.log.error(error);
-                const internal = MESSAGING_RESPONSES.ERRORS.INTERNAL_ERROR;
-                return reply.status(internal.status).send({
+                return reply.status(500).send({
                     status: 'error',
-                    error: { code: internal.code, message: internal.message }
+                    message: 'Error interno al procesar el envío'
                 });
             }
         });

@@ -1,18 +1,26 @@
 import { SendToPatient } from '../SendToPatient';
-import { MESSAGING_RESPONSES } from '../../domain/MessagingError';
 
 describe('SendToPatient Service', () => {
     const mockPatientRepo = { getEmailByPatientId: jest.fn() };
     const mockMailRepo = { send: jest.fn() };
+    const mockNotificationRepo = {
+        saveNotification: jest.fn(),
+        getPendingCount: jest.fn()
+    };
 
-    const service = new SendToPatient(mockPatientRepo as any, mockMailRepo as any);
+    const service = new SendToPatient(
+        mockPatientRepo as any,
+        mockMailRepo as any,
+        mockNotificationRepo as any
+    );
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('should return SUCCESSFUL when patient email exists and mail is sent', async () => {
+    it('should return true when patient email exists and mail is sent', async () => {
         mockPatientRepo.getEmailByPatientId.mockResolvedValue('test@patient.com');
+        mockNotificationRepo.getPendingCount.mockResolvedValue(1);
         mockMailRepo.send.mockResolvedValue({ success: true });
 
         const result = await service.execute({
@@ -21,11 +29,12 @@ describe('SendToPatient Service', () => {
             body: 'Body'
         });
 
-        expect(result).toBe('SUCCESSFUL');
-        expect(mockMailRepo.send).toHaveBeenCalledWith('test@patient.com', 'Test', 'Body');
+        expect(result).toBe(true);
+        expect(mockNotificationRepo.saveNotification).toHaveBeenCalledWith(1, 'Test', 'Body');
+        expect(mockMailRepo.send).toHaveBeenCalledWith('test@patient.com', 'Test', 'Body', 1);
     });
 
-    it('should return error code when patient email is not found', async () => {
+    it('should return false when patient email is not found', async () => {
         mockPatientRepo.getEmailByPatientId.mockResolvedValue(null);
 
         const result = await service.execute({
@@ -34,7 +43,8 @@ describe('SendToPatient Service', () => {
             body: 'Body'
         });
 
-        expect(result).toBe(MESSAGING_RESPONSES.ERRORS.PATIENT_EMAIL_NOT_FOUND.code);
+        expect(result).toBe(false);
+        expect(mockNotificationRepo.saveNotification).not.toHaveBeenCalled();
         expect(mockMailRepo.send).not.toHaveBeenCalled();
     });
 });
