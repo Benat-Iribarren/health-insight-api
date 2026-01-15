@@ -9,7 +9,7 @@ export class HtmlImageGenerator {
         const inProgressEnd = completedPct + inProgressPct;
 
         const isPerfect = completedPct === 100;
-        const statusLabel = isPerfect ? "🏆 ¡Objetivo Cumplido!" : "Progreso de Adherencia";
+        const statusLabel = isPerfect ? "¡Objetivo Cumplido!" : "Progreso de Adherencia";
         const progressColor = isPerfect ? "#f59e0b" : "#10b981";
         const labelColor = isPerfect ? "#f59e0b" : "#1a2a6c";
 
