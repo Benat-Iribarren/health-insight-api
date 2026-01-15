@@ -68,11 +68,11 @@ export class GmailApiMailRepository implements MailRepository {
             </div>
 
             <p style="color: #64748b; font-size: 15px; line-height: 1.6; margin-bottom: 35px;">
-                Tu especialista ha actualizado tu seguimiento. Accede a la plataforma para revisar los nuevos mensajes y continuar con tu progreso.
+                Tu especialista ha actualizado tu seguimiento. Accede a la plataforma para revisar los nuevos mensajes.
             </p>
 
-            <a href="https://health-insight-web.vercel.app/notifications" 
-               style="background: linear-gradient(to bottom, #10b981 0%, #059669 100%); color: #ffffff; padding: 18px 36px; text-decoration: none; border-radius: 50px; font-weight: 700; display: inline-block; font-size: 14px; letter-spacing: 1px; border-bottom: 4px solid #047857; box-shadow: 0 4px 0 #047857, 0 8px 15px rgba(0, 0, 0, 0.15); transition: all 0.2s ease;">
+            <a href="https://digital-therapy-platform.web.app" 
+               style="background: linear-gradient(to bottom, #10b981 0%, #059669 100%); color: #ffffff; padding: 18px 36px; text-decoration: none; border-radius: 50px; font-weight: 700; display: inline-block; font-size: 14px; letter-spacing: 1px; border-bottom: 4px solid #047857; box-shadow: 0 4px 0 #047857, 0 8px 15px rgba(0, 0, 0, 0.15);">
                ACCEDER A MIS MENSAJES
             </a>
         </div>`;
