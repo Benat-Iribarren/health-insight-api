@@ -28,10 +28,10 @@ export function registerRoutes(fastify: FastifyInstance) {
     fastify.register(presenceMinute());
 
     fastify.register(async (authenticatedApp) => {
-        authenticatedApp.addHook('preHandler', authenticate);
+        //authenticatedApp.addHook('preHandler', authenticate);
 
         authenticatedApp.register(async (professionalApp) => {
-            professionalApp.addHook('preHandler', verifyProfessional(userRepo));
+            //professionalApp.addHook('preHandler', verifyProfessional(userRepo));
 
             professionalApp.register(predictDropout({ dropoutRepo }));
             professionalApp.register(sendToPatient({
