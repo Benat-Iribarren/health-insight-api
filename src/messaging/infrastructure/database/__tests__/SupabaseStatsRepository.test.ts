@@ -18,13 +18,22 @@ describe('SupabaseStatsRepository', () => {
         expect(Array.isArray(result[0].sessions)).toBe(true);
     });
 
-    it('should return empty array if no patients exist', async () => {
+    it('should return an array even if the database is empty', async () => {
+        await supabaseClient.from('PatientSession').delete().neq('id', 0);
+        await supabaseClient.from('Patient').delete().neq('id', 0);
+
         const result = await repository.getAllPatientsStats();
 
         expect(Array.isArray(result)).toBe(true);
-        if (result.length > 0) {
-            expect(result[0]).toHaveProperty('completed');
-            expect(result[0]).toHaveProperty('inProgress');
-        }
+    });
+
+    it('should map the session states correctly to the patient object', async () => {
+        await initTestDatabase();
+        const result = await repository.getAllPatientsStats();
+        const patient = result.find(p => p.email === 'benat@test.com');
+
+        expect(patient).toBeDefined();
+        expect(patient?.sessions?.length).toBeGreaterThan(0);
+        expect(patient?.sessions?.[0]).toHaveProperty('state');
     });
 });

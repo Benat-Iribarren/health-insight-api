@@ -22,7 +22,9 @@ export function build(): FastifyInstance {
     registerSwagger(app);
     registerSwaggerUI(app);
 
-    app.addHook('preHandler', securityLogger);
+    if (process.env.NODE_ENV !== 'test') {
+        app.addHook('preHandler', securityLogger);
+    }
 
     registerRoutes(app);
 

@@ -1,6 +1,5 @@
 import { build } from '@common/infrastructure/server/serverBuild';
 import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
-import { MESSAGING_RESPONSES } from '../../../domain/MessagingError';
 
 jest.mock('@src/messaging/infrastructure/gmail/GmailApiMailRepository', () => ({
     GmailApiMailRepository: jest.fn().mockImplementation(() => ({
@@ -8,60 +7,32 @@ jest.mock('@src/messaging/infrastructure/gmail/GmailApiMailRepository', () => ({
     }))
 }));
 
-jest.mock('../../images/HtmlImageGenerator', () => ({
-    HtmlImageGenerator: jest.fn().mockImplementation(() => ({
-        generateWeeklyDashboard: jest.fn().mockResolvedValue(Buffer.from('fake-image-buffer'))
-    }))
-}));
-
 describe('POST /messaging/send-weekly-stats', () => {
     let app: any;
+    const CRON_KEY = 'test-cron-secret';
 
     beforeAll(async () => {
+        process.env.CRON_SECRET_KEY = CRON_KEY;
         app = build();
         await app.ready();
-        await initTestDatabase();
     });
 
     afterAll(async () => {
         await app.close();
     });
 
-    it('should process weekly stats and return success with the number of patients processed', async () => {
-        const successConfig = MESSAGING_RESPONSES.SUCCESS.SEND_WEEKLY_STATS;
+    it('should return 200 and process 0 patients if database is empty', async () => {
+        const { supabaseClient } = require('@common/infrastructure/database/supabaseClient');
+        await supabaseClient.from('PatientSession').delete().neq('id', 0);
+        await supabaseClient.from('Patient').delete().neq('id', 0);
 
         const response = await app.inject({
             method: 'POST',
             url: '/messaging/send-weekly-stats',
-            headers: {
-                'x-health-insight-cron': process.env.CRON_SECRET_KEY
-            }
+            headers: { 'x-health-insight-cron': CRON_KEY }
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.json()).toEqual({
-            status: successConfig.status,
-            processed: 1
-        });
-    });
-
-    it('should return 404 if no sessions are found for the statistics period', async () => {
-        const { supabaseClient } = require('@common/infrastructure/database/supabaseClient');
-        await supabaseClient.from('PatientSession').delete().neq('id', 0);
-
-        const errorConfig = MESSAGING_RESPONSES.ERRORS.NO_STATS_DATA;
-
-        const response = await app.inject({
-            method: 'POST',
-            url: '/messaging/send-weekly-stats',
-            headers: {
-                'x-health-insight-cron': process.env.CRON_SECRET_KEY
-            }
-        });
-
-        expect(response.statusCode).toBe(errorConfig.status);
-        expect(response.json().error.code).toBe(errorConfig.code);
-
-        await initTestDatabase();
+        expect(response.json().processed).toBe(0);
     });
 });

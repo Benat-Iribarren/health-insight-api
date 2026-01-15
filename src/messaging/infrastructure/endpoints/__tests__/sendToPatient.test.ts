@@ -1,6 +1,11 @@
 import { build } from '@common/infrastructure/server/serverBuild';
 import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
-import { MESSAGING_RESPONSES } from '../../../domain/MessagingError';
+
+jest.mock('@src/messaging/infrastructure/gmail/GmailApiMailRepository', () => ({
+    GmailApiMailRepository: jest.fn().mockImplementation(() => ({
+        send: jest.fn().mockResolvedValue({ success: true })
+    }))
+}));
 
 describe('POST /messaging/send-to-patient', () => {
     let app: any;
@@ -18,28 +23,24 @@ describe('POST /messaging/send-to-patient', () => {
     });
 
     it('should return 200 and success message when sending to a valid patient', async () => {
-        const successConfig = MESSAGING_RESPONSES.SUCCESS.SEND_TO_PATIENT;
-
         const response = await app.inject({
             method: 'POST',
             url: '/messaging/send-to-patient',
             payload: {
-                patientId: patientId,
+                patientId,
                 subject: 'Recordatorio de Salud',
                 body: 'Este es un mensaje de prueba para el test de integración.'
             }
         });
 
-        expect(response.statusCode).toBe(successConfig.code);
+        expect(response.statusCode).toBe(200);
         expect(response.json()).toEqual({
-            status: successConfig.status,
-            message: successConfig.message
+            status: 'success',
+            message: 'Mensaje guardado y notificación enviada correctamente'
         });
     });
 
     it('should return 404 when the patient does not exist in the database', async () => {
-        const errorConfig = MESSAGING_RESPONSES.ERRORS.PATIENT_EMAIL_NOT_FOUND;
-
         const response = await app.inject({
             method: 'POST',
             url: '/messaging/send-to-patient',
@@ -50,13 +51,10 @@ describe('POST /messaging/send-to-patient', () => {
             }
         });
 
-        expect(response.statusCode).toBe(errorConfig.status);
+        expect(response.statusCode).toBe(404);
         expect(response.json()).toEqual({
             status: 'error',
-            error: {
-                code: errorConfig.code,
-                message: errorConfig.message
-            }
+            message: 'No se encontró contacto'
         });
     });
 });
