@@ -48,35 +48,38 @@ export class GmailApiMailRepository implements MailRepository {
     }
 
     private getStatsHtml(stats: any): string {
+        const total = (stats.completed + stats.inProgress + stats.notStarted) || 1;
+        const progress = Math.round((stats.completed / total) * 100);
+
         return `
         <div style="text-align: center; margin-bottom: 30px;">
-            <div style="margin-bottom: 10px;">
-                <img src="cid:weekly-donut" width="300" alt="Tu Progreso" style="display: block; margin: 0 auto; max-width: 100%;">
+            <div style="margin-bottom: 20px;">
+                <img src="cid:weekly-donut" width="300" alt="Tu Evolución" style="display: block; margin: 0 auto; max-width: 100%;">
             </div>
-            <h2 style="color: #1a2a6c; font-size: 22px; margin-bottom: 10px;">Tu Progreso Semanal</h2>
-            <p style="color: #64748b; margin: 0; font-size: 14px;">Has completado el <strong>100%</strong> de tus objetivos.</p>
+            <h2 style="color: #1a2a6c; font-size: 24px; margin-bottom: 8px; font-weight: bold;">Tu Evolución Semanal</h2>
+            <p style="color: #64748b; margin: 0; font-size: 16px;">¡Sigue así! Estás cumpliendo tus metas.</p>
         </div>
         
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f7f9; border-radius: 12px; margin-bottom: 35px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 30px; margin-bottom: 40px; border-collapse: separate;">
             <tr>
-                <td align="center" style="padding: 25px; border-right: 1px solid #e2e8f0;">
-                    <span style="display: block; font-size: 28px; font-weight: bold; color: #10b981;">${stats.completed}</span>
-                    <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: bold;">Hechas</span>
+                <td align="center" style="padding: 35px 10px; border-right: 1px solid #e2e8f0; width: 33%;">
+                    <span style="display: block; font-size: 36px; font-weight: 800; color: #10b981; margin-bottom: 5px;">${stats.completed}</span>
+                    <span style="font-size: 12px; color: #475569; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Completadas</span>
                 </td>
-                <td align="center" style="padding: 25px; border-right: 1px solid #e2e8f0;">
-                    <span style="display: block; font-size: 28px; font-weight: bold; color: #f59e0b;">${stats.inProgress}</span>
-                    <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: bold;">En curso</span>
+                <td align="center" style="padding: 35px 10px; border-right: 1px solid #e2e8f0; width: 33%;">
+                    <span style="display: block; font-size: 36px; font-weight: 800; color: #f59e0b; margin-bottom: 5px;">${stats.inProgress}</span>
+                    <span style="font-size: 12px; color: #475569; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">En curso</span>
                 </td>
-                <td align="center" style="padding: 25px;">
-                    <span style="display: block; font-size: 28px; font-weight: bold; color: #ef4444;">${stats.notStarted}</span>
-                    <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: bold;">Pendientes</span>
+                <td align="center" style="padding: 35px 10px; width: 33%;">
+                    <span style="display: block; font-size: 36px; font-weight: 800; color: #ef4444; margin-bottom: 5px;">${stats.notStarted}</span>
+                    <span style="font-size: 12px; color: #475569; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Pendientes</span>
                 </td>
             </tr>
         </table>
 
         <div style="text-align: center;">
             <a href="https://digital-therapy-platform.web.app/dashboard" 
-               style="background: linear-gradient(to bottom, #10b981 0%, #059669 100%); color: #ffffff; padding: 18px 36px; text-decoration: none; border-radius: 50px; font-weight: 700; display: inline-block; font-size: 14px; border-bottom: 4px solid #047857; box-shadow: 0 4px 0 #047857;">
+               style="background: linear-gradient(to bottom, #10b981 0%, #059669 100%); color: #ffffff; padding: 18px 40px; text-decoration: none; border-radius: 50px; font-weight: 700; display: inline-block; font-size: 14px; border-bottom: 4px solid #047857; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">
                VER PANEL DETALLADO
             </a>
         </div>`;
