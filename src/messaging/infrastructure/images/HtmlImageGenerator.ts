@@ -13,7 +13,7 @@ export class HtmlImageGenerator {
         const progressColor = isPerfect ? "#f59e0b" : "#10b981";
         const labelColor = isPerfect ? "#f59e0b" : "#1a2a6c";
 
-        const chromePath = '/usr/bin/google-chrome';
+        const chromePath = '/usr/bin/google-chrome-stable';
         const executablePath = (process.env.NODE_ENV === 'production' && fs.existsSync(chromePath))
             ? chromePath
             : undefined;
@@ -22,7 +22,12 @@ export class HtmlImageGenerator {
             transparent: true,
             puppeteerArgs: {
                 executablePath,
-                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu'
+                ]
             },
             html: `
       <html>
