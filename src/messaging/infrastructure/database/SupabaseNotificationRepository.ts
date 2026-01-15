@@ -27,19 +27,21 @@ export class SupabaseNotificationRepository implements NotificationRepository {
     async getPatientNotifications(patientId: number): Promise<Notification[]> {
         const { data } = await this.supabase
             .from('patientnotifications')
-            .select('*')
+            .select('id, subject, is_read, created_at')
             .eq('patient_id', patientId)
             .order('created_at', { ascending: false });
+
         return (data as Notification[]) || [];
     }
 
     async getNotificationDetail(patientId: number, notificationId: string): Promise<Notification | null> {
         const { data } = await this.supabase
             .from('patientnotifications')
-            .select('*')
+            .select('subject, content, created_at')
             .eq('id', notificationId)
             .eq('patient_id', patientId)
             .maybeSingle();
+
         return (data as Notification) || null;
     }
 

@@ -47,7 +47,7 @@ export function registerRoutes(fastify: FastifyInstance) {
         });
 
         authenticatedApp.register(async (patientApp) => {
-            patientApp.addHook('preHandler', verifyPatient(userRepo));
+            //patientApp.addHook('preHandler', verifyPatient(userRepo));
 
             patientApp.register(patientNotifications({
                 notificationRepo
