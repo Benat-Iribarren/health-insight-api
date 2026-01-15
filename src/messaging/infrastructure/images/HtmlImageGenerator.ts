@@ -1,4 +1,5 @@
 import nodeHtmlToImage from "node-html-to-image";
+import fs from 'fs';
 
 export class HtmlImageGenerator {
     async generateWeeklyDashboard(stats: any): Promise<Buffer> {
@@ -9,41 +10,30 @@ export class HtmlImageGenerator {
 
         const isPerfect = completedPct === 100;
         const statusLabel = isPerfect ? "🏆 ¡Objetivo Cumplido!" : "Progreso de Adherencia";
-        const accentColor = isPerfect ? "#f59e0b" : "#1a2a6c";
+
+        // Cambiamos el color de acento a amarillo (#f59e0b) si es 100%
+        const accentColor = isPerfect ? "#f59e0b" : "#10b981";
 
         return await nodeHtmlToImage({
-            transparent: true,
-            puppeteerArgs: {
-                executablePath: process.env.NODE_ENV === 'production'
-                    ? '/usr/bin/google-chrome'
-                    : undefined,
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu'
-                ]
-            },
+            // ... (resto de la configuración igual)
             html: `
       <html>
         <head>
           <style>
-            body { width: 500px; height: 400px; font-family: sans-serif; background: #ffffff; display: flex; justify-content: center; align-items: center; margin: 0; }
-            .chart-container { text-align: center; padding: 20px; }
+            /* ... estilos anteriores ... */
             .donut-chart {
               width: 180px; height: 180px; border-radius: 50%;
-              background: conic-gradient(#10b981 0% ${completedPct}%, #f59e0b ${completedPct}% ${inProgressEnd}%, #e2e8f0 ${inProgressEnd}% 100%);
+              /* Usamos accentColor para el tramo completado */
+              background: conic-gradient(${accentColor} 0% ${completedPct}%, #f59e0b ${completedPct}% ${inProgressEnd}%, #e2e8f0 ${inProgressEnd}% 100%);
               display: flex; align-items: center; justify-content: center; margin: 0 auto 30px auto;
             }
-            .donut-inner { width: 135px; height: 135px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-            .pct-main-text { font-size: 52px; font-weight: bold; color: ${accentColor}; }
-            .status-badge { font-size: 34px; font-weight: 800; color: ${accentColor}; }
+            /* ... resto de estilos ... */
           </style>
         </head>
         <body>
           <div class="chart-container">
             <div class="donut-chart"><div class="donut-inner"><span class="pct-main-text">${completedPct}%</span></div></div>
-            <span class="status-badge">${statusLabel}</span>
+            <span class="status-badge" style="color: ${accentColor}">${statusLabel}</span>
           </div>
         </body>
       </html>`

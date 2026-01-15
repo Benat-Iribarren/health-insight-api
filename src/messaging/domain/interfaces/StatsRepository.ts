@@ -1,10 +1,12 @@
 export interface PatientStats {
+    id?: number;
     email: string;
     completed: number;
     inProgress: number;
     notStarted: number;
+    sessions?: { state: string }[];
 }
 
 export interface StatsRepository {
-    getPatientStats(patientId: number): Promise<PatientStats>;
+    getAllPatientsStats(): Promise<PatientStats[]>;
 }
