@@ -10,30 +10,40 @@ export class HtmlImageGenerator {
 
         const isPerfect = completedPct === 100;
         const statusLabel = isPerfect ? "🏆 ¡Objetivo Cumplido!" : "Progreso de Adherencia";
+        const progressColor = isPerfect ? "#f59e0b" : "#10b981";
+        const labelColor = isPerfect ? "#f59e0b" : "#1a2a6c";
 
-        // Cambiamos el color de acento a amarillo (#f59e0b) si es 100%
-        const accentColor = isPerfect ? "#f59e0b" : "#10b981";
+        const chromePath = '/usr/bin/google-chrome';
+        const executablePath = (process.env.NODE_ENV === 'production' && fs.existsSync(chromePath))
+            ? chromePath
+            : undefined;
 
         return await nodeHtmlToImage({
-            // ... (resto de la configuración igual)
+            transparent: true,
+            puppeteerArgs: {
+                executablePath,
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+            },
             html: `
       <html>
         <head>
           <style>
-            /* ... estilos anteriores ... */
+            body { width: 500px; height: 400px; font-family: sans-serif; background: #ffffff; display: flex; justify-content: center; align-items: center; margin: 0; }
+            .chart-container { text-align: center; padding: 20px; }
             .donut-chart {
               width: 180px; height: 180px; border-radius: 50%;
-              /* Usamos accentColor para el tramo completado */
-              background: conic-gradient(${accentColor} 0% ${completedPct}%, #f59e0b ${completedPct}% ${inProgressEnd}%, #e2e8f0 ${inProgressEnd}% 100%);
+              background: conic-gradient(${progressColor} 0% ${completedPct}%, #f59e0b ${completedPct}% ${inProgressEnd}%, #e2e8f0 ${inProgressEnd}% 100%);
               display: flex; align-items: center; justify-content: center; margin: 0 auto 30px auto;
             }
-            /* ... resto de estilos ... */
+            .donut-inner { width: 135px; height: 135px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+            .pct-main-text { font-size: 52px; font-weight: bold; color: ${labelColor}; }
+            .status-badge { font-size: 34px; font-weight: 800; color: ${labelColor}; }
           </style>
         </head>
         <body>
           <div class="chart-container">
             <div class="donut-chart"><div class="donut-inner"><span class="pct-main-text">${completedPct}%</span></div></div>
-            <span class="status-badge" style="color: ${accentColor}">${statusLabel}</span>
+            <span class="status-badge">${statusLabel}</span>
           </div>
         </body>
       </html>`
