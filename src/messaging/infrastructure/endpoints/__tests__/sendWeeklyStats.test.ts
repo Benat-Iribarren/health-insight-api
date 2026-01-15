@@ -1,8 +1,9 @@
 import { build } from '@common/infrastructure/server/serverBuild';
 import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
 import { MESSAGING_RESPONSES } from '../../../domain/MessagingError';
-jest.mock('@src/messaging/infrastructure/gmail/SmtpMailRepository', () => ({
-    SmtpMailRepository: jest.fn().mockImplementation(() => ({
+
+jest.mock('@src/messaging/infrastructure/gmail/GmailApiMailRepository', () => ({
+    GmailApiMailRepository: jest.fn().mockImplementation(() => ({
         send: jest.fn().mockResolvedValue({ success: true })
     }))
 }));
@@ -12,6 +13,7 @@ jest.mock('../../images/HtmlImageGenerator', () => ({
         generateWeeklyDashboard: jest.fn().mockResolvedValue(Buffer.from('fake-image-buffer'))
     }))
 }));
+
 describe('POST /messaging/send-weekly-stats', () => {
     let app: any;
 
@@ -30,13 +32,16 @@ describe('POST /messaging/send-weekly-stats', () => {
 
         const response = await app.inject({
             method: 'POST',
-            url: '/messaging/send-weekly-stats'
+            url: '/messaging/send-weekly-stats',
+            headers: {
+                'x-health-insight-cron': process.env.CRON_SECRET_KEY
+            }
         });
 
-        expect(response.statusCode).toBe(successConfig.code);
+        expect(response.statusCode).toBe(200);
         expect(response.json()).toEqual({
             status: successConfig.status,
-            message: successConfig.getMessage(1)
+            processed: 1
         });
     });
 
@@ -48,7 +53,10 @@ describe('POST /messaging/send-weekly-stats', () => {
 
         const response = await app.inject({
             method: 'POST',
-            url: '/messaging/send-weekly-stats'
+            url: '/messaging/send-weekly-stats',
+            headers: {
+                'x-health-insight-cron': process.env.CRON_SECRET_KEY
+            }
         });
 
         expect(response.statusCode).toBe(errorConfig.status);

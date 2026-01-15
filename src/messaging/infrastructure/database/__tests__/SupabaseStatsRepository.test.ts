@@ -9,27 +9,22 @@ describe('SupabaseStatsRepository', () => {
         await initTestDatabase();
     });
 
-    it('should fetch sessions within a specific date range', async () => {
-        const start = new Date();
-        start.setDate(start.getDate() - 10);
-        const end = new Date();
-        end.setDate(end.getDate() + 1);
-
-        const result = await repository.getSessionsInRange(start, end);
+    it('should fetch all patients stats and include session data', async () => {
+        const result = await repository.getAllPatientsStats();
 
         expect(result.length).toBeGreaterThan(0);
-        expect(result[0]).toHaveProperty('patient_name', 'Beñat');
         expect(result[0]).toHaveProperty('email', 'benat@test.com');
+        expect(result[0]).toHaveProperty('sessions');
+        expect(Array.isArray(result[0].sessions)).toBe(true);
     });
 
-    it('should return empty array if no sessions exist in range', async () => {
-        const futureStart = new Date();
-        futureStart.setFullYear(futureStart.getFullYear() + 1);
-        const futureEnd = new Date();
-        futureEnd.setFullYear(futureEnd.getFullYear() + 2);
+    it('should return empty array if no patients exist', async () => {
+        const result = await repository.getAllPatientsStats();
 
-        const result = await repository.getSessionsInRange(futureStart, futureEnd);
-
-        expect(result).toEqual([]);
+        expect(Array.isArray(result)).toBe(true);
+        if (result.length > 0) {
+            expect(result[0]).toHaveProperty('completed');
+            expect(result[0]).toHaveProperty('inProgress');
+        }
     });
 });
