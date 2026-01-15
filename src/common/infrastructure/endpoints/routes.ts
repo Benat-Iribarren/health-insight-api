@@ -24,46 +24,34 @@ export function registerRoutes(fastify: FastifyInstance) {
     const notificationRepo = new SupabaseNotificationRepository(supabaseClient);
     const mailRepo = new GmailApiMailRepository();
 
-    const skipAuth = process.env.SKIP_AUTH === 'true';
-
-    // Configuración para el bloque de profesionales (Comentada para pruebas)
-    // const professionalConfig = {
-    //     preHandler: skipAuth ? [] : [authenticate, verifyProfessional(userRepo)]
-    // };
-
-    const patientConfig = {
-        preHandler: skipAuth ? [] : [authenticate, verifyPatient(userRepo)]
-    };
-
-    fastify.get('/ping', async () => {
-        return { status: 'ok' };
-    });
-
+    fastify.get('/ping', async () => ({ status: 'ok' }));
     fastify.register(presenceMinute());
 
-    // Bloque Profesional: Registro sin configuración de seguridad activa para pruebas
-    fastify.register(async (professionalApp) => {
-        // professionalApp.addHook('preHandler', authenticate);
+    fastify.register(async (authenticatedApp) => {
+        authenticatedApp.addHook('preHandler', authenticate);
 
-        professionalApp.register(predictDropout({ dropoutRepo }));
+        authenticatedApp.register(async (professionalApp) => {
+            professionalApp.addHook('preHandler', verifyProfessional(userRepo));
 
-        professionalApp.register(sendToPatient({
-            patientContactRepo,
-            mailRepo,
-            notificationRepo
-        }));
+            professionalApp.register(predictDropout({ dropoutRepo }));
+            professionalApp.register(sendToPatient({
+                patientContactRepo,
+                mailRepo,
+                notificationRepo
+            }));
+            professionalApp.register(sendWeeklyStats({
+                statsRepo,
+                mailRepo,
+                notificationRepo
+            }));
+        });
 
-        professionalApp.register(sendWeeklyStats({
-            statsRepo,
-            mailRepo,
-            notificationRepo
-        }));
-    } /*, professionalConfig */);
+        authenticatedApp.register(async (patientApp) => {
+            patientApp.addHook('preHandler', verifyPatient(userRepo));
 
-    // Bloque Paciente: Mantiene su configuración de seguridad activa
-    fastify.register(async (patientApp) => {
-        patientApp.register(patientNotifications({
-            notificationRepo
-        }));
-    }, patientConfig);
+            patientApp.register(patientNotifications({
+                notificationRepo
+            }));
+        });
+    });
 }

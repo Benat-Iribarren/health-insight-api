@@ -11,23 +11,18 @@ export class SendWeeklyStats {
 
     async execute(patientId: number): Promise<void> {
         const stats = await this.statsRepo.getPatientStats(patientId);
-
         const subject = "Tu resumen semanal de salud";
         const body = "Aquí tienes tus estadísticas de la semana.";
 
-        await this.notificationRepo.saveNotification(
-            patientId,
-            subject,
-            body
-        );
-
+        await this.notificationRepo.saveNotification(patientId, subject, body);
         const pendingCount = await this.notificationRepo.getPendingCount(patientId);
 
         await this.mailRepo.send(
             stats.email,
             subject,
             body,
-            pendingCount
+            pendingCount,
+            stats
         );
     }
 }

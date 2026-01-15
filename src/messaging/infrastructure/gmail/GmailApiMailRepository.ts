@@ -15,32 +15,62 @@ export class GmailApiMailRepository implements MailRepository {
         });
     }
 
-    private generateEmailHtml(pendingCount: number): string {
-        const message = pendingCount === 1
-            ? "Tienes 1 mensaje nuevo de tu profesional de salud."
-            : `Tienes ${pendingCount} mensajes nuevos de tu profesional de salud.`;
-
+    private getMasterLayout(content: string): string {
         return `
-        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; border: 1px solid #eee; padding: 20px;">
-            <h2 style="color: #1a2a6c;">Health Insight</h2>
-            <p>${message}</p>
-            <p>Por favor, accede a la plataforma para leer el contenido completo de forma segura.</p>
-            <div style="margin-top: 30px;">
-                <a href="https://health-insight-web.vercel.app" 
-                   style="background-color: #1a2a6c; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                   Acceder a la Web
-                </a>
-            </div>
-            <hr style="margin-top: 30px; border: 0; border-top: 1px solid #eee;">
-            <p style="font-size: 12px; color: #888;">Este es un aviso automático, por favor no respondas a este correo.</p>
-        </div>`;
+        <!DOCTYPE html>
+        <html lang="es">
+        <head><meta charset="UTF-8"></head>
+        <body style="margin: 0; padding: 0; background-color: #f4f7f9; font-family: Arial, sans-serif;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+            <tr>
+              <td align="center" style="padding: 40px 10px;">
+                <table role="presentation" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #1a2a6c, #2a4858); padding: 35px 20px; text-align: center;">
+                      <h1 style="color: #ffffff; margin: 0; font-size: 24px; text-transform: uppercase;">Health Insight</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 40px 35px; color: #444444; line-height: 1.8;">
+                      ${content}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>`;
     }
 
-    async send(to: string, subject: string, body: string, pendingCount: number = 1): Promise<{ success: boolean }> {
-        const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
-        const htmlContent = this.generateEmailHtml(pendingCount);
+    private getStatsHtml(stats: any): string {
+        return `
+        <div style="color: #1a2a6c; font-weight: 600; font-size: 20px; margin-bottom: 20px; text-align: center;">Tu Resumen Semanal</div>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 30px 0; background-color: #f8fafc; border: 1px solid #edf2f7; border-radius: 10px;">
+          <tr>
+            <td align="center" style="padding: 20px; border-right: 1px solid #edf2f7;">
+              <span style="display: block; font-size: 32px; font-weight: bold; color: #10b981;">${stats.completed}</span>
+              <span style="font-size: 11px; color: #64748b; text-transform: uppercase;">Hechas</span>
+            </td>
+            <td align="center" style="padding: 20px; border-right: 1px solid #edf2f7;">
+              <span style="display: block; font-size: 32px; font-weight: bold; color: #f59e0b;">${stats.inProgress}</span>
+              <span style="font-size: 11px; color: #64748b; text-transform: uppercase;">En curso</span>
+            </td>
+            <td align="center" style="padding: 20px;">
+              <span style="display: block; font-size: 32px; font-weight: bold; color: #ef4444;">${stats.notStarted}</span>
+              <span style="font-size: 11px; color: #64748b; text-transform: uppercase;">Pendientes</span>
+            </td>
+          </tr>
+        </table>`;
+    }
 
-        const utf8Subject = `=?utf-8?B?${Buffer.from(`Health Insight | ${subject}`).toString('base64')}?=`;
+    async send(to: string, subject: string, body: string, pendingCount: number = 1, stats?: any): Promise<{ success: boolean }> {
+        const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
+
+        const content = stats ? this.getStatsHtml(stats) : `<p>${body}</p><p>Tienes ${pendingCount} mensajes pendientes.</p>`;
+        const htmlContent = this.getMasterLayout(content);
+
+        const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
         const messageParts = [
             `To: ${to}`,
             `Subject: ${utf8Subject}`,
@@ -60,7 +90,6 @@ export class GmailApiMailRepository implements MailRepository {
             await gmail.users.messages.send({ userId: 'me', requestBody: { raw } });
             return { success: true };
         } catch (error) {
-            console.error('Gmail API Error:', error);
             return { success: false };
         }
     }
