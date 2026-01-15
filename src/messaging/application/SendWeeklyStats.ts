@@ -25,12 +25,6 @@ export class SendWeeklyStats {
             });
 
             if (patient.id) {
-                await this.notificationRepo.saveNotification(
-                    patient.id,
-                    "Tu resumen semanal de salud",
-                    "Aquí tienes tus estadísticas de la semana."
-                );
-
                 const pendingCount = await this.notificationRepo.getPendingCount(patient.id);
 
                 await this.mailRepo.send(
