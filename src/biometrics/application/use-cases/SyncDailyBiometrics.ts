@@ -50,7 +50,9 @@ export class SyncDailyBiometrics {
                             minuteMap.get(ts)[m.col] = parseFloat(r.value || r.rate || r.eda || r.temperature || 0);
                         }
                     }
-                } catch (e) { continue; }
+                } catch (e) {
+                    continue;
+                }
             }
 
             if (minuteMap.size > 0) {
