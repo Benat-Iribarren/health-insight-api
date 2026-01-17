@@ -14,7 +14,7 @@ export default function syncDailyBiometrics() {
             const isProfessional = (request as any).user?.role === 'professional';
 
             if (!isCron && !isProfessional) {
-                return reply.status(403).send({ status: 'error', message: 'Unauthorized' });
+                return reply.status(403).send({status: 'error', message: 'Unauthorized'});
             }
 
             const targetDate = new Date();

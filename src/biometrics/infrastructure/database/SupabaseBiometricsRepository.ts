@@ -7,7 +7,9 @@ export class SupabaseBiometricsRepository {
     async upsertBiometricMinutes(data: any[]) {
         const { error } = await this.client
             .from('BiometricMinutes')
-            .upsert(data, { onConflict: 'participant_full_id, timestamp_iso' });
+            .upsert(data, {
+                onConflict: 'timestamp_iso'
+            });
 
         if (error) throw error;
     }

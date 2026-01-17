@@ -31,12 +31,7 @@ export class SyncDailyBiometrics {
             continuationToken = response.NextContinuationToken;
         } while (continuationToken);
 
-        const dailyFiles = allContents.filter(obj =>
-            obj.Key && obj.Key.endsWith('.csv') && obj.Key.includes('aggregated_per_minute')
-        );
-
-        if (dailyFiles.length === 0) return { filesFound: 0, rowsInserted: 0 };
-
+        const dailyFiles = allContents.filter(obj => obj.Key && obj.Key.endsWith('.csv'));
         const unifiedData: Record<string, any> = {};
 
         for (const file of dailyFiles) {
@@ -47,54 +42,57 @@ export class SyncDailyBiometrics {
                 const chunks: any[] = [];
                 for await (const chunk of response.Body) chunks.push(chunk);
                 const csvContent = Buffer.concat(chunks).toString();
-
                 const fileName = file.Key!.split('/').pop() || "";
-                const metricType = fileName.split('_').pop()?.replace('.csv', '');
-                const participantId = fileName.split(`_${date}_`)[0];
+                const records: any[] = parse(csvContent, { columns: true, skip_empty_lines: true });
 
-                const records = parse(csvContent, { columns: true, skip_empty_lines: true });
-
-                for (const row of (records as any[])) {
-                    if (row.missing_value_reason === 'device_not_recording') continue;
+                for (const row of records) {
+                    if (row.missing_value_reason) continue;
 
                     const ts = row.timestamp_iso || row.timestamp;
-                    const key = `${participantId}_${ts}`;
-
-                    if (!unifiedData[key]) {
-                        unifiedData[key] = {
-                            participant_full_id: participantId,
+                    if (!unifiedData[ts]) {
+                        unifiedData[ts] = {
                             timestamp_iso: ts,
                             timestamp_unix_ms: new Date(ts).getTime(),
                             pulse_rate_bpm: null,
                             eda_scl_usiemens: null,
                             temperature_celsius: null,
-                            prv_rmssd_ms: null,
-                            respiratory_rate_brpm: null,
-                            created_at: new Date().toISOString()
+                            accel_std_g: null,
+                            body_position_type: null,
+                            respiratory_rate_brpm: null
                         };
                     }
 
-                    const val = parseFloat(row.value || row.pulse_rate_bpm || row.eda_scl_usiemens || row.temperature_celsius || 0);
+                    if (fileName.includes('pulse-rate'))
+                        unifiedData[ts].pulse_rate_bpm = parseFloat(row.pulse_rate_bpm);
 
-                    switch (metricType) {
-                        case 'pulse-rate': unifiedData[key].pulse_rate_bpm = val; break;
-                        case 'eda': unifiedData[key].eda_scl_usiemens = val; break;
-                        case 'temperature': unifiedData[key].temperature_celsius = val; break;
-                        case 'prv': unifiedData[key].prv_rmssd_ms = val; break;
-                        case 'respiratory-rate': unifiedData[key].respiratory_rate_brpm = val; break;
-                    }
+                    if (fileName.includes('eda'))
+                        unifiedData[ts].eda_scl_usiemens = parseFloat(row.eda_scl_usiemens);
+
+                    if (fileName.includes('temperature'))
+                        unifiedData[ts].temperature_celsius = parseFloat(row.temperature_celsius);
+
+                    if (fileName.includes('respiratory-rate'))
+                        unifiedData[ts].respiratory_rate_brpm = parseFloat(row.respiratory_rate_brpm);
+
+                    if (fileName.includes('accelerometers-std'))
+                        unifiedData[ts].accel_std_g = parseFloat(row.accelerometers_std_g);
+
+                    if (fileName.includes('body-position'))
+                        unifiedData[ts].body_position_type = row.body_position_left || row.body_position_right;
                 }
             } catch (e) { continue; }
         }
 
-        const rowsToInsert = Object.values(unifiedData).filter(r =>
-            r.pulse_rate_bpm !== null || r.eda_scl_usiemens !== null || r.temperature_celsius !== null
-        );
+        const rowsToInsert = Object.values(unifiedData);
 
         if (rowsToInsert.length > 0) {
             await this.repository.upsertBiometricMinutes(rowsToInsert);
         }
 
-        return { filesFound: dailyFiles.length, rowsInserted: rowsToInsert.length };
+        return {
+            status: "success",
+            dateProcessed: date,
+            summary: { filesFound: dailyFiles.length, rowsInserted: rowsToInsert.length }
+        };
     }
 }
