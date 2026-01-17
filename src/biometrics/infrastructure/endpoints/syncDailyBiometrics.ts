@@ -18,7 +18,7 @@ export default function syncDailyBiometrics() {
             }
 
             const targetDate = new Date();
-            targetDate.setUTCDate(targetDate.getUTCDate() - 2);
+            targetDate.setUTCDate(targetDate.getUTCDate() - 1);
             const dateStr = targetDate.toISOString().split('T')[0];
 
             const summary = await useCase.execute(dateStr);
