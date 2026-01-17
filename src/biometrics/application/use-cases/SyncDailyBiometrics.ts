@@ -1,6 +1,7 @@
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
-import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 import { parse } from 'csv-parse/sync';
+import { Readable } from 'stream';
+import { SupabaseBiometricsRepository } from '../../infrastructure/database/SupabaseBiometricsRepository';
 
 export class SyncDailyBiometrics {
     private s3 = new S3Client({
@@ -11,60 +12,102 @@ export class SyncDailyBiometrics {
         }
     });
     private BUCKET = "empatica-us-east-1-prod-data";
-    private PREFIX = "v2/451/";
+    private PREFIX = "v2/451/1/1/participant_data/";
+
+    constructor(private readonly repository: SupabaseBiometricsRepository) {}
 
     async execute(date: string): Promise<any> {
-        const listCommand = new ListObjectsV2Command({
-            Bucket: this.BUCKET,
-            Prefix: this.PREFIX
-        });
+        let allContents: any[] = [];
+        let continuationToken: string | undefined = undefined;
 
-        const { Contents } = await this.s3.send(listCommand);
-        if (!Contents) return { filesProcessed: 0, message: "No se encontraron archivos en el bucket" };
+        do {
+            const listCommand: ListObjectsV2Command = new ListObjectsV2Command({
+                Bucket: this.BUCKET,
+                Prefix: `${this.PREFIX}${date}/`,
+                ContinuationToken: continuationToken
+            });
+            const response = await this.s3.send(listCommand);
+            if (response.Contents) allContents = allContents.concat(response.Contents);
+            continuationToken = response.NextContinuationToken;
+        } while (continuationToken);
 
-        // Filtramos archivos por fecha, igual que id_serial + '_' + date en tu script
-        const dailyFiles = Contents.filter(obj => obj.Key && obj.Key.includes(`_${date}_`));
-        let totalInserted = 0;
+        const dailyFiles = allContents.filter(obj =>
+            obj.Key && obj.Key.endsWith('.csv') && obj.Key.includes('aggregated_per_minute')
+        );
+
+        if (dailyFiles.length === 0) return { filesFound: 0, rowsInserted: 0 };
+
+        const unifiedData: Record<string, any> = {};
 
         for (const file of dailyFiles) {
             try {
                 const response = await this.s3.send(new GetObjectCommand({ Bucket: this.BUCKET, Key: file.Key! }));
-                const csv = await response.Body?.transformToString();
-                if (!csv) continue;
+                if (!(response.Body instanceof Readable)) continue;
+
+                const chunks: any[] = [];
+                for await (const chunk of response.Body) chunks.push(chunk);
+                const csvContent = Buffer.concat(chunks).toString();
 
                 const fileName = file.Key!.split('/').pop() || "";
-                const parts = fileName.split('_');
-                const participantId = parts[0];
-                const metricType = parts[parts.length - 1].replace('.csv', '');
+                const metricType = fileName.split('_').pop()?.replace('.csv', '');
+                const participantId = fileName.split(`_${date}_`)[0];
 
-                const records = parse(csv, { columns: true, skip_empty_lines: true });
+                const records = parse(csvContent, { columns: true, skip_empty_lines: true });
 
-                // Mapeo dinámico basado en tu script visualiza.py
-                const rows = records
-                    .filter((r: any) => r.missing_value_reason !== 'device_not_recording')
-                    .map((r: any) => {
-                        const ts = r.timestamp_iso || r.timestamp;
-                        return {
+                for (const row of (records as any[])) {
+                    if (row.missing_value_reason === 'device_not_recording') continue;
+
+                    const ts = row.timestamp_iso || row.timestamp;
+                    const key = `${participantId}_${ts}`;
+
+                    if (!unifiedData[key]) {
+                        unifiedData[key] = {
                             participant_full_id: participantId,
                             timestamp_iso: ts,
                             timestamp_unix_ms: new Date(ts).getTime(),
-                            pulse_rate_bpm: metricType === 'pulse-rate' ? parseFloat(r.pulse_rate_bpm || r.value || r.rate || 0) : null,
-                            eda_scl_usiemens: metricType === 'eda' ? parseFloat(r.eda_scl_usiemens || r.value || r.eda || 0) : null,
-                            temperature_celsius: metricType === 'temperature' ? parseFloat(r.temperature_celsius || r.value || r.temp || 0) : null,
-                            prv_rmssd_ms: metricType === 'prv' ? parseFloat(r.value || 0) : null,
-                            respiratory_rate_brpm: metricType === 'respiratory-rate' ? parseFloat(r.value || 0) : null
+                            pulse_rate_bpm: null,
+                            eda_scl_usiemens: null,
+                            temperature_celsius: null,
+                            prv_rmssd_ms: null,
+                            respiratory_rate_brpm: null,
+                            created_at: new Date().toISOString()
                         };
-                    });
+                    }
 
-                if (rows.length > 0) {
-                    const { error } = await (supabaseClient as any).from('biometric_minutes').insert(rows);
-                    if (error) throw error;
-                    totalInserted += rows.length;
+                    const val = parseFloat(row.value || row.pulse_rate_bpm || row.eda_scl_usiemens || row.temperature_celsius || 0);
+
+                    switch (metricType) {
+                        case 'pulse-rate':
+                            unifiedData[key].pulse_rate_bpm = val;
+                            break;
+                        case 'eda':
+                            unifiedData[key].eda_scl_usiemens = val;
+                            break;
+                        case 'temperature':
+                            unifiedData[key].temperature_celsius = val;
+                            break;
+                        case 'prv':
+                            unifiedData[key].prv_rmssd_ms = val;
+                            break;
+                        case 'respiratory-rate':
+                            unifiedData[key].respiratory_rate_brpm = val;
+                            break;
+                        case 'spo2':
+                            unifiedData[key].spo2_percentage = val;
+                            break;
+                    }
                 }
-            } catch (e) {
-                continue; // Replica el 'continue' de tu script ante errores de descarga
-            }
+            } catch (e) { continue; }
         }
-        return { filesFound: dailyFiles.length, rowsInserted: totalInserted };
+
+        const rowsToInsert = Object.values(unifiedData).filter(r =>
+            r.pulse_rate_bpm !== null || r.eda_scl_usiemens !== null || r.temperature_celsius !== null
+        );
+
+        if (rowsToInsert.length > 0) {
+            await this.repository.upsertBiometricMinutes(rowsToInsert);
+        }
+
+        return { filesFound: dailyFiles.length, rowsInserted: rowsToInsert.length };
     }
 }
