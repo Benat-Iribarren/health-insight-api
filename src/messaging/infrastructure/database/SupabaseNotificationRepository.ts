@@ -6,7 +6,7 @@ export class SupabaseNotificationRepository implements NotificationRepository {
 
     async saveNotification(patientId: number, subject: string, content: string): Promise<void> {
         await this.supabase
-            .from('patientnotifications')
+            .from('PatientNotifications')
             .insert({
                 patient_id: patientId,
                 subject: subject,
@@ -17,7 +17,7 @@ export class SupabaseNotificationRepository implements NotificationRepository {
 
     async getPendingCount(patientId: number): Promise<number> {
         const { count } = await this.supabase
-            .from('patientnotifications')
+            .from('PatientNotifications')
             .select('*', { count: 'exact', head: true })
             .eq('patient_id', patientId)
             .eq('is_read', false);
@@ -26,7 +26,7 @@ export class SupabaseNotificationRepository implements NotificationRepository {
 
     async getPatientNotifications(patientId: number): Promise<Notification[]> {
         const { data } = await this.supabase
-            .from('patientnotifications')
+            .from('PatientNotifications')
             .select('id, subject, is_read, created_at')
             .eq('patient_id', patientId)
             .order('created_at', { ascending: false });
@@ -36,7 +36,7 @@ export class SupabaseNotificationRepository implements NotificationRepository {
 
     async getNotificationDetail(patientId: number, notificationId: string): Promise<Notification | null> {
         const { data } = await this.supabase
-            .from('patientnotifications')
+            .from('PatientNotifications')
             .select('subject, content, created_at')
             .eq('id', notificationId)
             .eq('patient_id', patientId)
@@ -47,7 +47,7 @@ export class SupabaseNotificationRepository implements NotificationRepository {
 
     async markAsRead(patientId: number, notificationId: string): Promise<void> {
         await this.supabase
-            .from('patientnotifications')
+            .from('PatientNotifications')
             .update({ is_read: true })
             .eq('id', notificationId)
             .eq('patient_id', patientId);
@@ -55,7 +55,7 @@ export class SupabaseNotificationRepository implements NotificationRepository {
 
     async deleteNotification(patientId: number, notificationId: string): Promise<void> {
         await this.supabase
-            .from('patientnotifications')
+            .from('PatientNotifications')
             .delete()
             .eq('id', notificationId)
             .eq('patient_id', patientId);

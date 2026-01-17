@@ -14,7 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      biometric_minutes: {
+      BiometricMinutes: {
         Row: {
           attempt_no: number | null
           context_type: string | null
@@ -74,7 +74,7 @@ export type Database = {
         }
         Relationships: []
       }
-      context_intervals: {
+      ContextIntervals: {
         Row: {
           attempt_no: number | null
           context_type: string
@@ -146,7 +146,7 @@ export type Database = {
         }
         Relationships: []
       }
-      patientnotifications: {
+      PatientNotifications: {
         Row: {
           content: string
           created_at: string | null
@@ -345,7 +345,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_professional: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

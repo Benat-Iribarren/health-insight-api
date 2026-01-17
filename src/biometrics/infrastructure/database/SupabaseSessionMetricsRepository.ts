@@ -15,7 +15,7 @@ export class SupabaseSessionMetricsRepository {
 
     async getContextIntervals(patientId: number, sessionId: string) {
         return await this.client
-            .from('context_intervals')
+            .from('ContextIntervals')
             .select('*')
             .eq('patient_id', patientId.toString())
             .or(`session_id.eq.${sessionId},context_type.eq.dashboard`)
@@ -24,7 +24,7 @@ export class SupabaseSessionMetricsRepository {
 
     async getBiometricData(patientId: number, start: string, end: string) {
         return await this.client
-            .from('biometric_minutes')
+            .from('ContextIntervals')
             .select('*')
             .eq('patient_id', patientId.toString())
             .gte('timestamp_iso', start)

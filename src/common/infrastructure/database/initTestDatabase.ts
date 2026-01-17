@@ -7,8 +7,8 @@ export async function initTestDatabase() {
     await supabaseClient.from('Session').delete().neq('id', 0);
     await supabaseClient.from('Patient').delete().neq('id', 0);
     await supabaseClient.from('Question').delete().neq('id', 0);
-    await supabaseClient.from('context_intervals').delete().neq('id', 0);
-    await supabaseClient.from('biometric_minutes').delete().neq('id', 0);
+    await supabaseClient.from('ContextIntervals').delete().neq('id', 0);
+    await supabaseClient.from('BiometricMinutes').delete().neq('id', 0);
 
     const uniqueUserId = randomUUID();
 
@@ -74,7 +74,7 @@ export async function initTestDatabase() {
     const postStart = new Date(now.getTime() - 10 * 60_000);
     const postEnd = new Date(now.getTime());
 
-    await supabaseClient.from('context_intervals').insert([
+    await supabaseClient.from('ContextIntervals').insert([
         {
             patient_id: patientData[0].id.toString(),
             context_type: 'dashboard',
@@ -103,7 +103,7 @@ export async function initTestDatabase() {
 
     const participant_full_id = patientData[0].id.toString();
 
-    await supabaseClient.from('biometric_minutes').insert([
+    await supabaseClient.from('BiometricMinutes').insert([
         {
             participant_full_id,
             timestamp_iso: preStart.toISOString(),

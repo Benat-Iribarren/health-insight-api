@@ -4,9 +4,8 @@ import { SyncDailyBiometrics } from '../../application/use-cases/SyncDailyBiomet
 export default function syncDailyBiometrics() {
     return async function (request: FastifyRequest, reply: FastifyReply) {
         const cronSecret = request.headers['x-health-insight-cron'];
-
         if (!cronSecret || cronSecret !== process.env.CRON_SECRET_KEY) {
-            return reply.status(403).send({ status: 'error', message: 'Acceso denegado' });
+            return reply.status(403).send({ status: 'error', message: 'Unauthorized' });
         }
 
         const yesterday = new Date();
@@ -15,15 +14,15 @@ export default function syncDailyBiometrics() {
 
         try {
             const useCase = new SyncDailyBiometrics();
-            await useCase.execute(dateStr);
+            const summary = await useCase.execute(dateStr);
 
             return reply.status(200).send({
                 status: 'success',
-                dateProcessed: dateStr
+                date: dateStr,
+                summary // Esto te dirá filesFound y rowsInserted en tu terminal
             });
-        } catch (error) {
-            request.log.error(error);
-            return reply.status(500).send({ status: 'error' });
+        } catch (error: any) {
+            return reply.status(500).send({ status: 'error', message: error.message });
         }
     };
 }
