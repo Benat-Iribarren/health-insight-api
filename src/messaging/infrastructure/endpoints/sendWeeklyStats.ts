@@ -18,10 +18,15 @@ export default function sendWeeklyStats(deps: any) {
                 deps.notificationRepo
             );
 
-            service.execute();
+            if (isCron) {
+                service.execute();
+                return reply.status(202).send({ status: 'accepted' });
+            }
 
-            return reply.status(202).send({
-                status: 'accepted'
+            const totalProcessed = await service.execute();
+            return reply.status(200).send({
+                status: 'success',
+                processed: totalProcessed
             });
         } catch (error) {
             return reply.status(500).send({ status: 'error' });
