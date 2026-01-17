@@ -10,6 +10,5 @@ export class SupabaseBiometricsRepository {
             .upsert(data, { onConflict: 'participant_full_id, timestamp_iso' });
 
         if (error) throw error;
-        return { success: true };
     }
 }
