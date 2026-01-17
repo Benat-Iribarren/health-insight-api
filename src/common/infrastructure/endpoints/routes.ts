@@ -42,6 +42,7 @@ export function registerRoutes(fastify: FastifyInstance) {
                 professionalApp.addHook('preHandler', verifyProfessional(userRepo));
                 professionalApp.register(predictDropout({ dropoutRepo }));
                 professionalApp.register(sendToPatient(deps));
+                professionalApp.register(sendWeeklyStats)
                 professionalApp.register(getSessionReport());
             });
 
