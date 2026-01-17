@@ -28,7 +28,6 @@ export function registerRoutes(fastify: FastifyInstance) {
     fastify.get('/ping', async () => ({ status: 'ok' }));
 
     fastify.post('/biometrics/sync-daily', syncDailyBiometrics());
-    fastify.get('/biometrics/sync-daily', syncDailyBiometrics());
 
     fastify.register(presenceMinute());
 

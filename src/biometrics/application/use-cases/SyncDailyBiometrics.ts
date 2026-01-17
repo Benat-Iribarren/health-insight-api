@@ -77,24 +77,11 @@ export class SyncDailyBiometrics {
                     const val = parseFloat(row.value || row.pulse_rate_bpm || row.eda_scl_usiemens || row.temperature_celsius || 0);
 
                     switch (metricType) {
-                        case 'pulse-rate':
-                            unifiedData[key].pulse_rate_bpm = val;
-                            break;
-                        case 'eda':
-                            unifiedData[key].eda_scl_usiemens = val;
-                            break;
-                        case 'temperature':
-                            unifiedData[key].temperature_celsius = val;
-                            break;
-                        case 'prv':
-                            unifiedData[key].prv_rmssd_ms = val;
-                            break;
-                        case 'respiratory-rate':
-                            unifiedData[key].respiratory_rate_brpm = val;
-                            break;
-                        case 'spo2':
-                            unifiedData[key].spo2_percentage = val;
-                            break;
+                        case 'pulse-rate': unifiedData[key].pulse_rate_bpm = val; break;
+                        case 'eda': unifiedData[key].eda_scl_usiemens = val; break;
+                        case 'temperature': unifiedData[key].temperature_celsius = val; break;
+                        case 'prv': unifiedData[key].prv_rmssd_ms = val; break;
+                        case 'respiratory-rate': unifiedData[key].respiratory_rate_brpm = val; break;
                     }
                 }
             } catch (e) { continue; }
