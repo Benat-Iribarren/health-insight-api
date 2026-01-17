@@ -16,58 +16,34 @@ export type Database = {
     Tables: {
       BiometricMinutes: {
         Row: {
-          attempt_no: number | null
-          context_type: string | null
-          created_at: string
-          device_sn: string | null
+          accel_std_g: number | null
+          body_position_type: string | null
           eda_scl_usiemens: number | null
           id: number
-          import_batch_id: string | null
-          participant_full_id: string
-          patient_id: string | null
-          prv_rmssd_ms: number | null
           pulse_rate_bpm: number | null
           respiratory_rate_brpm: number | null
-          session_id: string | null
-          spo2_percentage: number | null
           temperature_celsius: number | null
           timestamp_iso: string
           timestamp_unix_ms: number
         }
         Insert: {
-          attempt_no?: number | null
-          context_type?: string | null
-          created_at?: string
-          device_sn?: string | null
+          accel_std_g?: number | null
+          body_position_type?: string | null
           eda_scl_usiemens?: number | null
           id?: number
-          import_batch_id?: string | null
-          participant_full_id: string
-          patient_id?: string | null
-          prv_rmssd_ms?: number | null
           pulse_rate_bpm?: number | null
           respiratory_rate_brpm?: number | null
-          session_id?: string | null
-          spo2_percentage?: number | null
           temperature_celsius?: number | null
           timestamp_iso: string
           timestamp_unix_ms: number
         }
         Update: {
-          attempt_no?: number | null
-          context_type?: string | null
-          created_at?: string
-          device_sn?: string | null
+          accel_std_g?: number | null
+          body_position_type?: string | null
           eda_scl_usiemens?: number | null
           id?: number
-          import_batch_id?: string | null
-          participant_full_id?: string
-          patient_id?: string | null
-          prv_rmssd_ms?: number | null
           pulse_rate_bpm?: number | null
           respiratory_rate_brpm?: number | null
-          session_id?: string | null
-          spo2_percentage?: number | null
           temperature_celsius?: number | null
           timestamp_iso?: string
           timestamp_unix_ms?: number
@@ -115,7 +91,6 @@ export type Database = {
           gender: string
           id: number
           name: string
-          phone: string
           surname: string
           user_id: string
           username: string
@@ -127,7 +102,6 @@ export type Database = {
           gender?: string
           id?: number
           name: string
-          phone: string
           surname: string
           user_id: string
           username?: string
@@ -139,7 +113,6 @@ export type Database = {
           gender?: string
           id?: number
           name?: string
-          phone?: string
           surname?: string
           user_id?: string
           username?: string
