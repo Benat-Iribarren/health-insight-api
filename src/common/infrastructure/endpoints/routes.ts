@@ -36,10 +36,10 @@ export function registerRoutes(fastify: FastifyInstance) {
         app.post('/messaging/send-weekly-stats', sendWeeklyStats(deps));
 
         app.register(async (authenticatedApp) => {
-            // authenticatedApp.addHook('preHandler', authenticate);
+            authenticatedApp.addHook('preHandler', authenticate);
 
             authenticatedApp.register(async (professionalApp) => {
-                // professionalApp.addHook('preHandler', verifyProfessional(userRepo));
+                professionalApp.addHook('preHandler', verifyProfessional(userRepo));
                 professionalApp.register(predictDropout({ dropoutRepo }));
                 professionalApp.register(sendToPatient(deps));
                 professionalApp.register(getSessionReport());
