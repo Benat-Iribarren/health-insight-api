@@ -33,21 +33,22 @@ export function registerRoutes(fastify: FastifyInstance) {
     fastify.register(presenceMinute());
 
     fastify.register(async (app) => {
-        app.post('/messaging/send-weekly-stats', sendWeeklyStats(deps));
+        app.register(async (authContext) => {
+            authContext.addHook('preHandler', async (req, res) => {
+                try { await authenticate(req, res); } catch (e) { }
+            });
 
-        app.register(async (authenticatedApp) => {
-            authenticatedApp.addHook('preHandler', authenticate);
+            authContext.post('/messaging/send-weekly-stats', sendWeeklyStats(deps));
 
-            authenticatedApp.register(async (professionalApp) => {
+            authContext.register(async (professionalApp) => {
                 professionalApp.addHook('preHandler', verifyProfessional(userRepo));
                 professionalApp.register(predictDropout({ dropoutRepo }));
                 professionalApp.register(sendToPatient(deps));
-                professionalApp.register(sendWeeklyStats)
                 professionalApp.register(getSessionReport());
             });
 
-            authenticatedApp.register(async (patientApp) => {
-                // patientApp.addHook('preHandler', verifyPatient(userRepo));
+            authContext.register(async (patientApp) => {
+                patientApp.addHook('preHandler', verifyPatient(userRepo));
                 patientApp.register(patientNotifications({ notificationRepo }));
             });
         });
