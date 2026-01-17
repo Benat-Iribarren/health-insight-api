@@ -33,13 +33,11 @@ export function registerRoutes(fastify: FastifyInstance) {
     fastify.register(presenceMinute());
 
     fastify.register(async (app) => {
+        app.post('/messaging/send-weekly-stats', sendWeeklyStats(deps));
         app.register(async (authContext) => {
             authContext.addHook('preHandler', async (req, res) => {
                 try { await authenticate(req, res); } catch (e) { }
             });
-
-            authContext.post('/messaging/send-weekly-stats', sendWeeklyStats(deps));
-
             authContext.register(async (professionalApp) => {
                 professionalApp.addHook('preHandler', verifyProfessional(userRepo));
                 professionalApp.register(predictDropout({ dropoutRepo }));
