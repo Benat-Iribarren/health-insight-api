@@ -14,7 +14,10 @@ export default function getSessionReport() {
                 const report = await useCase.execute(userId, Number(patientId), sessionId);
                 return reply.status(200).send(report);
             } catch (e: any) {
-                return reply.status(500).send({ status: 'error', message: e.message });
+                return reply.status(e.message.includes('NOT_FOUND') ? 404 : 500).send({
+                    status: 'error',
+                    message: e.message
+                });
             }
         });
     };

@@ -5,12 +5,14 @@ export class SupabaseSessionMetricsRepository {
     constructor(private readonly client: SupabaseClient<Database>) {}
 
     async getFullSessionContext(userId: string, patientId: number, sessionId?: string) {
-        const sessionQuery = this.client
+        let sessionQuery = this.client
             .from('PatientSession')
             .select('id, state, pre_evaluation, post_evaluation')
             .eq('patient_id', patientId);
 
-        if (sessionId) sessionQuery.eq('id', parseInt(sessionId));
+        if (sessionId) {
+            sessionQuery = sessionQuery.eq('id', parseInt(sessionId));
+        }
 
         const [sessionsRes, intervalsRes] = await Promise.all([
             sessionQuery,
@@ -21,7 +23,10 @@ export class SupabaseSessionMetricsRepository {
                 .order('start_minute_utc', { ascending: true })
         ]);
 
-        return { sessions: sessionsRes.data, intervals: intervalsRes.data };
+        return {
+            sessions: sessionsRes.data || [],
+            intervals: intervalsRes.data || []
+        };
     }
 
     async getBiometricData(start: string, end: string) {
