@@ -76,7 +76,7 @@ export async function initTestDatabase() {
 
     await supabaseClient.from('ContextIntervals').insert([
         {
-            patient_id: patientData[0].id.toString(),
+            user_id: uniqueUserId,
             context_type: 'dashboard',
             session_id: null,
             start_minute_utc: preStart.toISOString(),
@@ -84,7 +84,7 @@ export async function initTestDatabase() {
             attempt_no: null
         },
         {
-            patient_id: patientData[0].id.toString(),
+            user_id: uniqueUserId,
             context_type: 'session',
             session_id: psData.id.toString(),
             start_minute_utc: sesStart.toISOString(),
@@ -92,7 +92,7 @@ export async function initTestDatabase() {
             attempt_no: 1
         },
         {
-            patient_id: patientData[0].id.toString(),
+            user_id: uniqueUserId,
             context_type: 'dashboard',
             session_id: null,
             start_minute_utc: postStart.toISOString(),
@@ -101,40 +101,35 @@ export async function initTestDatabase() {
         }
     ]);
 
-    const participant_full_id = patientData[0].id.toString();
-
     await supabaseClient.from('BiometricMinutes').insert([
         {
-            participant_full_id,
             timestamp_iso: preStart.toISOString(),
             timestamp_unix_ms: preStart.getTime(),
             eda_scl_usiemens: 1.2,
-            prv_rmssd_ms: 30,
             pulse_rate_bpm: 70,
             temperature_celsius: 36.5,
-            spo2_percentage: 98
+            accel_std_g: 0.01,
+            respiratory_rate_brpm: 14
         },
         {
-            participant_full_id,
             timestamp_iso: sesStart.toISOString(),
             timestamp_unix_ms: sesStart.getTime(),
             eda_scl_usiemens: 1.6,
-            prv_rmssd_ms: 25,
             pulse_rate_bpm: 80,
             temperature_celsius: 36.7,
-            spo2_percentage: 97
+            accel_std_g: 0.05,
+            respiratory_rate_brpm: 18
         },
         {
-            participant_full_id,
             timestamp_iso: postStart.toISOString(),
             timestamp_unix_ms: postStart.getTime(),
             eda_scl_usiemens: 1.1,
-            prv_rmssd_ms: 35,
             pulse_rate_bpm: 68,
             temperature_celsius: 36.4,
-            spo2_percentage: 99
+            accel_std_g: 0.01,
+            respiratory_rate_brpm: 12
         }
     ]);
 
-    return { patientId: patientData[0].id };
+    return { patientId: patientData[0].id, userId: uniqueUserId };
 }

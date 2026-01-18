@@ -1,10 +1,8 @@
-import { UserId } from '@common/domain/model/UserParameters';
-import * as fastify from 'fastify';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Database } from '@common/infrastructure/database/supabaseTypes';
 
 declare module 'fastify' {
-    export interface FastifyRequest {
-        user?: {
-            id: UserId;
-        };
+    interface FastifyInstance {
+        supabase: SupabaseClient<Database>;
     }
 }

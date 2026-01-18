@@ -1,20 +1,24 @@
 import { FastifyInstance } from 'fastify';
 import { GetUnifiedSessionReport } from '../../application/use-cases/GetUnifiedSessionReport';
 import { SupabaseSessionMetricsRepository } from '../database/SupabaseSessionMetricsRepository';
-import { supabaseClient } from '@src/common/infrastructure/database/supabaseClient';
+import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 
 export default function getSessionReport() {
-    return async function (fastify: FastifyInstance) {
-        const repo = new SupabaseSessionMetricsRepository(supabaseClient);
-        const useCase = new GetUnifiedSessionReport(repo);
+    const repo = new SupabaseSessionMetricsRepository(supabaseClient);
+    const useCase = new GetUnifiedSessionReport(repo);
 
-        fastify.get('/biometrics/session-report/:patientId/:sessionId', async (request, reply) => {
-            const { patientId, sessionId } = request.params as any;
+    return async function (fastify: FastifyInstance) {
+        fastify.get('/sessions/:userId/:patientId/:sessionId/report', async (request, reply) => {
             try {
-                const report = await useCase.execute(parseInt(patientId), sessionId);
-                return reply.status(200).send({ status: 'success', data: report });
+                const { userId, patientId, sessionId } = request.params as any;
+
+                const report = await useCase.execute(userId, Number(patientId), sessionId);
+
+                return reply.status(200).send(report);
             } catch (e: any) {
-                return reply.status(500).send({ status: 'error', message: e.message });
+                const msg = e.message;
+                const code = msg === 'SESSION_NOT_FOUND' || msg === 'NO_INTERVALS_FOUND' ? 404 : 500;
+                return reply.status(code).send({ status: 'error', message: msg });
             }
         });
     };

@@ -57,9 +57,9 @@ export type Database = {
           created_at: string
           end_minute_utc: string
           id: number
-          patient_id: string
           session_id: string | null
           start_minute_utc: string
+          user_id: string
         }
         Insert: {
           attempt_no?: number | null
@@ -67,9 +67,9 @@ export type Database = {
           created_at?: string
           end_minute_utc: string
           id?: number
-          patient_id: string
           session_id?: string | null
           start_minute_utc: string
+          user_id: string
         }
         Update: {
           attempt_no?: number | null
@@ -77,9 +77,9 @@ export type Database = {
           created_at?: string
           end_minute_utc?: string
           id?: number
-          patient_id?: string
           session_id?: string | null
           start_minute_utc?: string
+          user_id?: string
         }
         Relationships: []
       }
