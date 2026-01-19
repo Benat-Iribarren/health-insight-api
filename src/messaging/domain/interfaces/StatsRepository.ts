@@ -4,7 +4,8 @@ export interface PatientStats {
     completed: number;
     inProgress: number;
     notStarted: number;
-    sessions?: { state: string }[];
+    nextWeekCount?: number;
+    sessions?: { state: string; assigned_date: string }[];
 }
 
 export interface StatsRepository {
