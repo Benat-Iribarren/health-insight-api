@@ -36,7 +36,7 @@ export class SendWeeklyStats {
                 }
 
                 if (assignedDate > now && assignedDate <= nextWeekLimit) {
-                    patient.nextWeekCount++;
+                    patient.nextWeekCount!++;
                 }
             });
 
