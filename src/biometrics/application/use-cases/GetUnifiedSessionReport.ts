@@ -1,19 +1,18 @@
 import { SupabaseSessionMetricsRepository } from '../../infrastructure/database/SupabaseSessionMetricsRepository';
-import { Tables } from '@common/infrastructure/database/supabaseTypes';
-
-type BiometricRow = Pick<Tables<'BiometricMinutes'>, 'timestamp_iso' | 'eda_scl_usiemens' | 'pulse_rate_bpm' | 'temperature_celsius' | 'accel_std_g' | 'respiratory_rate_brpm'>;
 
 export class GetUnifiedSessionReport {
     constructor(private readonly repository: SupabaseSessionMetricsRepository) {}
 
-    async execute(userId: string, patientId: number, sessionId?: string) {
-        const { sessions, intervals } = await this.repository.getFullSessionContext(userId, patientId, sessionId);
+    async execute(patientId: number, sessionId?: string) {
+        const { sessions, intervals } = await this.repository.getFullSessionContext(patientId, sessionId);
 
         if (sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
 
         const reports = await Promise.all(sessions.map(async (session) => {
             const currentId = session.id.toString();
-            const sIntervals = intervals.filter(i => i.session_id === currentId);
+            const sIntervals = intervals.filter(i =>
+                i.session_id !== null && i.session_id.toString() === currentId
+            );
 
             if (sIntervals.length === 0) return null;
 
@@ -45,7 +44,7 @@ export class GetUnifiedSessionReport {
                 if (phase) {
                     metricKeys.forEach(key => {
                         const val = Number(row[key]);
-                        if (val) {
+                        if (!isNaN(val) && val !== 0) {
                             const s = results[key][phase];
                             s.sum += val; s.count++;
                             if (val > s.max) s.max = val;
@@ -68,9 +67,7 @@ export class GetUnifiedSessionReport {
                 return acc;
             }, {});
 
-            const preEval = session.pre_evaluation || 0;
-            const postEval = session.post_evaluation || 0;
-            const subjectiveImpact = Math.min(Math.max(0, (postEval - preEval) / 10), 1) * 100;
+            const subjectiveImpact = Math.min(Math.max(0, ((session.post_evaluation || 0) - (session.pre_evaluation || 0)) / 10), 1) * 100;
 
             const calcObj = (m: any, w: number, inv = false) => {
                 if (!m.pre.avg || !m.session.avg) return 0;
@@ -85,12 +82,16 @@ export class GetUnifiedSessionReport {
             return {
                 session_id: currentId,
                 final_score_percentage: parseFloat(((subjectiveImpact * 0.4) + (objectiveScore * 0.6)).toFixed(2)),
-                subjective_analysis: { pre_evaluation: preEval, post_evaluation: postEval, delta: postEval - preEval },
+                subjective_analysis: {
+                    pre_evaluation: session.pre_evaluation || 0,
+                    post_evaluation: session.post_evaluation || 0,
+                    delta: (session.post_evaluation || 0) - (session.pre_evaluation || 0)
+                },
                 objective_analysis: { metrics: finalMetrics }
             };
         }));
 
         const validReports = reports.filter(r => r !== null);
-        return sessionId ? validReports[0] : validReports;
+        return sessionId ? (validReports[0] || null) : validReports;
     }
 }

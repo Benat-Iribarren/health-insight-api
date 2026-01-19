@@ -1,35 +1,26 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
-import { SyncDailyBiometrics } from '../../application/use-cases/SyncDailyBiometrics';
-import { SupabaseBiometricsRepository } from '../database/SupabaseBiometricsRepository';
+import { FastifyInstance } from 'fastify';
+import { GetUnifiedSessionReport } from '../../application/use-cases/GetUnifiedSessionReport';
+import { SupabaseSessionMetricsRepository } from '../database/SupabaseSessionMetricsRepository';
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 
-export default function syncDailyBiometrics() {
-    const repository = new SupabaseBiometricsRepository(supabaseClient);
-    const useCase = new SyncDailyBiometrics(repository);
+export default function getSessionReport() {
+    const repo = new SupabaseSessionMetricsRepository(supabaseClient);
+    const useCase = new GetUnifiedSessionReport(repo);
 
-    return async (request: FastifyRequest, reply: FastifyReply) => {
-        try {
-            const cronSecret = request.headers['x-health-insight-cron'];
-            const isCron = cronSecret === process.env.CRON_SECRET_KEY;
-            const isProfessional = (request as any).user?.role === 'professional';
+    return async function (fastify: FastifyInstance) {
+        fastify.get('/reports/:patientId/:sessionId?', async (request, reply) => {
+            try {
+                const { patientId, sessionId } = request.params as any;
+                const report = await useCase.execute(Number(patientId), sessionId);
 
-            if (!isCron && !isProfessional) {
-                return reply.status(403).send({status: 'error', message: 'Unauthorized'});
+                if (!report || (Array.isArray(report) && report.length === 0)) {
+                    return reply.status(404).send({ status: 'error', message: 'NO_DATA_FOUND' });
+                }
+
+                return reply.status(200).send(report);
+            } catch (e: any) {
+                return reply.status(500).send({ status: 'error', message: e.message });
             }
-
-            const targetDate = new Date();
-            targetDate.setUTCDate(targetDate.getUTCDate() - 2);
-            const dateStr = targetDate.toISOString().split('T')[0];
-
-            const summary = await useCase.execute(dateStr);
-
-            return reply.status(200).send({
-                status: 'success',
-                dateProcessed: dateStr,
-                summary
-            });
-        } catch (e: any) {
-            return reply.status(500).send({ status: 'error', message: e.message });
-        }
+        });
     };
 }

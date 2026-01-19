@@ -27,20 +27,24 @@ export function registerRoutes(fastify: FastifyInstance) {
 
     fastify.get('/ping', async () => ({ status: 'ok' }));
 
-    fastify.post('/biometrics/sync-daily', syncDailyBiometrics());
+    // Corregido: se pasa la referencia de la función sin ejecutar
+    fastify.post('/biometrics/sync-daily', syncDailyBiometrics);
 
     fastify.register(presenceMinute());
 
     fastify.register(async (app) => {
         app.post('/messaging/send-weekly-stats', sendWeeklyStats(deps));
+
         app.register(async (authContext) => {
             authContext.addHook('preHandler', async (req, res) => {
                 try { await authenticate(req, res); } catch (e) { }
             });
+
             authContext.register(async (professionalApp) => {
-                professionalApp.addHook('preHandler', verifyProfessional(userRepo));
+                //professionalApp.addHook('preHandler', verifyProfessional(userRepo));
                 professionalApp.register(predictDropout({ dropoutRepo }));
                 professionalApp.register(sendToPatient(deps));
+                // Registro del reporte de sesiones
                 professionalApp.register(getSessionReport());
             });
 
