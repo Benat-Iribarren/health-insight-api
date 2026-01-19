@@ -9,10 +9,13 @@ export class GetUnifiedSessionReport {
         if (sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
 
         const reports = await Promise.all(sessions.map(async (session) => {
-            const currentId = session.id.toString();
-            const sIntervals = intervals.filter(i =>
-                i.session_id !== null && i.session_id.toString() === currentId
-            );
+            const currentIdNum = session.id.toString();
+
+            const sIntervals = intervals.filter(i => {
+                if (!i.session_id) return false;
+                const sidStr = i.session_id.toString();
+                return sidStr.endsWith(currentIdNum.padStart(12, '0'));
+            });
 
             if (sIntervals.length === 0) return null;
 
@@ -80,7 +83,7 @@ export class GetUnifiedSessionReport {
                 calcObj(finalMetrics.temperature_celsius, 0.3, true);
 
             return {
-                session_id: currentId,
+                session_id: currentIdNum,
                 final_score_percentage: parseFloat(((subjectiveImpact * 0.4) + (objectiveScore * 0.6)).toFixed(2)),
                 subjective_analysis: {
                     pre_evaluation: session.pre_evaluation || 0,
