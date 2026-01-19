@@ -66,9 +66,13 @@ export class GetUnifiedSessionReport {
 
             biometrics?.forEach((row: any) => {
                 let phase = '';
-                if (preInt && row.timestamp_iso >= preInt.start_minute_utc && row.timestamp_iso <= preInt.end_minute_utc) phase = 'pre';
-                else if (row.timestamp_iso >= firstStart && row.timestamp_iso <= lastEnd) phase = 'session';
-                else if (postInt && row.timestamp_iso >= postStart && row.timestamp_iso <= postEnd) phase = 'post';
+                if (preInt && row.timestamp_iso >= preInt.start_minute_utc && row.timestamp_iso <= preInt.end_minute_utc) {
+                    phase = 'pre';
+                } else if (row.timestamp_iso >= firstStart && row.timestamp_iso <= lastEnd) {
+                    phase = 'session';
+                } else if (postInt && row.timestamp_iso >= postInt.start_minute_utc && row.timestamp_iso <= postInt.end_minute_utc) {
+                    phase = 'post';
+                }
 
                 if (phase) {
                     metricKeys.forEach(key => {
