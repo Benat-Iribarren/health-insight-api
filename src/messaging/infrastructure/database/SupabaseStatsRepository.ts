@@ -1,27 +1,36 @@
-import { StatsRepository, PatientStats } from "../../domain/interfaces/StatsRepository";
-import { DBClientService } from "@src/common/infrastructure/database/supabaseClient";
+import { SupabaseClient } from '@supabase/supabase-js';
+import { StatsRepository, PatientStats } from '../../domain/interfaces/StatsRepository';
 
 export class SupabaseStatsRepository implements StatsRepository {
-    constructor(private readonly supabase: DBClientService) {}
+    constructor(private readonly client: SupabaseClient) {}
 
     async getAllPatientsStats(): Promise<PatientStats[]> {
-        const { data, error } = await this.supabase
+        const { data, error } = await this.client
             .from('Patient')
             .select(`
                 id,
                 email,
-                PatientSession (state)
+                name,
+                PatientSession (
+                    state,
+                    assigned_date
+                )
             `);
 
-        if (error) throw new Error("FETCH_PATIENTS_SESSIONS_ERROR");
+        if (error) throw error;
 
         return (data || []).map(p => ({
             id: p.id,
             email: p.email,
+            name: p.name,
             completed: 0,
             inProgress: 0,
             notStarted: 0,
-            sessions: p.PatientSession
+            nextWeekCount: 0,
+            sessions: (p.PatientSession as any[] || []).map(s => ({
+                state: s.state,
+                assigned_date: s.assigned_date
+            }))
         }));
     }
 }

@@ -41,10 +41,9 @@ export function registerRoutes(fastify: FastifyInstance) {
             });
 
             authContext.register(async (professionalApp) => {
-                //professionalApp.addHook('preHandler', verifyProfessional(userRepo));
+                professionalApp.addHook('preHandler', verifyProfessional(userRepo));
                 professionalApp.register(predictDropout({ dropoutRepo }));
                 professionalApp.register(sendToPatient(deps));
-                // Registro del reporte de sesiones
                 professionalApp.register(getSessionReport());
             });
 
