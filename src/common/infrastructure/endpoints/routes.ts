@@ -27,7 +27,6 @@ export function registerRoutes(fastify: FastifyInstance) {
 
     fastify.get('/ping', async () => ({ status: 'ok' }));
 
-    // Corregido: se pasa la referencia de la función sin ejecutar
     fastify.post('/biometrics/sync-daily', syncDailyBiometrics);
 
     fastify.register(presenceMinute());

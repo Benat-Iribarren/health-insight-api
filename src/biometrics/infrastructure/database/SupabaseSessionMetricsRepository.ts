@@ -1,8 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@common/infrastructure/database/supabaseTypes';
 
 export class SupabaseSessionMetricsRepository {
-    constructor(private readonly client: SupabaseClient<Database>) {}
+    constructor(private readonly client: SupabaseClient) {}
 
     async getFullSessionContext(patientId: number, sessionId?: string) {
         const { data: patient } = await this.client
@@ -15,7 +14,7 @@ export class SupabaseSessionMetricsRepository {
 
         let sessionQuery = this.client
             .from('PatientSession')
-            .select('id, state, pre_evaluation, post_evaluation')
+            .select('id, state, pre_evaluation, post_evaluation, assigned_date')
             .eq('patient_id', patientId);
 
         if (sessionId) {
@@ -38,11 +37,11 @@ export class SupabaseSessionMetricsRepository {
     }
 
     async getBiometricData(start: string, end: string) {
-        return this.client
+        return await this.client
             .from('BiometricMinutes')
-            .select('timestamp_iso, eda_scl_usiemens, pulse_rate_bpm, temperature_celsius, accel_std_g, respiratory_rate_brpm')
+            .select('*')
             .gte('timestamp_iso', start)
             .lte('timestamp_iso', end)
-            .order('timestamp_iso', {ascending: true});
+            .order('timestamp_iso', { ascending: true });
     }
 }

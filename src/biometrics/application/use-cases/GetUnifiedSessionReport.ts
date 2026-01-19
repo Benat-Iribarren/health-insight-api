@@ -8,6 +8,19 @@ export class GetUnifiedSessionReport {
 
         if (sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
 
+        const now = new Date();
+        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const weeklyStats = {
+            hechas: sessions.filter(s => s.state === 'completed').length,
+            en_curso: sessions.filter(s => s.state === 'in_progress').length,
+            pendientes: sessions.filter(s => {
+                const d = new Date(s.assigned_date);
+                return (s.state === 'assigned' || s.state === 'not_started') && d >= startOfWeek;
+            }).length
+        };
+
         const reports = await Promise.all(sessions.map(async (session) => {
             const currentIdNum = session.id.toString();
 
@@ -17,7 +30,18 @@ export class GetUnifiedSessionReport {
                 return sidStr.endsWith(currentIdNum.padStart(12, '0'));
             });
 
-            if (sIntervals.length === 0) return null;
+            if (sIntervals.length === 0) {
+                return {
+                    session_id: currentIdNum,
+                    state: session.state,
+                    no_biometrics: true,
+                    subjective_analysis: {
+                        pre_evaluation: session.pre_evaluation || 0,
+                        post_evaluation: session.post_evaluation || 0,
+                        delta: (session.post_evaluation || 0) - (session.pre_evaluation || 0)
+                    }
+                };
+            }
 
             const firstStart = sIntervals[0].start_minute_utc;
             const lastEnd = sIntervals[sIntervals.length - 1].end_minute_utc;
@@ -84,6 +108,7 @@ export class GetUnifiedSessionReport {
 
             return {
                 session_id: currentIdNum,
+                state: session.state,
                 final_score_percentage: parseFloat(((subjectiveImpact * 0.4) + (objectiveScore * 0.6)).toFixed(2)),
                 subjective_analysis: {
                     pre_evaluation: session.pre_evaluation || 0,
@@ -94,7 +119,11 @@ export class GetUnifiedSessionReport {
             };
         }));
 
-        const validReports = reports.filter(r => r !== null);
-        return sessionId ? (validReports[0] || null) : validReports;
+        const finalReports = reports.filter(r => r !== null);
+
+        return {
+            weekly_summary: weeklyStats,
+            reports: sessionId ? (finalReports.find(r => r?.session_id === sessionId) || null) : finalReports
+        };
     }
 }
