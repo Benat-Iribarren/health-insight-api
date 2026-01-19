@@ -24,10 +24,12 @@ export class GetUnifiedSessionReport {
         const reports = await Promise.all(sessions.map(async (session) => {
             const currentIdNum = session.id.toString();
 
+            if (sessionId && currentIdNum !== sessionId) return null;
+
             const sIntervals = intervals.filter(i => {
                 if (!i.session_id) return false;
                 const sidStr = i.session_id.toString();
-                return sidStr.endsWith(currentIdNum.padStart(12, '0'));
+                return sidStr.endsWith(currentIdNum.padStart(12, '0')) || sidStr.includes(currentIdNum);
             });
 
             if (sIntervals.length === 0) {
@@ -66,7 +68,7 @@ export class GetUnifiedSessionReport {
                 let phase = '';
                 if (preInt && row.timestamp_iso >= preInt.start_minute_utc && row.timestamp_iso <= preInt.end_minute_utc) phase = 'pre';
                 else if (row.timestamp_iso >= firstStart && row.timestamp_iso <= lastEnd) phase = 'session';
-                else if (postInt && row.timestamp_iso >= postInt.start_minute_utc && row.timestamp_iso <= postInt.end_minute_utc) phase = 'post';
+                else if (postInt && row.timestamp_iso >= postStart && row.timestamp_iso <= postEnd) phase = 'post';
 
                 if (phase) {
                     metricKeys.forEach(key => {
@@ -123,7 +125,7 @@ export class GetUnifiedSessionReport {
 
         return {
             weekly_summary: weeklyStats,
-            reports: sessionId ? (finalReports.find(r => r?.session_id === sessionId) || null) : finalReports
+            reports: sessionId ? (finalReports[0] || null) : finalReports
         };
     }
 }

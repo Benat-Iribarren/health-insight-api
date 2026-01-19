@@ -12,27 +12,20 @@ export class SupabaseSessionMetricsRepository {
 
         if (!patient?.user_id) throw new Error('PATIENT_USER_ID_NOT_FOUND');
 
-        let sessionQuery = this.client
+        const { data: sessions } = await this.client
             .from('PatientSession')
             .select('id, state, pre_evaluation, post_evaluation, assigned_date')
             .eq('patient_id', patientId);
 
-        if (sessionId) {
-            sessionQuery = sessionQuery.eq('id', parseInt(sessionId));
-        }
-
-        const [sessionsRes, intervalsRes] = await Promise.all([
-            sessionQuery,
-            this.client
-                .from('ContextIntervals')
-                .select('start_minute_utc, end_minute_utc, context_type, session_id')
-                .eq('user_id', patient.user_id)
-                .order('start_minute_utc', { ascending: true })
-        ]);
+        const { data: intervals } = await this.client
+            .from('ContextIntervals')
+            .select('start_minute_utc, end_minute_utc, context_type, session_id')
+            .eq('user_id', patient.user_id)
+            .order('start_minute_utc', { ascending: true });
 
         return {
-            sessions: sessionsRes.data || [],
-            intervals: intervalsRes.data || []
+            sessions: sessions || [],
+            intervals: intervals || []
         };
     }
 
