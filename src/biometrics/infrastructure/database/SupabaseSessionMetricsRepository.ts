@@ -4,6 +4,7 @@ export class SupabaseSessionMetricsRepository {
     constructor(private readonly client: SupabaseClient) {}
 
     async getFullSessionContext(patientId: number, sessionId?: string) {
+        // Buscamos sesiones filtrando por patient_id (Número)
         const { data: sessions } = await this.client
             .from('PatientSession')
             .select('id, state, pre_evaluation, post_evaluation, assigned_date')

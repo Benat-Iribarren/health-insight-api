@@ -5,7 +5,8 @@ export class GetUnifiedSessionReport {
 
     async execute(patientId: number, sessionId?: string) {
         const { sessions, intervals } = await this.repository.getFullSessionContext(patientId, sessionId);
-        if (sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
+
+        if (!sessions || sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
 
         const allBiometrics = await this.fetchGlobalBiometrics(intervals);
 
@@ -29,6 +30,7 @@ export class GetUnifiedSessionReport {
         const currentId = session.id.toString();
         if (filterSessionId && currentId !== filterSessionId) return null;
 
+        // Comparación robusta de IDs numéricos
         const sIntervals = allIntervals.filter(i =>
             i.session_id?.toString() === currentId
         );
