@@ -11,7 +11,7 @@ export const securityLogger = async (
 
     const user = request.user as any;
     const logEntry = {
-        user_id: user?.id || 'ANONYMOUS',
+        user_id: user?.id || null,
         endpoint: `${request.method} ${request.url}`,
         ip_address: request.ip,
         user_agent: request.headers['user-agent'] || 'UNKNOWN',

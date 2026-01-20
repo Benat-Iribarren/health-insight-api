@@ -15,7 +15,7 @@ export class SupabaseSessionMetricsRepository {
             .eq('patient_id', patientId);
 
         if (sessionId) {
-            intervalsQuery = intervalsQuery.eq('session_id', sessionId);
+            intervalsQuery = intervalsQuery.eq('session_id', parseInt(sessionId));
         }
 
         const { data: intervals } = await intervalsQuery.order('start_minute_utc', { ascending: true });
