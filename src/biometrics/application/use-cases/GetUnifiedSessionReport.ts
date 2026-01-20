@@ -9,7 +9,7 @@ export class GetUnifiedSessionReport {
         if (!sessions || sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
         if (!intervals || intervals.length === 0) return sessions.map(s => this.mapEmptyReport(s));
 
-        // 1. Definimos la ventana temporal total de todos los intervalos
+        // 1. Calcular rango global usando milisegundos para evitar errores de zona horaria
         const allTimes = intervals.flatMap(i => [
             new Date(i.start_minute_utc).getTime(),
             new Date(i.end_minute_utc).getTime()
@@ -17,42 +17,46 @@ export class GetUnifiedSessionReport {
         const globalStart = new Date(Math.min(...allTimes)).toISOString();
         const globalEnd = new Date(Math.max(...allTimes)).toISOString();
 
-        // 2. Traemos toda la biometría global del periodo
+        // 2. Traer biometría
         const { data: biometrics } = await this.repository.getBiometricData(globalStart, globalEnd);
         const biometricList = biometrics || [];
 
-        // 3. Mapeamos cada sesión a sus datos
+        // --- LOG DE DEBUG ---
+        console.log(`DEBUG: Intervalos totales: ${intervals.length}`);
+        console.log(`DEBUG: Rango buscado: ${globalStart} a ${globalEnd}`);
+        console.log(`DEBUG: Registros de biometría recuperados de DB: ${biometricList.length}`);
+        // --------------------
+
         const reports = sessions
             .map(session => {
                 const currentId = session.id.toString();
                 const sessionIntervals = intervals.filter(i => i.session_id?.toString() === currentId);
 
-                if (sessionIntervals.length === 0) return this.mapEmptyReport(session);
+                if (sessionIntervals.length === 0) {
+                    console.log(`DEBUG: Sesión ${currentId} no tiene intervalos asociados.`);
+                    return this.mapEmptyReport(session);
+                }
 
-                // Tiempos clave de la sesión (fase session)
                 const startStr = sessionIntervals[0].start_minute_utc;
                 const endStr = sessionIntervals[sessionIntervals.length - 1].end_minute_utc;
+
+                // Forzamos comparación numérica de tiempos
                 const startTime = new Date(startStr).getTime();
                 const endTime = new Date(endStr).getTime();
 
-                // Identificamos dashboard pre y post (búsqueda temporal)
-                const preInt = intervals.filter(i =>
-                    i.context_type === 'dashboard' &&
-                    new Date(i.end_minute_utc).getTime() <= startTime
-                ).pop();
+                // Dashboards
+                const preInt = intervals.filter(i => i.context_type === 'dashboard' && new Date(i.end_minute_utc).getTime() <= startTime).pop();
+                const postInt = intervals.find(i => i.context_type === 'dashboard' && new Date(i.start_minute_utc).getTime() >= endTime);
 
-                const postInt = intervals.find(i =>
-                    i.context_type === 'dashboard' &&
-                    new Date(i.start_minute_utc).getTime() >= endTime
-                );
-
-                // FILTRO ROBUSTO: Unimos biometría por milisegundos
+                // FILTRO DE BIOMETRÍA CON CONVERSIÓN DE FECHA EXPLÍCITA
                 const sessionData = biometricList.filter(b => {
                     const bTime = new Date(b.timestamp_iso).getTime();
                     const limitStart = preInt ? new Date(preInt.start_minute_utc).getTime() : startTime;
                     const limitEnd = postInt ? new Date(postInt.end_minute_utc).getTime() : endTime;
                     return bTime >= limitStart && bTime <= limitEnd;
                 });
+
+                console.log(`DEBUG: Sesión ${currentId} -> Datos biometría encontrados tras filtrar: ${sessionData.length}`);
 
                 if (sessionData.length === 0) return this.mapEmptyReport(session);
 
@@ -121,7 +125,8 @@ export class GetUnifiedSessionReport {
         const getObjScore = (m: any, weight: number, inv = false) => {
             if (!m.pre.avg || !m.session.avg) return 0;
             const diff = inv ? (m.pre.avg - m.session.avg) : (m.session.avg - m.pre.avg);
-            return Math.min(Math.max(0, diff / m.pre.avg), 1) * 100 * weight;
+            const ratio = diff / m.pre.avg;
+            return Math.min(Math.max(0, ratio), 1) * 100 * weight;
         };
 
         const objScore =
