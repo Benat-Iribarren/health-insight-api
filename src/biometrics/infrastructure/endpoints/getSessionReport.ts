@@ -12,6 +12,11 @@ export default function getSessionReport() {
             try {
                 const { patientId, sessionId } = request.params as any;
                 const result = await useCase.execute(Number(patientId), sessionId);
+
+                if (!result || (Array.isArray(result) && result.length === 0)) {
+                    return reply.status(404).send({ status: 'error', message: 'NO_DATA_FOUND' });
+                }
+
                 return reply.status(200).send(result);
             } catch (e: any) {
                 if (e.message === 'SESSION_NOT_FOUND') {

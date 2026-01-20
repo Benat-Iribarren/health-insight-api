@@ -7,7 +7,6 @@ export class GetUnifiedSessionReport {
         const { sessions, intervals } = await this.repository.getFullSessionContext(patientId, sessionId);
         if (sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
 
-        const weekly_summary = this.calculateWeeklySummary(sessions);
         const allBiometrics = await this.fetchGlobalBiometrics(intervals);
 
         const reports = sessions
@@ -15,25 +14,7 @@ export class GetUnifiedSessionReport {
             .filter(r => r !== null)
             .sort((a, b) => Number(b.session_id) - Number(a.session_id));
 
-        return {
-            weekly_summary,
-            reports: sessionId ? (reports[0] || null) : reports
-        };
-    }
-
-    private calculateWeeklySummary(sessions: any[]) {
-        const now = new Date();
-        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        return {
-            completed: sessions.filter(s => s.state === 'completed').length,
-            in_progress: sessions.filter(s => s.state === 'in_progress').length,
-            pending: sessions.filter(s => {
-                const d = new Date(s.assigned_date);
-                return (s.state === 'assigned' || s.state === 'not_started') && d >= startOfWeek;
-            }).length
-        };
+        return sessionId ? (reports[0] || null) : reports;
     }
 
     private async fetchGlobalBiometrics(intervals: any[]) {
@@ -49,7 +30,7 @@ export class GetUnifiedSessionReport {
         if (filterSessionId && currentId !== filterSessionId) return null;
 
         const sIntervals = allIntervals.filter(i =>
-            i.session_id?.endsWith(currentId.padStart(12, '0')) || i.session_id?.includes(currentId)
+            i.session_id?.toString() === currentId
         );
 
         if (sIntervals.length === 0) return this.mapEmptyReport(session);
