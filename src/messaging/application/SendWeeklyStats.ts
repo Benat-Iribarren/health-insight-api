@@ -27,16 +27,12 @@ export class SendWeeklyStats {
             patient.sessions?.forEach((s: any) => {
                 const assignedDate = new Date(s.assigned_date);
 
-                if (s.state === 'completed') {
-                    patient.completed++;
-                } else if (s.state === 'in_progress') {
-                    patient.inProgress++;
-                } else {
-                    patient.notStarted++;
-                }
+                if (s.state === 'completed') patient.completed++;
+                else if (s.state === 'in_progress') patient.inProgress++;
+                else patient.notStarted++;
 
                 if (assignedDate > now && assignedDate <= nextWeekLimit) {
-                    patient.nextWeekCount!++;
+                    patient.nextWeekCount++;
                 }
             });
 

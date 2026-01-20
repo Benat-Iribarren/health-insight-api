@@ -7,7 +7,7 @@ export default function presenceMinute() {
     return async function (fastify: FastifyInstance) {
         fastify.post('/presence/minute', async (request, reply) => {
             try {
-                const patientId = (request as any).user?.id ?? "f1570f10-415e-480a-9ff1-a9dc777d5cdb";
+                const patientId = (request as any).user?.id;
 
                 const { minuteTsUtc, contextType, sessionId } = request.body as any;
 

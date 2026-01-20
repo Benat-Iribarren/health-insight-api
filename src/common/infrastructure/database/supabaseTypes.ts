@@ -57,9 +57,9 @@ export type Database = {
           created_at: string
           end_minute_utc: string
           id: number
-          session_id: string | null
+          patient_id: number
+          session_id: number | null
           start_minute_utc: string
-          user_id: string
         }
         Insert: {
           attempt_no?: number | null
@@ -67,9 +67,9 @@ export type Database = {
           created_at?: string
           end_minute_utc: string
           id?: number
-          session_id?: string | null
+          patient_id: number
+          session_id?: number | null
           start_minute_utc: string
-          user_id: string
         }
         Update: {
           attempt_no?: number | null
@@ -77,11 +77,26 @@ export type Database = {
           created_at?: string
           end_minute_utc?: string
           id?: number
-          session_id?: string | null
+          patient_id?: number
+          session_id?: number | null
           start_minute_utc?: string
-          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ContextIntervals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "Patient"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ContextIntervals_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "Session"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       Patient: {
         Row: {
@@ -245,7 +260,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "SecurityLogs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "Patient"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       Session: {
         Row: {
