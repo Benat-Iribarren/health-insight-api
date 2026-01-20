@@ -76,7 +76,7 @@ export async function initTestDatabase() {
 
     await supabaseClient.from('ContextIntervals').insert([
         {
-            user_id: uniqueUserId,
+            patient_id: patientData[0].id,
             context_type: 'dashboard',
             session_id: null,
             start_minute_utc: preStart.toISOString(),
@@ -84,15 +84,15 @@ export async function initTestDatabase() {
             attempt_no: null
         },
         {
-            user_id: uniqueUserId,
+            patient_id: patientData[0].id,
             context_type: 'session',
-            session_id: psData.id.toString(),
+            session_id: psData.id,
             start_minute_utc: sesStart.toISOString(),
             end_minute_utc: sesEnd.toISOString(),
             attempt_no: 1
         },
         {
-            user_id: uniqueUserId,
+            patient_id: patientData[0].id,
             context_type: 'dashboard',
             session_id: null,
             start_minute_utc: postStart.toISOString(),
