@@ -4,46 +4,53 @@ export class GetUnifiedSessionReport {
     constructor(private readonly repository: SupabaseSessionMetricsRepository) {}
 
     async execute(patientId: number, sessionId?: string) {
+        // 1. Obtener el contexto del paciente
         const { sessions, intervals } = await this.repository.getFullSessionContext(patientId, sessionId);
 
         if (!sessions || sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
         if (!intervals || intervals.length === 0) return sessions.map(s => this.mapEmptyReport(s));
 
-        // 1. Definimos la ventana temporal total de todos los intervalos para una sola llamada a DB
+        // 2. Determinar la ventana de tiempo global para optimizar la consulta de biometría
         const sortedIntervals = [...intervals].sort((a, b) =>
             new Date(a.start_minute_utc).getTime() - new Date(b.start_minute_utc).getTime()
         );
         const globalStart = sortedIntervals[0].start_minute_utc;
         const globalEnd = sortedIntervals[sortedIntervals.length - 1].end_minute_utc;
 
-        // 2. Traemos toda la biometría que caiga en esos intervalos
+        // 3. Traer todos los datos biométricos de una vez
         const { data: allBiometrics } = await this.repository.getBiometricData(globalStart, globalEnd);
         const biometrics = allBiometrics || [];
 
-        // 3. Mapeamos cada sesión a sus intervalos y procesamos estadísticas
+        // 4. Procesar y unir datos para cada sesión encontrada
         const reports = sessions
             .map(session => {
                 const currentSessionId = session.id.toString();
-
-                // Intervalos de la fase de trabajo de esta sesión
                 const sessionIntervals = intervals.filter(i => i.session_id?.toString() === currentSessionId);
 
                 if (sessionIntervals.length === 0) return this.mapEmptyReport(session);
 
-                const start = sessionIntervals[0].start_minute_utc;
-                const end = sessionIntervals[sessionIntervals.length - 1].end_minute_utc;
+                // Definimos el núcleo de la sesión
+                const startStr = sessionIntervals[0].start_minute_utc;
+                const endStr = sessionIntervals[sessionIntervals.length - 1].end_minute_utc;
+                const startTime = new Date(startStr).getTime();
+                const endTime = new Date(endStr).getTime();
 
-                // Buscamos contextos de 'dashboard' para pre y post (basados en tiempo relativo a la sesión)
-                const preInt = intervals.filter(i => i.context_type === 'dashboard' && i.end_minute_utc <= start).pop();
-                const postInt = intervals.find(i => i.context_type === 'dashboard' && i.start_minute_utc >= end);
+                // Identificar contextos de dashboard adyacentes (Pre y Post)
+                const preInt = intervals.filter(i => i.context_type === 'dashboard' && new Date(i.end_minute_utc).getTime() <= startTime).pop();
+                const postInt = intervals.find(i => i.context_type === 'dashboard' && new Date(i.start_minute_utc).getTime() >= endTime);
 
-                // Juntamos biometría para esta sesión específica (incluyendo pre/post si existen)
-                const sessionData = biometrics.filter(b =>
-                    b.timestamp_iso >= (preInt?.start_minute_utc || start) &&
-                    b.timestamp_iso <= (postInt?.end_minute_utc || end)
-                );
+                // Filtrar biometría que cae en el rango total de esta sesión específica
+                const sessionData = biometrics.filter(b => {
+                    const bTime = new Date(b.timestamp_iso).getTime();
+                    const rangeStart = preInt ? new Date(preInt.start_minute_utc).getTime() : startTime;
+                    const rangeEnd = postInt ? new Date(postInt.end_minute_utc).getTime() : endTime;
+                    return bTime >= rangeStart && bTime <= rangeEnd;
+                });
 
-                const metricsSummary = this.calculateMetrics(sessionData, preInt, postInt, start, end);
+                if (sessionData.length === 0) return this.mapEmptyReport(session);
+
+                // 5. Cálculo de métricas estadísticas y porcentaje de mareo
+                const metricsSummary = this.calculateMetrics(sessionData, preInt, postInt, startStr, endStr);
                 const dizziness = this.calculateDizziness(session, metricsSummary);
 
                 return {
@@ -61,10 +68,8 @@ export class GetUnifiedSessionReport {
                     }
                 };
             })
-            // 4. Ordenamos por session_id descendente
             .sort((a, b) => Number(b.session_id) - Number(a.session_id));
 
-        // Si se pidió una sesión específica, devolvemos el objeto. Si no, el array completo.
         return sessionId ? (reports[0] || null) : reports;
     }
 
@@ -84,12 +89,20 @@ export class GetUnifiedSessionReport {
 
     private getStats(data: any[], key: string, start?: string, end?: string) {
         if (!start || !end) return { avg: 0, max: 0, min: 0 };
+
+        const startTime = new Date(start).getTime();
+        const endTime = new Date(end).getTime();
+
         const values = data
-            .filter(d => d.timestamp_iso >= start && d.timestamp_iso <= end)
+            .filter(d => {
+                const t = new Date(d.timestamp_iso).getTime();
+                return t >= startTime && t <= endTime;
+            })
             .map(d => Number(d[key]))
             .filter(v => !isNaN(v) && v > 0);
 
         if (values.length === 0) return { avg: 0, max: 0, min: 0 };
+
         return {
             avg: parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(2)),
             max: Math.max(...values),
@@ -98,13 +111,17 @@ export class GetUnifiedSessionReport {
     }
 
     private calculateDizziness(session: any, metrics: any) {
-        const subDelta = (Number(session.post_evaluation) || 0) - (Number(session.pre_evaluation) || 0);
-        const subScore = Math.min(Math.max(0, subDelta / 10), 1) * 100;
+        // 40% Subjetivo: Basado en el cambio de percepción del paciente
+        const pre = Number(session.pre_evaluation) || 0;
+        const post = Number(session.post_evaluation) || 0;
+        const subScore = Math.min(Math.max(0, (post - pre) / 10), 1) * 100;
 
+        // 60% Objetivo: Basado en la desviación de biometría durante la sesión vs el baseline (pre)
         const getObjScore = (m: any, weight: number, inv = false) => {
             if (!m.pre.avg || !m.session.avg) return 0;
             const diff = inv ? (m.pre.avg - m.session.avg) : (m.session.avg - m.pre.avg);
-            return Math.min(Math.max(0, diff / m.pre.avg), 1) * 100 * weight;
+            const ratio = diff / m.pre.avg;
+            return Math.min(Math.max(0, ratio), 1) * 100 * weight;
         };
 
         const objScore =
