@@ -4,7 +4,6 @@ export class SupabaseSessionMetricsRepository {
     constructor(private readonly client: SupabaseClient) {}
 
     async getFullSessionContext(patientId: number, sessionId?: string) {
-        // Buscamos sesiones filtrando por patient_id (Número)
         const { data: sessions } = await this.client
             .from('PatientSession')
             .select('id, state, pre_evaluation, post_evaluation, assigned_date')
@@ -27,10 +26,11 @@ export class SupabaseSessionMetricsRepository {
         };
     }
 
-    async getBiometricData(start: string, end: string) {
+    async getBiometricData(patientId: number, start: string, end: string) {
         return this.client
             .from('BiometricMinutes')
             .select('*')
+            .eq('patient_id', patientId)
             .gte('timestamp_iso', start)
             .lte('timestamp_iso', end)
             .order('timestamp_iso', { ascending: true });

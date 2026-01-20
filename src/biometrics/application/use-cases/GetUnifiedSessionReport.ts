@@ -5,10 +5,10 @@ export class GetUnifiedSessionReport {
 
     async execute(patientId: number, sessionId?: string) {
         const { sessions, intervals } = await this.repository.getFullSessionContext(patientId, sessionId);
+        if (sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
 
-        if (!sessions || sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
-
-        const allBiometrics = await this.fetchGlobalBiometrics(intervals);
+        // Obtenemos la biometría filtrando por el rango total de los intervalos y el ID del paciente
+        const allBiometrics = await this.fetchGlobalBiometrics(patientId, intervals);
 
         const reports = sessions
             .map(session => this.processSession(session, intervals, allBiometrics, sessionId))
@@ -18,11 +18,12 @@ export class GetUnifiedSessionReport {
         return sessionId ? (reports[0] || null) : reports;
     }
 
-    private async fetchGlobalBiometrics(intervals: any[]) {
+    private async fetchGlobalBiometrics(patientId: number, intervals: any[]) {
         if (intervals.length === 0) return [];
         const start = intervals[0].start_minute_utc;
         const end = intervals[intervals.length - 1].end_minute_utc;
-        const { data } = await this.repository.getBiometricData(start, end);
+
+        const { data } = await this.repository.getBiometricData(patientId, start, end);
         return data || [];
     }
 
@@ -30,25 +31,23 @@ export class GetUnifiedSessionReport {
         const currentId = session.id.toString();
         if (filterSessionId && currentId !== filterSessionId) return null;
 
-        // Comparación robusta de IDs numéricos
-        const sIntervals = allIntervals.filter(i =>
-            i.session_id?.toString() === currentId
-        );
-
+        const sIntervals = allIntervals.filter(i => i.session_id?.toString() === currentId);
         if (sIntervals.length === 0) return this.mapEmptyReport(session);
 
         const firstStart = sIntervals[0].start_minute_utc;
         const lastEnd = sIntervals[sIntervals.length - 1].end_minute_utc;
 
+        // Buscamos fases de 'dashboard' inmediatamente antes y después de la 'session'
         const preInt = allIntervals.filter(i => i.context_type === 'dashboard' && i.end_minute_utc <= firstStart).pop();
         const postInt = allIntervals.find(i => i.context_type === 'dashboard' && i.start_minute_utc >= lastEnd);
 
+        // Unión por Timestamp: Filtramos los minutos de biometría que caen en este rango temporal
         const sessionBiometrics = biometrics.filter(d =>
             d.timestamp_iso >= (preInt?.start_minute_utc || firstStart) &&
             d.timestamp_iso <= (postInt?.end_minute_utc || lastEnd)
         );
 
-        const metricsSummary = this.calculateMetrics(biometrics, preInt, postInt, firstStart, lastEnd);
+        const metricsSummary = this.calculateMetrics(sessionBiometrics, preInt, postInt, firstStart, lastEnd);
         const dizziness_percentage = this.calculateDizziness(session, metricsSummary);
 
         return {
