@@ -6,79 +6,67 @@ export class GetUnifiedSessionReport {
     async execute(patientId: number, sessionId?: string) {
         const { sessions, intervals } = await this.repository.getFullSessionContext(patientId, sessionId);
 
-        if (!sessions || sessions.length === 0) throw new Error('SESSION_NOT_FOUND');
-        if (!intervals || intervals.length === 0) return sessions.map(s => this.mapEmptyReport(s));
+        if (!sessions.length) throw new Error('SESSION_NOT_FOUND');
+        if (!intervals.length) return sessions.map(s => this.mapEmptyReport(s));
 
-        // 1. Calcular rango global usando milisegundos para evitar errores de zona horaria
-        const allTimes = intervals.flatMap(i => [
+        // 1. Rango global de tiempo para la consulta
+        const times = intervals.flatMap(i => [
             new Date(i.start_minute_utc).getTime(),
             new Date(i.end_minute_utc).getTime()
         ]);
-        const globalStart = new Date(Math.min(...allTimes)).toISOString();
-        const globalEnd = new Date(Math.max(...allTimes)).toISOString();
+        const globalStart = new Date(Math.min(...times)).toISOString();
+        const globalEnd = new Date(Math.max(...times)).toISOString();
 
-        // 2. Traer biometría
+        // 2. Obtener biometría
         const { data: biometrics } = await this.repository.getBiometricData(globalStart, globalEnd);
         const biometricList = biometrics || [];
 
-        // --- LOG DE DEBUG ---
-        console.log(`DEBUG: Intervalos totales: ${intervals.length}`);
-        console.log(`DEBUG: Rango buscado: ${globalStart} a ${globalEnd}`);
-        console.log(`DEBUG: Registros de biometría recuperados de DB: ${biometricList.length}`);
-        // --------------------
+        // LOG CRÍTICO: Ver en Render si llegan datos de la DB
+        console.error(`CHECK: Biometría en DB = ${biometricList.length} filas`);
 
-        const reports = sessions
-            .map(session => {
-                const currentId = session.id.toString();
-                const sessionIntervals = intervals.filter(i => i.session_id?.toString() === currentId);
+        const reports = sessions.map(session => {
+            const currentId = session.id.toString();
 
-                if (sessionIntervals.length === 0) {
-                    console.log(`DEBUG: Sesión ${currentId} no tiene intervalos asociados.`);
-                    return this.mapEmptyReport(session);
-                }
+            // Filtrar intervalos de esta sesión
+            const sIntervals = intervals.filter(i => i.session_id?.toString() === currentId);
 
-                const startStr = sessionIntervals[0].start_minute_utc;
-                const endStr = sessionIntervals[sessionIntervals.length - 1].end_minute_utc;
+            console.error(`CHECK: Sesión ${currentId} tiene ${sIntervals.length} intervalos`);
 
-                // Forzamos comparación numérica de tiempos
-                const startTime = new Date(startStr).getTime();
-                const endTime = new Date(endStr).getTime();
+            if (!sIntervals.length) return this.mapEmptyReport(session);
 
-                // Dashboards
-                const preInt = intervals.filter(i => i.context_type === 'dashboard' && new Date(i.end_minute_utc).getTime() <= startTime).pop();
-                const postInt = intervals.find(i => i.context_type === 'dashboard' && new Date(i.start_minute_utc).getTime() >= endTime);
+            const sessionStart = new Date(sIntervals[0].start_minute_utc).getTime();
+            const sessionEnd = new Date(sIntervals[sIntervals.length - 1].end_minute_utc).getTime();
 
-                // FILTRO DE BIOMETRÍA CON CONVERSIÓN DE FECHA EXPLÍCITA
-                const sessionData = biometricList.filter(b => {
-                    const bTime = new Date(b.timestamp_iso).getTime();
-                    const limitStart = preInt ? new Date(preInt.start_minute_utc).getTime() : startTime;
-                    const limitEnd = postInt ? new Date(postInt.end_minute_utc).getTime() : endTime;
-                    return bTime >= limitStart && bTime <= limitEnd;
-                });
+            // Dashboards
+            const preInt = intervals.filter(i => i.context_type === 'dashboard' && new Date(i.end_minute_utc).getTime() <= sessionStart).pop();
+            const postInt = intervals.find(i => i.context_type === 'dashboard' && new Date(i.start_minute_utc).getTime() >= sessionEnd);
 
-                console.log(`DEBUG: Sesión ${currentId} -> Datos biometría encontrados tras filtrar: ${sessionData.length}`);
+            // 3. Unión temporal definitiva (Uso de milisegundos)
+            const sessionData = biometricList.filter(b => {
+                const bTime = new Date(b.timestamp_iso).getTime();
+                const limitStart = preInt ? new Date(preInt.start_minute_utc).getTime() : sessionStart;
+                const limitEnd = postInt ? new Date(postInt.end_minute_utc).getTime() : sessionEnd;
+                return bTime >= limitStart && bTime <= limitEnd;
+            });
 
-                if (sessionData.length === 0) return this.mapEmptyReport(session);
+            console.error(`CHECK: Sesión ${currentId} -> Biometría filtrada final = ${sessionData.length}`);
 
-                const metricsSummary = this.calculateMetrics(sessionData, preInt, postInt, startStr, endStr);
-                const dizziness = this.calculateDizziness(session, metricsSummary);
+            if (!sessionData.length) return this.mapEmptyReport(session);
 
-                return {
-                    session_id: currentId,
-                    state: session.state,
-                    dizziness_percentage: dizziness,
-                    subjective_analysis: {
-                        pre_evaluation: Number(session.pre_evaluation) || 0,
-                        post_evaluation: Number(session.post_evaluation) || 0,
-                        delta: session.state === 'completed' ? (Number(session.post_evaluation) - Number(session.pre_evaluation)) : 0
-                    },
-                    objective_analysis: {
-                        summary: metricsSummary,
-                        biometric_details: sessionData
-                    }
-                };
-            })
-            .sort((a, b) => Number(b.session_id) - Number(a.session_id));
+            const summary = this.calculateMetrics(sessionData, preInt, postInt, sIntervals[0].start_minute_utc, sIntervals[sIntervals.length - 1].end_minute_utc);
+
+            return {
+                session_id: currentId,
+                state: session.state,
+                dizziness_percentage: this.calculateDizziness(session, summary),
+                subjective_analysis: {
+                    pre_evaluation: Number(session.pre_evaluation) || 0,
+                    post_evaluation: Number(session.post_evaluation) || 0,
+                    delta: session.state === 'completed' ? (Number(session.post_evaluation) - Number(session.pre_evaluation)) : 0
+                },
+                objective_analysis: { summary, biometric_details: sessionData }
+            };
+        }).sort((a, b) => Number(b.session_id) - Number(a.session_id));
 
         return sessionId ? (reports[0] || null) : reports;
     }
@@ -101,7 +89,7 @@ export class GetUnifiedSessionReport {
         const sTime = new Date(start).getTime();
         const eTime = new Date(end).getTime();
 
-        const values = data
+        const vals = data
             .filter(d => {
                 const t = new Date(d.timestamp_iso).getTime();
                 return t >= sTime && t <= eTime;
@@ -109,32 +97,23 @@ export class GetUnifiedSessionReport {
             .map(d => Number(d[key]))
             .filter(v => !isNaN(v) && v > 0);
 
-        if (values.length === 0) return { avg: 0, max: 0, min: 0 };
+        if (!vals.length) return { avg: 0, max: 0, min: 0 };
         return {
-            avg: parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(2)),
-            max: Math.max(...values),
-            min: Math.min(...values)
+            avg: parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2)),
+            max: Math.max(...vals),
+            min: Math.min(...vals)
         };
     }
 
-    private calculateDizziness(session: any, metrics: any) {
-        const pre = Number(session.pre_evaluation) || 0;
-        const post = Number(session.post_evaluation) || 0;
-        const subScore = Math.min(Math.max(0, (post - pre) / 10), 1) * 100;
-
-        const getObjScore = (m: any, weight: number, inv = false) => {
-            if (!m.pre.avg || !m.session.avg) return 0;
-            const diff = inv ? (m.pre.avg - m.session.avg) : (m.session.avg - m.pre.avg);
-            const ratio = diff / m.pre.avg;
-            return Math.min(Math.max(0, ratio), 1) * 100 * weight;
+    private calculateDizziness(session: any, m: any) {
+        const sub = Math.min(Math.max(0, (Number(session.post_evaluation) - Number(session.pre_evaluation)) / 10), 1) * 100;
+        const objScore = (met: any, w: number, inv = false) => {
+            if (!met.pre.avg || !met.session.avg) return 0;
+            const diff = inv ? (met.pre.avg - met.session.avg) : (met.session.avg - met.pre.avg);
+            return Math.min(Math.max(0, diff / met.pre.avg), 1) * 100 * w;
         };
-
-        const objScore =
-            getObjScore(metrics.eda_scl_usiemens, 0.4) +
-            getObjScore(metrics.pulse_rate_bpm, 0.3) +
-            getObjScore(metrics.temperature_celsius, 0.3, true);
-
-        return parseFloat(((subScore * 0.4) + (objScore * 0.6)).toFixed(2));
+        const totalObj = objScore(m.eda_scl_usiemens, 0.4) + objScore(m.pulse_rate_bpm, 0.3) + objScore(m.temperature_celsius, 0.3, true);
+        return parseFloat(((sub * 0.4) + (totalObj * 0.6)).toFixed(2));
     }
 
     private mapEmptyReport(session: any) {
