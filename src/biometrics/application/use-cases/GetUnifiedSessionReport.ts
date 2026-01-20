@@ -56,7 +56,7 @@ export class GetUnifiedSessionReport {
             subjective_analysis: {
                 pre_evaluation: session.pre_evaluation || 0,
                 post_evaluation: session.post_evaluation || 0,
-                delta: (session.post_evaluation || 0) - (session.pre_evaluation || 0)
+                delta: session.state === 'completed' ? (session.post_evaluation || 0) - (session.pre_evaluation || 0) : 0
             },
             objective_analysis: {
                 summary: metricsSummary,
@@ -114,7 +114,7 @@ export class GetUnifiedSessionReport {
             subjective_analysis: {
                 pre_evaluation: session.pre_evaluation || 0,
                 post_evaluation: session.post_evaluation || 0,
-                delta: (session.post_evaluation || 0) - (session.pre_evaluation || 0)
+                delta: session.state === 'completed' ? (session.post_evaluation || 0) - (session.pre_evaluation || 0) : 0
             },
             objective_analysis: { summary: {}, biometric_details: [] }
         };
