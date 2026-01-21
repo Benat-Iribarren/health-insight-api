@@ -1,18 +1,21 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { RegisterPresenceMinute } from '../../application/use-cases/RegisterPresenceMinute';
 
 export default function presenceMinute() {
-    const useCase = new RegisterPresenceMinute();
-
     return async function (fastify: FastifyInstance) {
-        fastify.post('/presence/minute', async (request, reply) => {
-            try {
-                const patientId = (request as any).user?.id;
+        const useCase = new RegisterPresenceMinute();
 
-                const { minuteTsUtc, contextType, sessionId } = request.body as any;
+        fastify.post('/presence/minute', async (request: FastifyRequest, reply: FastifyReply) => {
+            try {
+                const user = (request as any).user;
+                const { minuteTsUtc, contextType, sessionId } = request.body as {
+                    minuteTsUtc: string;
+                    contextType: any;
+                    sessionId?: string;
+                };
 
                 const { data, action } = await useCase.execute({
-                    patientId,
+                    patientId: user.id,
                     minuteTsUtc,
                     contextType,
                     sessionId: sessionId ?? null
@@ -23,9 +26,9 @@ export default function presenceMinute() {
                     action,
                     intervalId: (data as any).id
                 });
-            } catch (e: any) {
-                const msg = e.message;
-                const code = msg === 'Unauthorized' ? 401 : (msg.includes('must be') || msg.includes('Invalid') ? 400 : 500);
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : 'Unknown error';
+                const code = msg === 'Unauthorized' ? 401 : 500;
                 return reply.status(code).send({ status: 'error', message: msg });
             }
         });
