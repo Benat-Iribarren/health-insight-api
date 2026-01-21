@@ -9,17 +9,27 @@ export default function syncDailyBiometrics(repository: SupabaseBiometricsReposi
         fastify.post('/biometrics/sync-daily', async (request: FastifyRequest, reply: FastifyReply) => {
             try {
                 const { date } = request.body as { date?: string };
-                const targetDate = date || new Date().toISOString().split('T')[0];
+
+                let targetDate = date;
+
+                if (!targetDate) {
+                    const dateObj = new Date();
+                    dateObj.setDate(dateObj.getDate() - 1);
+                    targetDate = dateObj.toISOString().split('T')[0];
+                }
 
                 if ((request as any).isCron) {
                     useCase.execute(targetDate);
-                    return reply.status(202).send({ status: 'accepted' });
+                    return reply.status(202).send({
+                        status: 'accepted',
+                        targetDate
+                    });
                 }
 
                 const result = await useCase.execute(targetDate);
                 return reply.status(200).send(result);
             } catch (e: unknown) {
-                const message = e instanceof Error ? e.message : 'Unknown error';
+                const message = e instanceof Error ? e.message : 'Error desconocido';
                 return reply.status(500).send({ status: 'error', message });
             }
         });
