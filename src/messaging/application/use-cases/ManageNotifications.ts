@@ -1,4 +1,4 @@
-import { NotificationRepository, Notification } from "../domain/interfaces/NotificationRepository";
+import { NotificationRepository, Notification } from "../../domain/interfaces/NotificationRepository";
 
 export class ManageNotifications {
     constructor(private readonly repo: NotificationRepository) {}

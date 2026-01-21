@@ -1,11 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { supabaseClient } from '../database/supabaseClient';
 import { SupabaseUserRepository } from '@src/identity/infrastructure/database/repositories/SupabaseUserRepository';
-import {
-    verifyHybridAccess,
-    verifyProfessional,
-    verifyPatient
-} from '@src/identity/infrastructure/http/verifyUser';
+import { verifyHybridAccess, verifyProfessional, verifyPatient } from '@src/identity/infrastructure/http/verifyUser';
 
 import presenceMinute from '@src/biometrics/infrastructure/endpoints/presenceMinute';
 import syncDailyBiometrics from '@src/biometrics/infrastructure/endpoints/syncDailyBiometrics';
@@ -21,6 +17,7 @@ import { SupabaseStatsRepository } from '@src/messaging/infrastructure/database/
 import { SupabaseNotificationRepository } from '@src/messaging/infrastructure/database/SupabaseNotificationRepository';
 import { SupabaseBiometricsRepository } from '@src/biometrics/infrastructure/database/SupabaseBiometricsRepository';
 import { GmailApiMailRepository } from "@src/messaging/infrastructure/gmail/GmailApiMailRepository";
+import { HtmlMailTemplateProvider } from "@src/messaging/infrastructure/templates/HtmlMailTemplateProvider";
 
 export function registerRoutes(fastify: FastifyInstance) {
     const userRepo = new SupabaseUserRepository(supabaseClient);
@@ -30,19 +27,26 @@ export function registerRoutes(fastify: FastifyInstance) {
     const notificationRepo = new SupabaseNotificationRepository(supabaseClient);
     const biometricsRepo = new SupabaseBiometricsRepository(supabaseClient);
     const mailRepo = new GmailApiMailRepository();
+    const templateProvider = new HtmlMailTemplateProvider();
 
-    const messagingDeps = { statsRepo, mailRepo, notificationRepo, patientContactRepo };
+    const messagingDeps = {
+        statsRepo,
+        mailRepo,
+        notificationRepo,
+        patientContactRepo,
+        templateProvider
+    };
 
     fastify.get('/ping', async () => ({ status: 'ok' }));
 
     fastify.register(async (hybridContext) => {
-        hybridContext.addHook('preHandler', verifyHybridAccess(userRepo));
+       // hybridContext.addHook('preHandler', verifyHybridAccess(userRepo));
         hybridContext.register(sendWeeklyStats(messagingDeps));
         hybridContext.register(syncDailyBiometrics(biometricsRepo));
     });
 
     fastify.register(async (professionalApp) => {
-        professionalApp.addHook('preHandler', verifyProfessional(userRepo));
+      //  professionalApp.addHook('preHandler', verifyProfessional(userRepo));
         professionalApp.register(predictDropout({ dropoutRepo }));
         professionalApp.register(sendToPatient(messagingDeps));
         professionalApp.register(getSessionReport());

@@ -1,10 +1,3 @@
 export interface MailRepository {
-    send(
-        to: string,
-        subject: string,
-        body: string,
-        pendingCount?: number,
-        stats?: any,
-        imageBuffer?: Buffer
-    ): Promise<any>;
+    send(to: string, subject: string, content: string, pendingCount: number, attachment?: Buffer): Promise<{ success: boolean }>;
 }
