@@ -1,28 +1,24 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { SendWeeklyStats } from '../../application/SendWeeklyStats';
+import { FastifyInstance } from 'fastify';
+import { SendWeeklyStats } from '../../application/use-cases/SendWeeklyStats';
 
 export default function sendWeeklyStats(deps: any) {
     return async function (fastify: FastifyInstance) {
-        fastify.post('/messaging/send-weekly-stats', async (request: FastifyRequest, reply: FastifyReply) => {
+        const useCase = new SendWeeklyStats(
+            deps.statsRepo,
+            deps.mailRepo,
+            deps.notificationRepo,
+            deps.patientContactRepo,
+            deps.templateProvider
+        );
+
+        fastify.post('/messaging/send-weekly', async (request, reply) => {
             try {
-                const service = new SendWeeklyStats(
-                    deps.statsRepo,
-                    deps.mailRepo,
-                    deps.notificationRepo
-                );
-
-                if ((request as any).isCron) {
-                    service.execute();
-                    return reply.status(202).send({ status: 'accepted' });
-                }
-
-                const totalProcessed = await service.execute();
-                return reply.status(200).send({
-                    status: 'success',
-                    processed: totalProcessed
-                });
-            } catch (error) {
-                return reply.status(500).send({ status: 'error' });
+                const { patientId } = request.body as { patientId?: number };
+                const processedCount = await useCase.execute(patientId);
+                return reply.status(200).send({ status: 'ok', processed: processedCount });
+            } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : 'Error desconocido';
+                return reply.status(500).send({ status: 'error', message });
             }
         });
     };

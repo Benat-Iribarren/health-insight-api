@@ -1,26 +1,33 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { SendToPatient } from '../../application/SendToPatient';
+import { FastifyInstance } from 'fastify';
+import { SendToPatient } from '../../application/use-cases/SendToPatient';
 
 export default function sendToPatient(deps: any) {
     return async function (fastify: FastifyInstance) {
-        fastify.post('/messaging/send-to-patient', async (request: FastifyRequest, reply: FastifyReply) => {
-            const { patientId, subject, body } = request.body as any;
+        const useCase = new SendToPatient(
+            deps.patientContactRepo,
+            deps.mailRepo,
+            deps.notificationRepo,
+            deps.templateProvider
+        );
+
+        fastify.post('/messaging/send-to-patient', async (request, reply) => {
             try {
-                const service = new SendToPatient(
-                    deps.patientContactRepo,
-                    deps.mailRepo,
-                    deps.notificationRepo
-                );
+                const { patientId, subject, body } = request.body as {
+                    patientId: number,
+                    subject: string,
+                    body: string
+                };
 
-                const success = await service.execute({ patientId, subject, body });
+                await useCase.execute({
+                    patientId,
+                    subject,
+                    body
+                });
 
-                if (!success) {
-                    return reply.status(400).send({ status: 'error', message: 'Failed to send' });
-                }
-
-                return reply.status(200).send({ status: 'success' });
-            } catch (error) {
-                return reply.status(500).send({ status: 'error' });
+                return reply.status(200).send({ status: 'ok' });
+            } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : 'Error desconocido';
+                return reply.status(500).send({ status: 'error', message });
             }
         });
     };

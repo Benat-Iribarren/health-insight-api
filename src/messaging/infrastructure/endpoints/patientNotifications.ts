@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { ManageNotifications } from '../../application/ManageNotifications';
+import { ManageNotifications } from '../../application/use-cases/ManageNotifications';
 
 export default function patientNotifications(deps: any) {
     return async function (fastify: FastifyInstance) {
