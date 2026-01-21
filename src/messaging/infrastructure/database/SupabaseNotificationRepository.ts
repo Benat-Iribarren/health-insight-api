@@ -21,6 +21,7 @@ export class SupabaseNotificationRepository implements NotificationRepository {
             .select('*', { count: 'exact', head: true })
             .eq('patient_id', patientId)
             .eq('is_read', false);
+
         return count || 0;
     }
 

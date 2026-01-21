@@ -5,7 +5,6 @@ export class SupabasePatientContactRepository implements PatientContactRepositor
     constructor(private readonly supabase: DBClientService) {}
 
     async getEmailByPatientId(patientId: number): Promise<string | null> {
-        // Aseguramos que patientId sea tratado como número para la consulta int8
         const targetId = Number(patientId);
 
         const { data, error } = await this.supabase
