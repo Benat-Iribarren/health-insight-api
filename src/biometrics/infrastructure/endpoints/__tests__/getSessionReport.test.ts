@@ -1,48 +1,50 @@
-import { build } from '@common/infrastructure/server/serverBuild';
+jest.mock('@src/identity/infrastructure/http/verifyUser', () => ({
+    verifyHybridAccess: () => async () => {},
+    verifyProfessional: () => async () => {},
+    verifyPatient: () => async () => {}
+}));
+
 import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
 
-describe('Endpoint: GET /biometrics/session-report/:patientId/:sessionId', () => {
+describe('GET /reports/:patientId/:sessionId', () => {
     let app: any;
     let patientId: number;
-    let sessionId: string;
+    let sessionId: number;
 
     beforeAll(async () => {
+        const { build } = require('@common/infrastructure/server/serverBuild');
+
         app = build();
         await app.ready();
+
         const seed = await initTestDatabase();
         patientId = seed.patientId;
-
-        const { supabaseClient } = require('@common/infrastructure/database/supabaseClient');
-        const { data } = await supabaseClient
-            .from('PatientSession')
-            .select('id')
-            .eq('patient_id', patientId)
-            .limit(1)
-            .single();
-
-        sessionId = data.id.toString();
+        sessionId = seed.sessionId;
     });
 
     afterAll(async () => {
         await app.close();
     });
 
-    it('should return 200 and the unified report', async () => {
+    it('should return 200 and the unified report when session exists', async () => {
         const response = await app.inject({
             method: 'GET',
-            url: `/biometrics/session-report/${patientId}/${sessionId}`
+            url: `/reports/${patientId}/${sessionId}`
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.json().status).toBe('success');
+
+        const data = response.json();
+        const report = Array.isArray(data) ? data[0] : data;
+        expect(report).toHaveProperty('session_id', sessionId.toString());
     });
 
-    it('should return error status for non-existent session', async () => {
+    it('should return 404 when the session does not exist', async () => {
         const response = await app.inject({
             method: 'GET',
-            url: `/biometrics/session-report/${patientId}/999999`
+            url: `/reports/${patientId}/999999`
         });
 
-        expect(response.statusCode).toBe(500);
+        expect(response.statusCode).toBe(404);
     });
 });

@@ -1,7 +1,11 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { SupabaseSessionMetricsRepository } from '../../infrastructure/database/SupabaseSessionMetricsRepository';
 import { GetUnifiedSessionReport } from '../../application/use-cases/GetUnifiedSessionReport';
 import { supabaseClient } from '@src/common/infrastructure/database/supabaseClient';
+import { BIOMETRICS_RESPONSES } from '@src/biometrics/domain/responses/BiometricsResponses';
+
+const send = (reply: FastifyReply, err: { status: number; message: string }) =>
+    reply.status(err.status).send({ status: 'error', message: err.message });
 
 export default function getSessionReport() {
     return async (fastify: FastifyInstance) => {
@@ -11,18 +15,24 @@ export default function getSessionReport() {
         fastify.get('/reports/:patientId/:sessionId?', async (request, reply) => {
             try {
                 const { patientId, sessionId } = request.params as any;
+
                 const result = await useCase.execute(Number(patientId), sessionId);
 
                 if (!result || (Array.isArray(result) && result.length === 0)) {
-                    return reply.status(404).send({ status: 'error', message: 'NO_DATA_FOUND' });
+                    const err = BIOMETRICS_RESPONSES.ERRORS.NO_DATA_FOUND;
+                    return send(reply, err);
                 }
 
-                return reply.status(200).send(result);
+                const res = BIOMETRICS_RESPONSES.SUCCESS.OK;
+                return reply.status(res.status).send(result);
             } catch (e: any) {
-                if (e.message === 'SESSION_NOT_FOUND') {
-                    return reply.status(404).send({ status: 'error', message: 'NO_DATA_FOUND' });
+                if (e?.message === 'SESSION_NOT_FOUND') {
+                    const err = BIOMETRICS_RESPONSES.ERRORS.NO_DATA_FOUND;
+                    return send(reply, err);
                 }
-                return reply.status(500).send({ status: 'error', message: e.message });
+
+                const err = BIOMETRICS_RESPONSES.ERRORS.UNKNOWN_ERROR;
+                return send(reply, err);
             }
         });
     };

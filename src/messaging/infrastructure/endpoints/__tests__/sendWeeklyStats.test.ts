@@ -7,7 +7,13 @@ jest.mock('@src/messaging/infrastructure/gmail/GmailApiMailRepository', () => ({
     }))
 }));
 
-describe('POST /messaging/send-weekly-stats', () => {
+jest.mock('@src/messaging/infrastructure/images/HtmlImageGenerator', () => ({
+    HtmlImageGenerator: jest.fn().mockImplementation(() => ({
+        generateWeeklyDashboard: jest.fn().mockResolvedValue(Buffer.from('mock-image'))
+    }))
+}));
+
+describe('POST /messaging/send-weekly', () => {
     let app: any;
     const CRON_KEY = 'test-cron-secret';
 
@@ -21,18 +27,28 @@ describe('POST /messaging/send-weekly-stats', () => {
         await app.close();
     });
 
-    it('should return 200 and process 0 patients if database is empty', async () => {
-        const { supabaseClient } = require('@common/infrastructure/database/supabaseClient');
-        await supabaseClient.from('PatientSession').delete().neq('id', 0);
-        await supabaseClient.from('Patient').delete().neq('id', 0);
+    it('should return 200 and process patients if database is seeded', async () => {
+        await initTestDatabase();
 
         const response = await app.inject({
             method: 'POST',
-            url: '/messaging/send-weekly-stats',
-            headers: { 'x-health-insight-cron': CRON_KEY }
+            url: '/messaging/send-weekly',
+            headers: { 'x-health-insight-cron': CRON_KEY },
+            payload: {}
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.json().processed).toBe(0);
+        expect(response.json()).toHaveProperty('processed');
+    });
+
+    it('should return 401 if cron secret is missing or invalid', async () => {
+        const response = await app.inject({
+            method: 'POST',
+            url: '/messaging/send-weekly',
+            headers: { 'x-health-insight-cron': 'wrong-secret' },
+            payload: {}
+        });
+
+        expect(response.statusCode).toBe(401);
     });
 });

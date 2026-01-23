@@ -16,13 +16,12 @@ export class SendWeeklyStats {
         private readonly templateProvider: MailTemplateProvider
     ) {}
 
-    async execute(targetPatientId?: number): Promise<number> {
+    async execute(targetPatientId?: number): Promise<void> {
         const patientsData = await this.statsRepo.getAllPatientsStats();
         const filteredPatients = targetPatientId
             ? patientsData.filter((p: PatientStats) => p.id === targetPatientId)
             : patientsData;
 
-        let count = 0;
         for (const patient of filteredPatients) {
             this.calculateStats(patient);
 
@@ -50,10 +49,8 @@ export class SendWeeklyStats {
                     pendingCount,
                     imageBuffer
                 );
-                count++;
             }
         }
-        return count;
     }
 
     private calculateStats(patient: PatientStats) {

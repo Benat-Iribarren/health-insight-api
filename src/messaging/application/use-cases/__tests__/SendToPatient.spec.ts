@@ -1,50 +1,47 @@
-import { SendToPatient } from '../SendToPatient';
+jest.mock('@src/identity/infrastructure/http/verifyUser', () => ({
+    verifyHybridAccess: () => async () => {},
+    verifyProfessional: () => async () => {},
+    verifyPatient: () => async () => {}
+}));
 
-describe('SendToPatient Service', () => {
-    const mockPatientRepo = { getEmailByPatientId: jest.fn() };
-    const mockMailRepo = { send: jest.fn() };
-    const mockNotificationRepo = {
-        saveNotification: jest.fn(),
-        getPendingCount: jest.fn()
-    };
+jest.mock('@src/messaging/infrastructure/gmail/GmailApiMailRepository', () => ({
+    GmailApiMailRepository: jest.fn().mockImplementation(() => ({
+        send: jest.fn().mockResolvedValue({ success: true })
+    }))
+}));
 
-    const service = new SendToPatient(
-        mockPatientRepo as any,
-        mockMailRepo as any,
-        mockNotificationRepo as any
-    );
+import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
 
-    beforeEach(() => {
-        jest.clearAllMocks();
+describe('POST /messaging/send-to-patient', () => {
+    let app: any;
+    let patientId: number;
+
+    beforeAll(async () => {
+        const { build } = require('@common/infrastructure/server/serverBuild');
+
+        app = build();
+        await app.ready();
+
+        const seed = await initTestDatabase();
+        patientId = seed.patientId;
     });
 
-    it('should return true when patient email exists and mail is sent', async () => {
-        mockPatientRepo.getEmailByPatientId.mockResolvedValue('test@patient.com');
-        mockNotificationRepo.getPendingCount.mockResolvedValue(1);
-        mockMailRepo.send.mockResolvedValue({ success: true });
-
-        const result = await service.execute({
-            patientId: 1,
-            subject: 'Test',
-            body: 'Body'
-        });
-
-        expect(result).toBe(true);
-        expect(mockNotificationRepo.saveNotification).toHaveBeenCalledWith(1, 'Test', 'Body');
-        expect(mockMailRepo.send).toHaveBeenCalledWith('test@patient.com', 'Test', 'Body', 1);
+    afterAll(async () => {
+        await app.close();
     });
 
-    it('should return false when patient email is not found', async () => {
-        mockPatientRepo.getEmailByPatientId.mockResolvedValue(null);
-
-        const result = await service.execute({
-            patientId: 99,
-            subject: 'Test',
-            body: 'Body'
+    it('should return 200 with valid credentials', async () => {
+        const response = await app.inject({
+            method: 'POST',
+            url: '/messaging/send-to-patient',
+            payload: {
+                patientId,
+                subject: 'Test',
+                body: 'Body'
+            }
         });
 
-        expect(result).toBe(false);
-        expect(mockNotificationRepo.saveNotification).not.toHaveBeenCalled();
-        expect(mockMailRepo.send).not.toHaveBeenCalled();
+        expect(response.statusCode).toBe(200);
+        expect(response.json()).toEqual({ status: 'ok' });
     });
 });

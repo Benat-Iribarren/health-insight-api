@@ -131,5 +131,9 @@ export async function initTestDatabase() {
         }
     ]);
 
-    return { patientId: patientData[0].id, userId: uniqueUserId };
+    return {
+        patientId: patientData[0].id as number,
+        userId: uniqueUserId as string,
+        sessionId: psData.id as number
+    };
 }
