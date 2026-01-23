@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { SendWeeklyStats } from '../../application/use-cases/SendWeeklyStats';
+import { MESSAGING_RESPONSES } from '@src/messaging/domain/responses/MessagingResponses';
 
 export default function sendWeeklyStats(deps: any) {
     return async function (fastify: FastifyInstance) {
@@ -14,11 +15,13 @@ export default function sendWeeklyStats(deps: any) {
         fastify.post('/messaging/send-weekly', async (request, reply) => {
             try {
                 const { patientId } = request.body as { patientId?: number };
-                const processedCount = await useCase.execute(patientId);
-                return reply.status(200).send({ status: 'ok', processed: processedCount });
-            } catch (e: unknown) {
-                const message = e instanceof Error ? e.message : 'Error desconocido';
-                return reply.status(500).send({ status: 'error', message });
+                await useCase.execute(patientId);
+
+                const res = MESSAGING_RESPONSES.SUCCESS.WEEKLY_STATS_SENT;
+                return reply.status(res.status).send({ message: res.message });
+            } catch {
+                const err = MESSAGING_RESPONSES.ERRORS.UNKNOWN_ERROR;
+                return reply.status(err.status).send({ message: err.message });
             }
         });
     };

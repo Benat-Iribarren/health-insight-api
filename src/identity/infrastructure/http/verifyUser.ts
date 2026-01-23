@@ -1,62 +1,64 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { UserRepository } from '../../domain/interfaces/repositories/UserRepository';
 import { authenticate } from './authenticate';
+import { IDENTITY_RESPONSES } from '@src/identity/domain/responses/IdentityResponses';
+
+const send = (reply: FastifyReply, err: { status: number; message: string }) =>
+    reply.status(err.status).send({ error: err.message });
+
+const getUserIdOrReply = async (
+    request: FastifyRequest,
+    reply: FastifyReply
+): Promise<string | null> => {
+    await authenticate(request, reply);
+
+    const userId = (request.user as { id?: string } | undefined)?.id;
+
+    if (!userId) {
+        return null;
+    }
+
+    return userId;
+};
 
 export const verifyHybridAccess = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         const cronSecret = request.headers['x-health-insight-cron'];
-
         if (cronSecret && cronSecret === process.env.CRON_SECRET_KEY) {
             (request as any).isCron = true;
             return;
         }
 
-        await authenticate(request, reply);
-
-        const userId = (request.user as { id?: string } | undefined)?.id;
-        if (!userId) {
-            return reply.status(401).send({ error: 'No autorizado' });
-        }
+        const userId = await getUserIdOrReply(request, reply);
+        if (!userId) return;
 
         const isProp = await userRepository.isProfessional(userId);
         if (!isProp) {
-            return reply.status(403).send({
-                error: 'Solo el personal profesional o tareas del sistema pueden acceder a este recurso'
-            });
+            return send(reply, IDENTITY_RESPONSES.ERRORS.FORBIDDEN_HYBRID_ACCESS);
         }
     };
 };
 
 export const verifyProfessional = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
-        await authenticate(request, reply);
+        const userId = await getUserIdOrReply(request, reply);
+        if (!userId) return;
 
-        const userId = (request.user as { id?: string } | undefined)?.id;
-        if (!userId) {
-            return reply.status(401).send({ error: 'No autorizado' });
-        }
         const isProp = await userRepository.isProfessional(userId);
         if (!isProp) {
-            return reply.status(403).send({
-                error: 'Solo los profesionales pueden acceder a este recurso'
-            });
+            return send(reply, IDENTITY_RESPONSES.ERRORS.FORBIDDEN_PROFESSIONAL_ONLY);
         }
     };
 };
 
 export const verifyPatient = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
-        await authenticate(request, reply);
+        const userId = await getUserIdOrReply(request, reply);
+        if (!userId) return;
 
-        const userId = (request.user as { id?: string } | undefined)?.id;
-        if (!userId) {
-            return reply.status(401).send({ error: 'No autorizado' });
-        }
         const isPatient = await userRepository.isPatient(userId);
         if (!isPatient) {
-            return reply.status(403).send({
-                error: 'Solo los pacientes pueden acceder a este recurso'
-            });
+            return send(reply, IDENTITY_RESPONSES.ERRORS.FORBIDDEN_PATIENT_ONLY);
         }
     };
 };

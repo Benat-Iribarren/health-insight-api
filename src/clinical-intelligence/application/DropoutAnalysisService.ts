@@ -1,21 +1,21 @@
 import { DropoutRepository } from '../domain/interfaces/DropoutRepository';
 import { DropoutRisk } from '../domain/models/DropoutRisk';
-import { CLINICAL_RESPONSES } from '../domain/ClinicalError';
+import { AnalysisFailedError, NoDataError } from '../domain/errors/ClinicalErrors';
 
 export class DropoutAnalysisService {
     constructor(private readonly repository: DropoutRepository) {}
 
-    async execute(patientId?: string): Promise<DropoutRisk[] | { type: string }> {
+    async execute(patientId?: string): Promise<DropoutRisk[]> {
         try {
             const data = await this.repository.getPatientSessionData(patientId);
 
             if (!data || data.length === 0) {
-                return { type: CLINICAL_RESPONSES.ERRORS.NO_DATA.code };
+                throw new NoDataError();
             }
 
-            const patientsMap = new Map<string, { name: string, sessions: any[] }>();
+            const patientsMap = new Map<string, { name: string; sessions: any[] }>();
 
-            data.forEach(row => {
+            data.forEach((row: any) => {
                 if (!patientsMap.has(row.patientId)) {
                     patientsMap.set(row.patientId, { name: row.name, sessions: [] });
                 }
@@ -24,21 +24,24 @@ export class DropoutAnalysisService {
                 }
             });
 
+            const now = new Date();
+
             const results: DropoutRisk[] = Array.from(patientsMap.entries()).map(([id, p]) => {
-                const now = new Date();
-                const sessions = p.sessions.sort((a, b) =>
-                    new Date(a.assignedDate).getTime() - new Date(b.assignedDate).getTime()
+                const sessions = p.sessions.sort(
+                    (a, b) => new Date(a.assignedDate).getTime() - new Date(b.assignedDate).getTime()
                 );
 
-                const nextSession = sessions.find(s => s.sessionStatus !== 'completed');
-                const lastCompleted = [...sessions].reverse().find(s => s.sessionStatus === 'completed');
+                const nextSession = sessions.find((s) => s.sessionStatus !== 'completed');
+                const lastCompleted = [...sessions].reverse().find((s) => s.sessionStatus === 'completed');
 
                 let riskScore = 0;
-                let factors: string[] = [];
+                const factors: string[] = [];
 
                 if (nextSession) {
                     const assignedDate = new Date(nextSession.assignedDate);
-                    const diffDays = Math.ceil((assignedDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                    const diffDays = Math.ceil(
+                        (assignedDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+                    );
 
                     if (diffDays < 0) {
                         riskScore += 50;
@@ -66,20 +69,27 @@ export class DropoutAnalysisService {
                     factors.push('Mareo elevado en ultima sesion');
                 }
 
+                const clamped = Math.max(0, Math.min(100, riskScore));
+                const status = clamped > 70 ? 'CRITICAL' : clamped > 40 ? 'MODERATE' : 'LOW';
+
+                const bufferDays = nextSession
+                    ? Math.ceil((new Date(nextSession.assignedDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                    : 0;
+
                 return {
                     patientId: id,
                     name: p.name,
-                    riskScore: Math.max(0, Math.min(100, riskScore)),
-                    status: riskScore > 70 ? 'CRITICAL' : riskScore > 40 ? 'MODERATE' : 'LOW',
-                    bufferDays: nextSession ? Math.ceil((new Date(nextSession.assignedDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0,
+                    riskScore: clamped,
+                    status,
+                    bufferDays,
                     factors
                 };
             });
 
             return results.sort((a, b) => b.riskScore - a.riskScore);
-
-        } catch (error) {
-            return { type: CLINICAL_RESPONSES.ERRORS.ANALYSIS_FAILED.code };
+        } catch (e) {
+            if (e instanceof NoDataError) throw e;
+            throw new AnalysisFailedError();
         }
     }
 }

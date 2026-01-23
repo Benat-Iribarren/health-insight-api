@@ -1,33 +1,33 @@
 import { SendWeeklyStats } from '../SendWeeklyStats';
 
-describe('SendWeeklyStats Service', () => {
+describe('SendWeeklyStats', () => {
     const mockStatsRepo = { getAllPatientsStats: jest.fn() };
     const mockMailRepo = { send: jest.fn() };
-    const mockNotificationRepo = {
-        saveNotification: jest.fn(),
-        getPendingCount: jest.fn()
-    };
+    const mockNotificationRepo = { getPendingCount: jest.fn() };
+    const mockContactRepo = { getEmailByPatientId: jest.fn() };
+    const mockTemplateProvider = { renderWeeklyStats: jest.fn().mockReturnValue('<html></html>') };
 
     const service = new SendWeeklyStats(
         mockStatsRepo as any,
         mockMailRepo as any,
-        mockNotificationRepo as any
+        mockNotificationRepo as any,
+        mockContactRepo as any,
+        mockTemplateProvider as any
     );
 
-    it('should execute successfully and send email with stats', async () => {
-        const mockStats = [{
-            id: 1,
-            email: 'p1@t.com',
-            sessions: [{ state: 'completed' }]
-        }];
+    beforeAll(() => {
+        (service as any).imageGenerator = {
+            generateWeeklyDashboard: jest.fn().mockResolvedValue(Buffer.from(''))
+        };
+    });
 
-        mockStatsRepo.getAllPatientsStats.mockResolvedValue(mockStats);
-        mockNotificationRepo.getPendingCount.mockResolvedValue(1);
-        mockMailRepo.send.mockResolvedValue({ success: true });
+    it('should execute fast without launching browser', async () => {
+        mockStatsRepo.getAllPatientsStats.mockResolvedValue([{
+            id: 1, email: 't@t.com', name: 'B', sessions: []
+        }]);
+        mockNotificationRepo.getPendingCount.mockResolvedValue(0);
 
         await service.execute();
-
-        expect(mockNotificationRepo.saveNotification).toHaveBeenCalled();
         expect(mockMailRepo.send).toHaveBeenCalled();
     });
 });

@@ -40,13 +40,13 @@ export function registerRoutes(fastify: FastifyInstance) {
     fastify.get('/ping', async () => ({ status: 'ok' }));
 
     fastify.register(async (hybridContext) => {
-       // hybridContext.addHook('preHandler', verifyHybridAccess(userRepo));
+        hybridContext.addHook('preHandler', verifyHybridAccess(userRepo));
         hybridContext.register(sendWeeklyStats(messagingDeps));
         hybridContext.register(syncDailyBiometrics(biometricsRepo));
     });
 
     fastify.register(async (professionalApp) => {
-      //  professionalApp.addHook('preHandler', verifyProfessional(userRepo));
+        professionalApp.addHook('preHandler', verifyProfessional(userRepo));
         professionalApp.register(predictDropout({ dropoutRepo }));
         professionalApp.register(sendToPatient(messagingDeps));
         professionalApp.register(getSessionReport());

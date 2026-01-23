@@ -1,7 +1,20 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { DropoutAnalysisService } from '../../application/DropoutAnalysisService';
 import { DropoutRepository } from '../../domain/interfaces/DropoutRepository';
-import { CLINICAL_RESPONSES } from '../../domain/ClinicalError';
+import { CLINICAL_RESPONSES } from '../../domain/responses/ClinicalResponses';
+
+const sendError = (reply: FastifyReply, err: { status: number; message: string }) =>
+    reply.status(err.status).send({
+        status: 'error',
+        message: err.message
+    });
+
+const sendSuccess = (reply: FastifyReply, res: { status: number; message: string }, data: unknown) =>
+    reply.status(res.status).send({
+        status: 'success',
+        message: res.message,
+        data
+    });
 
 export default function predictDropout(dependencies: { dropoutRepo: DropoutRepository }) {
     return async function (fastify: FastifyInstance) {
@@ -10,59 +23,24 @@ export default function predictDropout(dependencies: { dropoutRepo: DropoutRepos
         fastify.get('/clinical-intelligence/predict-dropout/:patientId?', async (request, reply) => {
             const { patientId } = request.params as { patientId?: string };
 
-            if (patientId && isNaN(Number(patientId))) {
-                const noData = CLINICAL_RESPONSES.ERRORS.NO_DATA;
-                return reply.status(noData.status).send({
-                    status: 'error',
-                    error: { code: noData.code, message: noData.message }
-                });
+            if (patientId && Number.isNaN(Number(patientId))) {
+                return sendError(reply, CLINICAL_RESPONSES.ERRORS.INVALID_PATIENT_ID);
             }
 
             try {
                 const result = await service.execute(patientId);
 
-                if ('type' in result) {
-                    const errorConfig = Object.values(CLINICAL_RESPONSES.ERRORS).find(
-                        (e) => e.code === result.type
-                    );
-
-                    if (!errorConfig) {
-                        const internal = CLINICAL_RESPONSES.ERRORS.ANALYSIS_FAILED;
-                        return reply.status(internal.status).send({
-                            status: 'error',
-                            error: { code: internal.code, message: internal.message }
-                        });
-                    }
-
-                    return reply.status(errorConfig.status).send({
-                        status: 'error',
-                        error: { code: errorConfig.code, message: errorConfig.message }
-                    });
+                if (!result || (Array.isArray(result) && result.length === 0)) {
+                    return sendError(reply, CLINICAL_RESPONSES.ERRORS.NO_DATA);
                 }
 
-                const successConfig = CLINICAL_RESPONSES.SUCCESS.ANALYSIS_COMPLETED;
+                const res = CLINICAL_RESPONSES.SUCCESS.ANALYSIS_COMPLETED;
+                const data = patientId && Array.isArray(result) ? result[0] : result;
 
-                if (patientId && (result as any[]).length === 0) {
-                    const noData = CLINICAL_RESPONSES.ERRORS.NO_DATA;
-                    return reply.status(noData.status).send({
-                        status: 'error',
-                        error: { code: noData.code, message: noData.message }
-                    });
-                }
-
-                return reply.status(successConfig.code).send({
-                    status: successConfig.status,
-                    message: successConfig.message,
-                    data: patientId ? result[0] : result
-                });
-
+                return sendSuccess(reply, res, data);
             } catch (error) {
                 fastify.log.error(error);
-                const internal = CLINICAL_RESPONSES.ERRORS.ANALYSIS_FAILED;
-                return reply.status(internal.status).send({
-                    status: 'error',
-                    error: { code: internal.code, message: internal.message }
-                });
+                return sendError(reply, CLINICAL_RESPONSES.ERRORS.ANALYSIS_FAILED);
             }
         });
     };
