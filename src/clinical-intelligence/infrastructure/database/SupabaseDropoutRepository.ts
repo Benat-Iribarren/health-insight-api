@@ -1,38 +1,39 @@
 import { DropoutRepository } from '../../domain/interfaces/DropoutRepository';
+import { PatientSessionData } from '../../domain/models/PatientSessionData';
 import { DBClientService } from '@common/infrastructure/database/supabaseClient';
 
-export class SupabaseDropoutRepository implements DropoutRepository {
-    constructor(private readonly supabase: DBClientService) {}
-
-    async getPatientSessionData(patientId?: string): Promise<any[]> {
-        let query = this.supabase
-            .from('Patient')
+export const dropoutRepository = (supabase: DBClientService): DropoutRepository => ({
+    async getPatientSessionData(patientId?: number): Promise<PatientSessionData[]> {
+        const query = supabase
+            .from('PatientSession')
             .select(`
-                patientId: id,
-                name,
-                PatientSession (
-                    sessionId: id,
-                    sessionStatus: state,
-                    assignedDate: assigned_date,
-                    sessionUpdate: created_at,
-                    postEval: post_evaluation
-                )
-            `);
+        patientId: patient_id,
+        sessionId: id,
+        sessionStatus: state,
+        assignedDate: assigned_date,
+        sessionUpdate: created_at,
+        postEval: post_evaluation,
+        Patient!inner ( name )
+      `);
 
         if (patientId) {
-            query = query.eq('id', parseInt(patientId));
+            query.eq('patient_id', patientId);
         }
 
         const { data, error } = await query;
 
-        if (error) throw error;
+        if (error) {
+            throw error;
+        }
 
-        return (data as any[]).flatMap(patient =>
-            patient.PatientSession.map((session: any) => ({
-                patientId: patient.patientId,
-                name: patient.name,
-                ...session
-            }))
-        );
+        return (data || []).map((row: any) => ({
+            patientId: row.patientId,
+            sessionId: row.sessionId,
+            sessionStatus: row.sessionStatus,
+            assignedDate: row.assignedDate,
+            sessionUpdate: row.sessionUpdate,
+            postEval: row.postEval,
+            name: row.Patient.name
+        }));
     }
-}
+});

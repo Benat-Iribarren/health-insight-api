@@ -1,0 +1,537 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+application/
+  __tests__/
+    PredictHealthAnomalies.spec.ts
+  DropoutAnalysisService.ts
+domain/
+  errors/
+    ClinicalErrors.ts
+  interfaces/
+    DropoutRepository.ts
+  models/
+    DropoutRisk.ts
+  responses/
+    ClinicalResponses.ts
+infrastructure/
+  database/
+    __tests__/
+      SupabaseDropoutRepository.test.ts
+    SupabaseDropoutRepository.ts
+  endpoints/
+    __tests__/
+      predictDropout.test.ts
+    predictDropout.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="application/__tests__/PredictHealthAnomalies.spec.ts">
+import { DropoutAnalysisService } from '../DropoutAnalysisService';
+import { DropoutRepository } from '../../domain/interfaces/DropoutRepository';
+import { DropoutRisk } from '../../domain/models/DropoutRisk';
+
+describe('DropoutAnalysisService', () => {
+    let service: DropoutAnalysisService;
+    let mockRepository: jest.Mocked<DropoutRepository>;
+
+    beforeEach(() => {
+        mockRepository = {
+            getPatientSessionData: jest.fn()
+        };
+        service = new DropoutAnalysisService(mockRepository);
+        jest.clearAllMocks();
+    });
+
+    it('should return NO_DATA code when no patient data is found', async () => {
+        mockRepository.getPatientSessionData.mockResolvedValue([]);
+
+        const result = await service.execute();
+
+        // Comprobamos que devuelve el objeto de error esperado
+        expect(result).toHaveProperty('type');
+    });
+
+    it('should identify a CRITICAL risk for patients with overdue calendars', async () => {
+        const pastDate = new Date();
+        pastDate.setDate(pastDate.getDate() - 5);
+
+        mockRepository.getPatientSessionData.mockResolvedValue([{
+            patientId: 'p1',
+            name: 'Test Patient',
+            sessionId: 's1',
+            assignedDate: pastDate.toISOString(),
+            sessionStatus: 'assigned',
+            sessionUpdate: null,
+            postEval: 0
+        }]);
+
+        const result = await service.execute('p1');
+
+        if (Array.isArray(result)) {
+            expect(result[0].patientId).toBe('p1');
+            expect(result[0].riskScore).toBeGreaterThanOrEqual(50);
+            expect(result[0].factors).toContain('Retraso en calendario');
+        } else {
+            fail('Result should be an array');
+        }
+    });
+
+    it('should identify dizziness in last session as a risk factor', async () => {
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 2);
+
+        mockRepository.getPatientSessionData.mockResolvedValue([
+            {
+                patientId: 'p2',
+                name: 'Dizzy Patient',
+                sessionId: 's1',
+                assignedDate: new Date().toISOString(),
+                sessionStatus: 'completed',
+                sessionUpdate: null,
+                postEval: 9
+            },
+            {
+                patientId: 'p2',
+                name: 'Dizzy Patient',
+                sessionId: 's2',
+                assignedDate: futureDate.toISOString(),
+                sessionStatus: 'assigned',
+                sessionUpdate: null,
+                postEval: 0
+            }
+        ]);
+
+        const result = await service.execute();
+
+        if (Array.isArray(result)) {
+            expect(result[0].factors).toContain('Mareo elevado en ultima sesion');
+            expect(result[0].riskScore).toBe(20);
+            expect(result[0].status).toBe('LOW');
+        } else {
+            fail('Result should be an array');
+        }
+    });
+
+    it('should detect stale in-progress sessions as a significant risk', async () => {
+        const oldUpdate = new Date();
+        oldUpdate.setHours(oldUpdate.getHours() - 30);
+
+        mockRepository.getPatientSessionData.mockResolvedValue([{
+            patientId: 'p3',
+            name: 'Stuck Patient',
+            sessionId: 's3',
+            assignedDate: new Date().toISOString(),
+            sessionStatus: 'in_progress',
+            sessionUpdate: oldUpdate.toISOString(),
+            postEval: 0
+        }]);
+
+        const result = await service.execute();
+
+        if (Array.isArray(result)) {
+            expect(result[0].riskScore).toBe(35);
+            expect(result[0].factors).toContain('In-progress antiguo (>24h)');
+        } else {
+            fail('Result should be an array');
+        }
+    });
+
+    it('should sort results by risk score in descending order', async () => {
+        mockRepository.getPatientSessionData.mockResolvedValue([
+            { patientId: 'low', name: 'Low Risk', sessionId: 's1', assignedDate: new Date().toISOString(), sessionStatus: 'completed', postEval: 0 },
+            { patientId: 'high', name: 'High Risk', sessionId: 's2', assignedDate: '2000-01-01', sessionStatus: 'assigned', postEval: 0 }
+        ]);
+
+        const result = await service.execute();
+
+        if (Array.isArray(result)) {
+            expect(result[0].patientId).toBe('high');
+            expect(result[1].patientId).toBe('low');
+            expect(result[0].riskScore).toBeGreaterThan(result[1].riskScore);
+        } else {
+            fail('Result should be an array');
+        }
+    });
+});
+</file>
+
+<file path="application/DropoutAnalysisService.ts">
+import { DropoutRepository } from '../domain/interfaces/DropoutRepository';
+import { DropoutRisk } from '../domain/models/DropoutRisk';
+import { AnalysisFailedError, NoDataError } from '../domain/errors/ClinicalErrors';
+
+export class DropoutAnalysisService {
+    constructor(private readonly repository: DropoutRepository) {}
+
+    async execute(patientId?: string): Promise<DropoutRisk[]> {
+        try {
+            const data = await this.repository.getPatientSessionData(patientId);
+
+            if (!data || data.length === 0) {
+                throw new NoDataError();
+            }
+
+            const patientsMap = new Map<string, { name: string; sessions: any[] }>();
+
+            data.forEach((row: any) => {
+                if (!patientsMap.has(row.patientId)) {
+                    patientsMap.set(row.patientId, { name: row.name, sessions: [] });
+                }
+                if (row.sessionId) {
+                    patientsMap.get(row.patientId)!.sessions.push(row);
+                }
+            });
+
+            const now = new Date();
+
+            const results: DropoutRisk[] = Array.from(patientsMap.entries()).map(([id, p]) => {
+                const sessions = p.sessions.sort(
+                    (a, b) => new Date(a.assignedDate).getTime() - new Date(b.assignedDate).getTime()
+                );
+
+                const nextSession = sessions.find((s) => s.sessionStatus !== 'completed');
+                const lastCompleted = [...sessions].reverse().find((s) => s.sessionStatus === 'completed');
+
+                let riskScore = 0;
+                const factors: string[] = [];
+
+                if (nextSession) {
+                    const assignedDate = new Date(nextSession.assignedDate);
+                    const diffDays = Math.ceil(
+                        (assignedDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+                    );
+
+                    if (diffDays < 0) {
+                        riskScore += 50;
+                        factors.push('Retraso en calendario');
+                    } else if (diffDays > 7) {
+                        riskScore -= 30;
+                    }
+
+                    if (nextSession.sessionStatus === 'in_progress' && nextSession.sessionUpdate) {
+                        const lastUpdate = new Date(nextSession.sessionUpdate);
+                        const hoursSinceUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
+
+                        if (hoursSinceUpdate > 24) {
+                            riskScore += 35;
+                            factors.push('In-progress mayor de un día');
+                        } else if (hoursSinceUpdate > 1) {
+                            riskScore += 10;
+                            factors.push('In-progress reciente');
+                        }
+                    }
+                }
+
+                if (lastCompleted && lastCompleted.postEval > 7) {
+                    riskScore += 20;
+                    factors.push('Mareo elevado en ultima sesion');
+                }
+
+                const clamped = Math.max(0, Math.min(100, riskScore));
+                const status = clamped > 70 ? 'CRITICAL' : clamped > 40 ? 'MODERATE' : 'LOW';
+
+                const bufferDays = nextSession
+                    ? Math.ceil((new Date(nextSession.assignedDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                    : 0;
+
+                return {
+                    patientId: id,
+                    name: p.name,
+                    riskScore: clamped,
+                    status,
+                    bufferDays,
+                    factors
+                };
+            });
+
+            return results.sort((a, b) => b.riskScore - a.riskScore);
+        } catch (e) {
+            if (e instanceof NoDataError) throw e;
+            throw new AnalysisFailedError();
+        }
+    }
+}
+</file>
+
+<file path="domain/errors/ClinicalErrors.ts">
+export class NoDataError extends Error {
+    constructor() {
+        super('NO_DATA');
+        this.name = 'NoDataError';
+    }
+}
+
+export class AnalysisFailedError extends Error {
+    constructor() {
+        super('ANALYSIS_FAILED');
+        this.name = 'AnalysisFailedError';
+    }
+}
+</file>
+
+<file path="domain/interfaces/DropoutRepository.ts">
+export interface DropoutRepository {
+    getPatientSessionData(patientId?: string): Promise<any[]>;
+}
+</file>
+
+<file path="domain/models/DropoutRisk.ts">
+export interface DropoutRisk {
+    patientId: string;
+    name: string;
+    riskScore: number;
+    status: 'CRITICAL' | 'MODERATE' | 'LOW';
+    bufferDays: number;
+    factors: string[];
+}
+</file>
+
+<file path="domain/responses/ClinicalResponses.ts">
+export const CLINICAL_RESPONSES = {
+    SUCCESS: {
+        ANALYSIS_COMPLETED: {
+            status: 200,
+            message: 'Predicción generada correctamente'
+        }
+    },
+
+    ERRORS: {
+        INVALID_PATIENT_ID: {
+            status: 400,
+            message: 'El identificador del paciente no es válido'
+        },
+        NO_DATA: {
+            status: 404,
+            message: 'No hay datos suficientes para la predicción'
+        },
+        ANALYSIS_FAILED: {
+            status: 500,
+            message: 'No se pudo completar el análisis clínico'
+        }
+    }
+} as const;
+</file>
+
+<file path="infrastructure/database/__tests__/SupabaseDropoutRepository.test.ts">
+import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
+import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
+import { SupabaseDropoutRepository } from '../SupabaseDropoutRepository';
+
+describe('SupabaseDropoutRepository', () => {
+    const repository = new SupabaseDropoutRepository(supabaseClient as any);
+
+    beforeAll(async () => {
+        await initTestDatabase();
+    });
+
+    it('should fetch raw session data from the database correctly', async () => {
+        const data = await repository.getPatientSessionData();
+
+        expect(data.length).toBeGreaterThan(0);
+        expect(data[0]).toHaveProperty('patientId');
+        expect(data[0]).toHaveProperty('sessionStatus');
+    });
+
+    it('should filter data by patientId when provided', async () => {
+        const allData = await repository.getPatientSessionData();
+        const targetId = allData[0].patientId;
+
+        const filteredData = await repository.getPatientSessionData(targetId);
+
+        const allMatch = filteredData.every(row => row.patientId === targetId);
+        expect(allMatch).toBe(true);
+    });
+});
+</file>
+
+<file path="infrastructure/database/SupabaseDropoutRepository.ts">
+import { DropoutRepository } from '../../domain/interfaces/DropoutRepository';
+import { DBClientService } from '@common/infrastructure/database/supabaseClient';
+
+export class SupabaseDropoutRepository implements DropoutRepository {
+    constructor(private readonly supabase: DBClientService) {}
+
+    async getPatientSessionData(patientId?: string): Promise<any[]> {
+        let query = this.supabase
+            .from('Patient')
+            .select(`
+                patientId: id,
+                name,
+                PatientSession (
+                    sessionId: id,
+                    sessionStatus: state,
+                    assignedDate: assigned_date,
+                    sessionUpdate: created_at,
+                    postEval: post_evaluation
+                )
+            `);
+
+        if (patientId) {
+            query = query.eq('id', parseInt(patientId));
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        return (data as any[]).flatMap(patient =>
+            patient.PatientSession.map((session: any) => ({
+                patientId: patient.patientId,
+                name: patient.name,
+                ...session
+            }))
+        );
+    }
+}
+</file>
+
+<file path="infrastructure/endpoints/__tests__/predictDropout.test.ts">
+jest.mock('@src/identity/infrastructure/http/verifyUser', () => ({
+    verifyHybridAccess: () => async () => {},
+    verifyProfessional: () => async () => {},
+    verifyPatient: () => async () => {}
+}));
+
+import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
+import { CLINICAL_RESPONSES } from '../../../domain/ClinicalError';
+
+describe('Endpoint: GET /clinical-intelligence/predict-dropout', () => {
+    let app: any;
+
+    beforeAll(async () => {
+        const { build } = require('@common/infrastructure/server/serverBuild');
+        app = build();
+        await app.ready();
+    });
+
+    afterAll(async () => {
+        await app.close();
+    });
+
+    it('should return 200 when no ID is provided', async () => {
+        await initTestDatabase();
+
+        const response = await app.inject({
+            method: 'GET',
+            url: '/clinical-intelligence/predict-dropout'
+        });
+
+        expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 when a valid patientId is provided', async () => {
+        const seed = await initTestDatabase();
+
+        const response = await app.inject({
+            method: 'GET',
+            url: `/clinical-intelligence/predict-dropout/${seed.patientId}`
+        });
+
+        expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 when the patientId does not exist', async () => {
+        const response = await app.inject({
+            method: 'GET',
+            url: '/clinical-intelligence/predict-dropout/999999'
+        });
+
+        // según la implementación real del endpoint
+        expect(response.statusCode).toBe(CLINICAL_RESPONSES.ERRORS.NO_DATA.status);
+    });
+});
+</file>
+
+<file path="infrastructure/endpoints/predictDropout.ts">
+import { FastifyInstance, FastifyReply } from 'fastify';
+import { DropoutAnalysisService } from '../../application/DropoutAnalysisService';
+import { DropoutRepository } from '../../domain/interfaces/DropoutRepository';
+import { CLINICAL_RESPONSES } from '../../domain/responses/ClinicalResponses';
+
+const sendError = (reply: FastifyReply, err: { status: number; message: string }) =>
+    reply.status(err.status).send({
+        status: 'error',
+        message: err.message
+    });
+
+const sendSuccess = (reply: FastifyReply, res: { status: number; message: string }, data: unknown) =>
+    reply.status(res.status).send({
+        status: 'success',
+        message: res.message,
+        data
+    });
+
+export default function predictDropout(dependencies: { dropoutRepo: DropoutRepository }) {
+    return async function (fastify: FastifyInstance) {
+        const service = new DropoutAnalysisService(dependencies.dropoutRepo);
+
+        fastify.get('/clinical-intelligence/predict-dropout/:patientId?', async (request, reply) => {
+            const { patientId } = request.params as { patientId?: string };
+
+            if (patientId && Number.isNaN(Number(patientId))) {
+                return sendError(reply, CLINICAL_RESPONSES.ERRORS.INVALID_PATIENT_ID);
+            }
+
+            try {
+                const result = await service.execute(patientId);
+
+                if (!result || (Array.isArray(result) && result.length === 0)) {
+                    return sendError(reply, CLINICAL_RESPONSES.ERRORS.NO_DATA);
+                }
+
+                const res = CLINICAL_RESPONSES.SUCCESS.ANALYSIS_COMPLETED;
+                const data = patientId && Array.isArray(result) ? result[0] : result;
+
+                return sendSuccess(reply, res, data);
+            } catch (error) {
+                fastify.log.error(error);
+                return sendError(reply, CLINICAL_RESPONSES.ERRORS.ANALYSIS_FAILED);
+            }
+        });
+    };
+}
+</file>
+
+</files>

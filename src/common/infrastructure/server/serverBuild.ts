@@ -2,6 +2,11 @@ import Fastify, { FastifyInstance } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import jwt from '@fastify/jwt';
+
+import helmet from '@fastify/helmet';
+import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
+
 import { registerRoutes } from '../endpoints/routes';
 import { securityLogger } from './securityLogger';
 
@@ -13,6 +18,26 @@ export function build(): FastifyInstance {
         logger: {
             transport: isDev ? { target: 'pino-pretty' } : undefined
         }
+    });
+
+    // 1. HELMET: Protege cabeceras HTTP (Capa de Infraestructura)
+    app.register(helmet, {
+        contentSecurityPolicy: false, // Recomendado para APIs REST puras
+    });
+
+    // 2. CORS: Control de acceso por origen (Capa de Red)
+    app.register(cors, {
+        origin: isDev ? true : ['https://health-insight-api.onrender.com'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    });
+
+    // 3. RATE LIMIT: Evita abusos y ataques DDoS (Capa de Aplicación)
+    app.register(rateLimit, {
+        max: 100,
+        timeWindow: '1 minute',
+        errorResponseBuilder: () => ({
+            error: 'Demasiadas peticiones. Por favor, inténtelo de nuevo en un minuto.'
+        })
     });
 
     app.register(jwt, {
@@ -55,7 +80,7 @@ export const start = async (fastify: FastifyInstance, PORT: number): Promise<voi
         console.log(`\n SERVIDOR ACTIVO`);
         console.log(`\tPuerto: ${PORT}`);
         console.log(`\tEntorno: ${process.env.NODE_ENV || 'development'}`);
-        console.log(`\tDocumentación: http://0.0.0.0:${PORT}/docs\n`);
+        console.log(`\tDocumentación: https://health-insight-api.onrender.com/docs\n`);
     } catch (err: any) {
         console.error(' ❌ Error crítico al arrancar:', err);
         fastify.log.error(err);
