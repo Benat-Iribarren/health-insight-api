@@ -1,6 +1,6 @@
 import { DropoutAnalysisService } from '../DropoutAnalysisService';
-import { DropoutRepository } from '../../domain/interfaces/DropoutRepository';
-import { DropoutRisk } from '../../domain/models/DropoutRisk';
+import { DropoutRepository } from '../../../domain/interfaces/DropoutRepository';
+import { DropoutRisk } from '../../../domain/models/DropoutRisk';
 
 describe('DropoutAnalysisService', () => {
     let service: DropoutAnalysisService;

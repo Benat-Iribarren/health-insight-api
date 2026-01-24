@@ -1,3 +1,5 @@
+import { PatientSessionData } from '../models/PatientSessionData';
+
 export interface DropoutRepository {
-    getPatientSessionData(patientId?: string): Promise<any[]>;
+    getPatientSessionData(patientId?: number): Promise<PatientSessionData[]>;
 }
