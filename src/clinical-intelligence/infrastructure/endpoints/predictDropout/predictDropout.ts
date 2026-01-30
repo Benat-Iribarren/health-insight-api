@@ -1,27 +1,24 @@
 import { FastifyInstance } from 'fastify';
 import { DropoutRepository } from '../../../domain/interfaces/DropoutRepository';
 import { processDropoutAnalysis } from '../../../application/services/DropoutAnalysisService';
+import { PredictDropoutError } from '../../../application/types/PredictDropoutError';
 import { predictDropoutSchema } from './schema';
-import {
-    invalidPatientIdErrorStatusMsg,
-    PredictDropoutErrors,
-} from './errors';
 
 export const PREDICT_DROPOUT_ENDPOINT = '/clinical-intelligence/predict-dropout/:patientId?';
 
-const statusToMessage: Record<PredictDropoutErrors, { error: string }> = {
-    INVALID_PATIENT_ID: { error: 'The provided patient ID is invalid.' },
-    NO_DATA: { error: 'No clinical data found for analysis.' },
-    ANALYSIS_FAILED: { error: 'An error occurred during clinical analysis.' },
-};
-
 type StatusCode = 200 | 400 | 404 | 500;
 
-const statusToCode: Record<PredictDropoutErrors | 'SUCCESSFUL', StatusCode> = {
+const statusToCode: Record<PredictDropoutError | 'INVALID_PATIENT_ID' | 'SUCCESSFUL', StatusCode> = {
     SUCCESSFUL: 200,
     INVALID_PATIENT_ID: 400,
     NO_DATA: 404,
     ANALYSIS_FAILED: 500,
+};
+
+const statusToMessage: Record<PredictDropoutError | 'INVALID_PATIENT_ID', { error: string }> = {
+    INVALID_PATIENT_ID: { error: 'The provided patient ID is invalid.' },
+    NO_DATA: { error: 'No clinical data found for analysis.' },
+    ANALYSIS_FAILED: { error: 'An error occurred during clinical analysis.' },
 };
 
 interface PredictDropoutDependencies {
@@ -35,32 +32,27 @@ function predictDropout(dependencies: PredictDropoutDependencies) {
                 const { patientId: rawId } = request.params as { patientId?: string };
                 const patientId = rawId ? Number(rawId) : undefined;
 
-                if (invalidParameters(rawId, patientId)) {
-                    return reply
-                        .status(statusToCode[invalidPatientIdErrorStatusMsg])
-                        .send(statusToMessage[invalidPatientIdErrorStatusMsg]);
+                if (isInvalidPatientId(rawId, patientId)) {
+                    return reply.status(statusToCode.INVALID_PATIENT_ID).send(statusToMessage.INVALID_PATIENT_ID);
                 }
 
-                const body = await processDropoutAnalysis(dependencies.dropoutRepo, patientId);
+                const result = await processDropoutAnalysis(dependencies.dropoutRepo, patientId);
 
-                if (typeof body === 'string') {
-                    return reply
-                        .status(statusToCode[body as PredictDropoutErrors])
-                        .send(statusToMessage[body as PredictDropoutErrors]);
+                if (typeof result === 'string') {
+                    return reply.status(statusToCode[result]).send(statusToMessage[result]);
                 }
 
-                const responseData = (patientId && Array.isArray(body)) ? body[0] : body;
-                return reply.status(statusToCode.SUCCESSFUL).send(responseData);
+                return reply.status(statusToCode.SUCCESSFUL).send(result);
             } catch (error) {
                 fastify.log.error(error);
-                return reply.status(500).send({ error: 'Internal Server Error' });
+                throw error;
             }
         });
     };
 }
 
-function invalidParameters(rawId: string | undefined, patientId: number | undefined): boolean {
-    return rawId !== undefined && (isNaN(patientId!) || patientId! <= 0);
+function isInvalidPatientId(rawId: string | undefined, patientId: number | undefined): boolean {
+    return rawId !== undefined && (Number.isNaN(patientId as number) || (patientId as number) <= 0);
 }
 
 export default predictDropout;

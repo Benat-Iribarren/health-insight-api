@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>22/25</span>
+                <span class='fraction'>0/28</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>3/4</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>22/25</span>
+                <span class='fraction'>0/28</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -87,62 +87,74 @@
 <a name='L22'></a><a href='#L22'>22</a>
 <a name='L23'></a><a href='#L23'>23</a>
 <a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span></td><td class="text"><pre class="prettyprint lang-js">import { FastifyInstance } from 'fastify';
-import { SendWeeklyStats } from '../../application/use-cases/SendWeeklyStats';
-&nbsp;
-export default function sendWeeklyStats(deps: any) {
-    return async function (fastify: FastifyInstance) {
-        const useCase = new SendWeeklyStats(
-            deps.statsRepo,
-            deps.mailRepo,
-            deps.notificationRepo,
-            deps.patientContactRepo,
-            deps.templateProvider
-        );
-&nbsp;
-        fastify.post('/messaging/send-weekly', async (request, reply) =&gt; {
-            try {
-                const { patientId } = request.body as { patientId?: number };
-                const processedCount = await useCase.execute(patientId);
-                return reply.status(200).send({ status: 'ok', processed: processedCount });
-            } <span class="branch-0 cbranch-no" title="branch not covered" >catch (e: unknown) {</span>
-<span class="cstat-no" title="statement not covered" >                const message = e instanceof Error ? e.message : 'Error desconocido';</span>
-<span class="cstat-no" title="statement not covered" >                return reply.status(500).send({ status: 'error', message });</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { FastifyInstance } from 'fastify';</span></span></span>
+<span class="cstat-no" title="statement not covered" >import { SendWeeklyStats } from '../../application/use-cases/SendWeeklyStats';</span>
+<span class="cstat-no" title="statement not covered" >import { MESSAGING_RESPONSES } from '@src/messaging/domain/responses/MessagingResponses';</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export default function sendWeeklyStats(deps: any) {</span>
+<span class="cstat-no" title="statement not covered" >    return async function (fastify: FastifyInstance) {</span>
+<span class="cstat-no" title="statement not covered" >        const useCase = new SendWeeklyStats(</span>
+<span class="cstat-no" title="statement not covered" >            deps.statsRepo,</span>
+<span class="cstat-no" title="statement not covered" >            deps.mailRepo,</span>
+<span class="cstat-no" title="statement not covered" >            deps.notificationRepo,</span>
+<span class="cstat-no" title="statement not covered" >            deps.patientContactRepo,</span>
+<span class="cstat-no" title="statement not covered" >            deps.templateProvider</span>
+<span class="cstat-no" title="statement not covered" >        );</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        fastify.post('/messaging/send-weekly', async (request, reply) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            try {</span>
+<span class="cstat-no" title="statement not covered" >                const { patientId } = request.body as { patientId?: number };</span>
+<span class="cstat-no" title="statement not covered" >                await useCase.execute(patientId);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >                const res = MESSAGING_RESPONSES.SUCCESS.WEEKLY_STATS_SENT;</span>
+<span class="cstat-no" title="statement not covered" >                return reply.status(res.status).send({ message: res.message });</span>
+<span class="cstat-no" title="statement not covered" >            } catch {</span>
+<span class="cstat-no" title="statement not covered" >                const err = MESSAGING_RESPONSES.ERRORS.UNKNOWN_ERROR;</span>
+<span class="cstat-no" title="statement not covered" >                return reply.status(err.status).send({ message: err.message });</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
-        });
-    };
-}</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-22T09:58:51.151Z
+                at 2026-01-25T11:44:51.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -24,7 +24,7 @@ export type Database = {
           respiratory_rate_brpm: number | null
           temperature_celsius: number | null
           timestamp_iso: string
-          timestamp_unix_ms: number
+          timestamp_unix_ms: number | null
         }
         Insert: {
           accel_std_g?: number | null
@@ -35,7 +35,7 @@ export type Database = {
           respiratory_rate_brpm?: number | null
           temperature_celsius?: number | null
           timestamp_iso: string
-          timestamp_unix_ms: number
+          timestamp_unix_ms?: number | null
         }
         Update: {
           accel_std_g?: number | null
@@ -46,7 +46,7 @@ export type Database = {
           respiratory_rate_brpm?: number | null
           temperature_celsius?: number | null
           timestamp_iso?: string
-          timestamp_unix_ms?: number
+          timestamp_unix_ms?: number | null
         }
         Relationships: []
       }

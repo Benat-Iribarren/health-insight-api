@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">52.63% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>20/38</span>
+                <span class='fraction'>0/41</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">52.63% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>20/38</span>
+                <span class='fraction'>0/41</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -100,26 +100,11 @@
 <a name='L35'></a><a href='#L35'>35</a>
 <a name='L36'></a><a href='#L36'>36</a>
 <a name='L37'></a><a href='#L37'>37</a>
-<a name='L38'></a><a href='#L38'>38</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -128,60 +113,87 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span></td><td class="text"><pre class="prettyprint lang-js">import { FastifyInstance } from 'fastify';
-import { ManageNotifications } from '../../application/use-cases/ManageNotifications';
-&nbsp;
-export default function patientNotifications(deps: any) {
-    return async function (fastify: FastifyInstance) {
-        const service = new ManageNotifications(deps.notificationRepo);
-&nbsp;
-        fastify.get('/messaging/notifications/unread-count', async (request) =&gt; {
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { FastifyInstance } from 'fastify';</span></span></span>
+<span class="cstat-no" title="statement not covered" >import { ManageNotifications } from '../../application/use-cases/ManageNotifications';</span>
+<span class="cstat-no" title="statement not covered" >import { MESSAGING_RESPONSES } from '@src/messaging/domain/responses/MessagingResponses';</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export default function patientNotifications(deps: any) {</span>
+<span class="cstat-no" title="statement not covered" >    return async function (fastify: FastifyInstance) {</span>
+<span class="cstat-no" title="statement not covered" >        const service = new ManageNotifications(deps.notificationRepo);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        fastify.get('/messaging/notifications/unread-count', async (request) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            const patientId = (request as any).user?.patientId ?? 1;</span>
 <span class="cstat-no" title="statement not covered" >            const count = await service.getUnreadCount(patientId);</span>
-<span class="cstat-no" title="statement not covered" >            return { status: 'success', count };</span>
-        });
-&nbsp;
-        fastify.get('/messaging/notifications', async (request) =&gt; {
+<span class="cstat-no" title="statement not covered" >            return { count };</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        fastify.get('/messaging/notifications', async (request) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            const patientId = (request as any).user?.patientId ?? 1;</span>
 <span class="cstat-no" title="statement not covered" >            const messages = await service.getInbox(patientId);</span>
-<span class="cstat-no" title="statement not covered" >            return { status: 'success', data: messages };</span>
-        });
-&nbsp;
-        fastify.get('/messaging/notifications/:id', async (request, reply) =&gt; {
+<span class="cstat-no" title="statement not covered" >            return { data: messages };</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        fastify.get('/messaging/notifications/:id', async (request, reply) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            const patientId = (request as any).user?.patientId ?? 1;</span>
 <span class="cstat-no" title="statement not covered" >            const messageId = (request.params as any).id;</span>
 <span class="cstat-no" title="statement not covered" >            const message = await service.readMessage(patientId, messageId);</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >            if (!message) {</span>
-<span class="cstat-no" title="statement not covered" >                return reply.status(404).send({ status: 'error', message: 'Not found' });</span>
+<span class="cstat-no" title="statement not covered" >                const err = MESSAGING_RESPONSES.ERRORS.NOT_FOUND;</span>
+<span class="cstat-no" title="statement not covered" >                return reply.status(err.status).send({ message: err.message });</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
-<span class="cstat-no" title="statement not covered" >            return { status: 'success', data: message };</span>
-        });
-&nbsp;
-        fastify.delete('/messaging/notifications/:id', async (request) =&gt; {
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >            return { data: message };</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        fastify.delete('/messaging/notifications/:id', async (request) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            const patientId = (request as any).user?.patientId ?? 1;</span>
 <span class="cstat-no" title="statement not covered" >            const messageId = (request.params as any).id;</span>
 <span class="cstat-no" title="statement not covered" >            await service.deleteMessage(patientId, messageId);</span>
-<span class="cstat-no" title="statement not covered" >            return { status: 'success' };</span>
-        });
-    };
-}</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >            return {};</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-22T09:58:51.151Z
+                at 2026-01-25T11:44:51.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

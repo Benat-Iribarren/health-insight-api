@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">86.2% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>25/29</span>
+                <span class='fraction'>0/39</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.42% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>5/7</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">86.2% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>25/29</span>
+                <span class='fraction'>0/39</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -91,70 +91,103 @@
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
 <a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span></td><td class="text"><pre class="prettyprint lang-js">import { FastifyInstance } from 'fastify';
-import { SupabaseSessionMetricsRepository } from '../../infrastructure/database/SupabaseSessionMetricsRepository';
-import { GetUnifiedSessionReport } from '../../application/use-cases/GetUnifiedSessionReport';
-import { supabaseClient } from '@src/common/infrastructure/database/supabaseClient';
-&nbsp;
-export default function getSessionReport() {
-    return async (fastify: FastifyInstance) =&gt; {
-        const repository = new SupabaseSessionMetricsRepository(supabaseClient);
-        const useCase = new GetUnifiedSessionReport(repository);
-&nbsp;
-        fastify.get('/reports/:patientId/:sessionId?', async (request, reply) =&gt; {
-            try {
-                const { patientId, sessionId } = request.params as any;
-                const result = await useCase.execute(Number(patientId), sessionId);
-&nbsp;
-                if (!result || (Array.isArray(result) &amp;&amp; result.length === 0)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >                    return reply.status(404).send({ status: 'error', message: 'NO_DATA_FOUND' });</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { FastifyInstance, FastifyReply } from 'fastify';</span></span></span>
+<span class="cstat-no" title="statement not covered" >import { SupabaseSessionMetricsRepository } from '../../infrastructure/database/SupabaseSessionMetricsRepository';</span>
+<span class="cstat-no" title="statement not covered" >import { GetUnifiedSessionReport } from '../../application/use-cases/GetUnifiedSessionReport';</span>
+<span class="cstat-no" title="statement not covered" >import { supabaseClient } from '@src/common/infrastructure/database/supabaseClient';</span>
+<span class="cstat-no" title="statement not covered" >import { BIOMETRICS_RESPONSES } from '@src/biometrics/domain/responses/BiometricsResponses';</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >const send = (reply: FastifyReply, err: { status: number; message: string }) =&gt;</span>
+<span class="cstat-no" title="statement not covered" >    reply.status(err.status).send({ status: 'error', message: err.message });</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export default function getSessionReport() {</span>
+<span class="cstat-no" title="statement not covered" >    return async (fastify: FastifyInstance) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        const repository = new SupabaseSessionMetricsRepository(supabaseClient);</span>
+<span class="cstat-no" title="statement not covered" >        const useCase = new GetUnifiedSessionReport(repository);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        fastify.get('/reports/:patientId/:sessionId?', async (request, reply) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            try {</span>
+<span class="cstat-no" title="statement not covered" >                const { patientId, sessionId } = request.params as any;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >                const result = await useCase.execute(Number(patientId), sessionId);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >                if (!result || (Array.isArray(result) &amp;&amp; result.length === 0)) {</span>
+<span class="cstat-no" title="statement not covered" >                    const err = BIOMETRICS_RESPONSES.ERRORS.NO_DATA_FOUND;</span>
+<span class="cstat-no" title="statement not covered" >                    return send(reply, err);</span>
 <span class="cstat-no" title="statement not covered" >                }</span>
-&nbsp;
-                return reply.status(200).send(result);
-            } catch (e: any) {
-                if (e.message === 'SESSION_NOT_FOUND') {
-                    return reply.status(404).send({ status: 'error', message: 'NO_DATA_FOUND' });
-                }
-<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >                return reply.status(500).send({ status: 'error', message: e.message });</span></span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >                const res = BIOMETRICS_RESPONSES.SUCCESS.OK;</span>
+<span class="cstat-no" title="statement not covered" >                return reply.status(res.status).send(result);</span>
+<span class="cstat-no" title="statement not covered" >            } catch (e: any) {</span>
+<span class="cstat-no" title="statement not covered" >                if (e?.message === 'SESSION_NOT_FOUND') {</span>
+<span class="cstat-no" title="statement not covered" >                    const err = BIOMETRICS_RESPONSES.ERRORS.NO_DATA_FOUND;</span>
+<span class="cstat-no" title="statement not covered" >                    return send(reply, err);</span>
+<span class="cstat-no" title="statement not covered" >                }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >                const err = BIOMETRICS_RESPONSES.ERRORS.UNKNOWN_ERROR;</span>
+<span class="cstat-no" title="statement not covered" >                return send(reply, err);</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
-        });
-    };
-}</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-22T09:58:51.151Z
+                at 2026-01-25T11:44:51.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

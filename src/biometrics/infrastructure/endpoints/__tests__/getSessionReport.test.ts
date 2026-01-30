@@ -1,50 +1,54 @@
 jest.mock('@src/identity/infrastructure/http/verifyUser', () => ({
     verifyHybridAccess: () => async () => {},
     verifyProfessional: () => async () => {},
-    verifyPatient: () => async () => {}
+    verifyPatient: () => async () => {},
 }));
 
-import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
+import { initBiometricsTestDatabase } from '@common/infrastructure/database/test-seeds/biometrics.seed';
 
-describe('GET /reports/:patientId/:sessionId', () => {
+describe('Integration | GET /reports/:patientId/:sessionId?', () => {
     let app: any;
-    let patientId: number;
-    let sessionId: number;
 
     beforeAll(async () => {
         const { build } = require('@common/infrastructure/server/serverBuild');
-
         app = build();
         await app.ready();
-
-        const seed = await initTestDatabase();
-        patientId = seed.patientId;
-        sessionId = seed.sessionId;
     });
 
     afterAll(async () => {
         await app.close();
     });
 
-    it('should return 200 and the unified report when session exists', async () => {
-        const response = await app.inject({
-            method: 'GET',
-            url: `/reports/${patientId}/${sessionId}`
-        });
-
-        expect(response.statusCode).toBe(200);
-
-        const data = response.json();
-        const report = Array.isArray(data) ? data[0] : data;
-        expect(report).toHaveProperty('session_id', sessionId.toString());
+    beforeEach(async () => {
+        await initBiometricsTestDatabase();
     });
 
-    it('should return 404 when the session does not exist', async () => {
-        const response = await app.inject({
-            method: 'GET',
-            url: `/reports/${patientId}/999999`
-        });
+    it('returns 400 when patientId is invalid', async () => {
+        const res = await app.inject({ method: 'GET', url: '/reports/abc' });
+        expect(res.statusCode).toBe(400);
+        expect(res.json()).toEqual({ error: 'Invalid input' });
+    });
 
-        expect(response.statusCode).toBe(404);
+    it('returns 200 with array for patientId', async () => {
+        const seed = await initBiometricsTestDatabase();
+        const res = await app.inject({ method: 'GET', url: `/reports/${seed.patientDbId}` });
+
+        expect(res.statusCode).toBe(200);
+        const body = res.json();
+        expect(Array.isArray(body)).toBe(true);
+        expect(body.length).toBeGreaterThan(0);
+        expect(body[0]).toHaveProperty('session_id');
+        expect(body[0]).toHaveProperty('dizziness_percentage');
+        expect(body[0]).toHaveProperty('objective_analysis');
+    });
+
+    it('returns 200 with object for patientId + sessionId', async () => {
+        const seed = await initBiometricsTestDatabase();
+        const res = await app.inject({ method: 'GET', url: `/reports/${seed.patientDbId}/${seed.patientSessionCompletedId}` });
+
+        expect(res.statusCode).toBe(200);
+        const body = res.json();
+        expect(body).toHaveProperty('session_id');
+        expect(body.session_id).toBe(String(seed.patientSessionCompletedId));
     });
 });

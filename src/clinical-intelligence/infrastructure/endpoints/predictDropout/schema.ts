@@ -16,26 +16,20 @@ export const predictDropoutSchema = {
     schema: {
         params: {
             type: 'object',
+            additionalProperties: false,
             properties: {
                 patientId: { type: 'string' },
             },
         },
         response: {
             200: {
-                type: ['array', 'object'],
-                if: { type: 'array' },
-                then: {
-                    items: {
-                        type: 'object',
-                        properties: dropoutRiskProperties,
-                        required: ['patientId', 'name', 'riskScore', 'status']
-                    }
-                },
-                else: {
+                type: 'array',
+                items: {
                     type: 'object',
+                    additionalProperties: false,
                     properties: dropoutRiskProperties,
-                    required: ['patientId', 'name', 'riskScore', 'status']
-                }
+                    required: ['patientId', 'name', 'riskScore', 'status'],
+                },
             },
             400: errorSchema,
             404: errorSchema,

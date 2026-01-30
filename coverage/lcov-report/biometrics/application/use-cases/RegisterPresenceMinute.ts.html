@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>17/85</span>
+                <span class='fraction'>0/85</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>17/85</span>
+                <span class='fraction'>0/85</span>
             </div>
         
             
@@ -147,22 +147,9 @@
 <a name='L82'></a><a href='#L82'>82</a>
 <a name='L83'></a><a href='#L83'>83</a>
 <a name='L84'></a><a href='#L84'>84</a>
-<a name='L85'></a><a href='#L85'>85</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L85'></a><a href='#L85'>85</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -178,8 +165,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -231,22 +216,37 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span></td><td class="text"><pre class="prettyprint lang-js">import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
-import { ContextType } from '../../domain/models/PresenceInterval';
-&nbsp;
-type Params = {
-    patientId: string;
-    minuteTsUtc: string;
-    contextType: ContextType;
-    sessionId: string | null;
-};
-&nbsp;
-export class RegisterPresenceMinute {
-    private <span class="fstat-no" title="function not covered" >isUuid(value: string) {</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { supabaseClient } from '@common/infrastructure/database/supabaseClient';</span></span></span>
+<span class="cstat-no" title="statement not covered" >import { ContextType } from '../../domain/models/PresenceInterval';</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >type Params = {</span>
+<span class="cstat-no" title="statement not covered" >    patientId: string;</span>
+<span class="cstat-no" title="statement not covered" >    minuteTsUtc: string;</span>
+<span class="cstat-no" title="statement not covered" >    contextType: ContextType;</span>
+<span class="cstat-no" title="statement not covered" >    sessionId: string | null;</span>
+<span class="cstat-no" title="statement not covered" >};</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export class RegisterPresenceMinute {</span>
+<span class="cstat-no" title="statement not covered" >    private isUuid(value: string) {</span>
 <span class="cstat-no" title="statement not covered" >        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-    private <span class="fstat-no" title="function not covered" >validate(params: Params, date: Date) {</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    private validate(params: Params, date: Date) {</span>
 <span class="cstat-no" title="statement not covered" >        if (!params.patientId) throw new Error('Unauthorized');</span>
 <span class="cstat-no" title="statement not covered" >        if (Number.isNaN(date.getTime())) throw new Error('minuteTsUtc must be a valid ISO date');</span>
 <span class="cstat-no" title="statement not covered" >        if (date.getUTCSeconds() !== 0 || date.getUTCMilliseconds() !== 0) {</span>
@@ -262,8 +262,8 @@ export class RegisterPresenceMinute {
 <span class="cstat-no" title="statement not covered" >            throw new Error('sessionId must be null for dashboard context');</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async execute(params: Params) {</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async execute(params: Params) {</span>
 <span class="cstat-no" title="statement not covered" >        const now = new Date();</span>
 <span class="cstat-no" title="statement not covered" >        now.setUTCSeconds(0, 0);</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -315,14 +315,14 @@ export class RegisterPresenceMinute {
 <span class="cstat-no" title="statement not covered" >        if (error) throw new Error(error.message);</span>
 <span class="cstat-no" title="statement not covered" >        return { data, action: 'created' };</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-}</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-22T09:58:51.151Z
+                at 2026-01-25T11:44:51.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

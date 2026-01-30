@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">52% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>13/25</span>
+                <span class='fraction'>0/25</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/6</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">52% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>13/25</span>
+                <span class='fraction'>0/25</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -87,62 +87,62 @@
 <a name='L22'></a><a href='#L22'>22</a>
 <a name='L23'></a><a href='#L23'>23</a>
 <a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
+<a name='L25'></a><a href='#L25'>25</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span></td><td class="text"><pre class="prettyprint lang-js">import { NotificationRepository, Notification } from "../../domain/interfaces/NotificationRepository";
-&nbsp;
-export class ManageNotifications {
-    constructor(private readonly repo: NotificationRepository) {}
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async getUnreadCount(patientId: number): Promise&lt;number&gt; {</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { NotificationRepository, Notification } from "../../domain/interfaces/NotificationRepository";</span></span></span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export class ManageNotifications {</span>
+<span class="cstat-no" title="statement not covered" >    constructor(private readonly repo: NotificationRepository) {}</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async getUnreadCount(patientId: number): Promise&lt;number&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        return await this.repo.getPendingCount(patientId);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async getInbox(patientId: number): Promise&lt;Notification[]&gt; {</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async getInbox(patientId: number): Promise&lt;Notification[]&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        return await this.repo.getPatientNotifications(patientId);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async readMessage(patientId: number, messageId: string): Promise&lt;Notification | null&gt; {</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async readMessage(patientId: number, messageId: string): Promise&lt;Notification | null&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        const message = await this.repo.getNotificationDetail(patientId, messageId);</span>
 <span class="cstat-no" title="statement not covered" >        if (message &amp;&amp; message.is_read === false) {</span>
 <span class="cstat-no" title="statement not covered" >            await this.repo.markAsRead(patientId, messageId);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        return message;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async deleteMessage(patientId: number, messageId: string): Promise&lt;void&gt; {</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async deleteMessage(patientId: number, messageId: string): Promise&lt;void&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        await this.repo.deleteNotification(patientId, messageId);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-}</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-22T09:58:51.151Z
+                at 2026-01-25T11:44:51.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

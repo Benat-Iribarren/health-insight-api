@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>60/60</span>
+                <span class='fraction'>0/60</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>60/60</span>
+                <span class='fraction'>0/60</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -122,132 +122,132 @@
 <a name='L57'></a><a href='#L57'>57</a>
 <a name='L58'></a><a href='#L58'>58</a>
 <a name='L59'></a><a href='#L59'>59</a>
-<a name='L60'></a><a href='#L60'>60</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span></td><td class="text"><pre class="prettyprint lang-js">import { FastifyInstance } from 'fastify';
-import { supabaseClient } from '../database/supabaseClient';
-import { SupabaseUserRepository } from '@src/identity/infrastructure/database/repositories/SupabaseUserRepository';
-import { verifyHybridAccess, verifyProfessional, verifyPatient } from '@src/identity/infrastructure/http/verifyUser';
-&nbsp;
-import presenceMinute from '@src/biometrics/infrastructure/endpoints/presenceMinute';
-import syncDailyBiometrics from '@src/biometrics/infrastructure/endpoints/syncDailyBiometrics';
-import getSessionReport from '@src/biometrics/infrastructure/endpoints/getSessionReport';
-import predictDropout from '@src/clinical-intelligence/infrastructure/endpoints/predictDropout';
-import sendToPatient from '@src/messaging/infrastructure/endpoints/sendToPatient';
-import sendWeeklyStats from '@src/messaging/infrastructure/endpoints/sendWeeklyStats';
-import patientNotifications from '@src/messaging/infrastructure/endpoints/patientNotifications';
-&nbsp;
-import { SupabaseDropoutRepository } from '@src/clinical-intelligence/infrastructure/database/SupabaseDropoutRepository';
-import { SupabasePatientContactRepository } from '@src/messaging/infrastructure/database/SupabasePatientContactRepository';
-import { SupabaseStatsRepository } from '@src/messaging/infrastructure/database/SupabaseStatsRepository';
-import { SupabaseNotificationRepository } from '@src/messaging/infrastructure/database/SupabaseNotificationRepository';
-import { SupabaseBiometricsRepository } from '@src/biometrics/infrastructure/database/SupabaseBiometricsRepository';
-import { GmailApiMailRepository } from "@src/messaging/infrastructure/gmail/GmailApiMailRepository";
-import { HtmlMailTemplateProvider } from "@src/messaging/infrastructure/templates/HtmlMailTemplateProvider";
-&nbsp;
-export function registerRoutes(fastify: FastifyInstance) {
-    const userRepo = new SupabaseUserRepository(supabaseClient);
-    const dropoutRepo = new SupabaseDropoutRepository(supabaseClient as any);
-    const statsRepo = new SupabaseStatsRepository(supabaseClient);
-    const patientContactRepo = new SupabasePatientContactRepository(supabaseClient);
-    const notificationRepo = new SupabaseNotificationRepository(supabaseClient);
-    const biometricsRepo = new SupabaseBiometricsRepository(supabaseClient);
-    const mailRepo = new GmailApiMailRepository();
-    const templateProvider = new HtmlMailTemplateProvider();
-&nbsp;
-    const messagingDeps = {
-        statsRepo,
-        mailRepo,
-        notificationRepo,
-        patientContactRepo,
-        templateProvider
-    };
-&nbsp;
-    fastify.get('/ping', async () =&gt; ({ status: 'ok' }));
-&nbsp;
-    fastify.register(async (hybridContext) =&gt; {
-        hybridContext.addHook('preHandler', verifyHybridAccess(userRepo));
-        hybridContext.register(sendWeeklyStats(messagingDeps));
-        hybridContext.register(syncDailyBiometrics(biometricsRepo));
-    });
-&nbsp;
-    fastify.register(async (professionalApp) =&gt; {
-        professionalApp.addHook('preHandler', verifyProfessional(userRepo));
-        professionalApp.register(predictDropout({ dropoutRepo }));
-        professionalApp.register(sendToPatient(messagingDeps));
-        professionalApp.register(getSessionReport());
-    });
-&nbsp;
-    fastify.register(async (patientApp) =&gt; {
-        patientApp.addHook('preHandler', verifyPatient(userRepo));
-        patientApp.register(presenceMinute());
-        patientApp.register(patientNotifications({ notificationRepo }));
-    });
-}</pre></td></tr></table></pre>
+<a name='L60'></a><a href='#L60'>60</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { FastifyInstance } from 'fastify';</span></span></span>
+<span class="cstat-no" title="statement not covered" >import { supabaseClient } from '../database/supabaseClient';</span>
+<span class="cstat-no" title="statement not covered" >import { SupabaseUserRepository } from '@src/identity/infrastructure/database/repositories/SupabaseUserRepository';</span>
+<span class="cstat-no" title="statement not covered" >import { verifyHybridAccess, verifyProfessional, verifyPatient } from '@src/identity/infrastructure/http/verifyUser';</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >import presenceMinute from '@src/biometrics/infrastructure/endpoints/presenceMinute';</span>
+<span class="cstat-no" title="statement not covered" >import syncDailyBiometrics from '@src/biometrics/infrastructure/endpoints/syncDailyBiometrics';</span>
+<span class="cstat-no" title="statement not covered" >import getSessionReport from '@src/biometrics/infrastructure/endpoints/getSessionReport';</span>
+<span class="cstat-no" title="statement not covered" >import predictDropout from '@src/clinical-intelligence/infrastructure/endpoints/predictDropout/predictDropout';</span>
+<span class="cstat-no" title="statement not covered" >import sendToPatient from '@src/messaging/infrastructure/endpoints/sendToPatient';</span>
+<span class="cstat-no" title="statement not covered" >import sendWeeklyStats from '@src/messaging/infrastructure/endpoints/sendWeeklyStats';</span>
+<span class="cstat-no" title="statement not covered" >import patientNotifications from '@src/messaging/infrastructure/endpoints/patientNotifications';</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >import { dropoutRepository } from '@src/clinical-intelligence/infrastructure/database/SupabaseDropoutRepository';</span>
+<span class="cstat-no" title="statement not covered" >import { SupabasePatientContactRepository } from '@src/messaging/infrastructure/database/SupabasePatientContactRepository';</span>
+<span class="cstat-no" title="statement not covered" >import { SupabaseStatsRepository } from '@src/messaging/infrastructure/database/SupabaseStatsRepository';</span>
+<span class="cstat-no" title="statement not covered" >import { SupabaseNotificationRepository } from '@src/messaging/infrastructure/database/SupabaseNotificationRepository';</span>
+<span class="cstat-no" title="statement not covered" >import { SupabaseBiometricsRepository } from '@src/biometrics/infrastructure/database/SupabaseBiometricsRepository';</span>
+<span class="cstat-no" title="statement not covered" >import { GmailApiMailRepository } from "@src/messaging/infrastructure/gmail/GmailApiMailRepository";</span>
+<span class="cstat-no" title="statement not covered" >import { HtmlMailTemplateProvider } from "@src/messaging/infrastructure/templates/HtmlMailTemplateProvider";</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export function registerRoutes(fastify: FastifyInstance) {</span>
+<span class="cstat-no" title="statement not covered" >    const userRepo = new SupabaseUserRepository(supabaseClient);</span>
+<span class="cstat-no" title="statement not covered" >    const dropoutRepo = dropoutRepository(supabaseClient);</span>
+<span class="cstat-no" title="statement not covered" >    const statsRepo = new SupabaseStatsRepository(supabaseClient);</span>
+<span class="cstat-no" title="statement not covered" >    const patientContactRepo = new SupabasePatientContactRepository(supabaseClient);</span>
+<span class="cstat-no" title="statement not covered" >    const notificationRepo = new SupabaseNotificationRepository(supabaseClient);</span>
+<span class="cstat-no" title="statement not covered" >    const biometricsRepo = new SupabaseBiometricsRepository(supabaseClient);</span>
+<span class="cstat-no" title="statement not covered" >    const mailRepo = new GmailApiMailRepository();</span>
+<span class="cstat-no" title="statement not covered" >    const templateProvider = new HtmlMailTemplateProvider();</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const messagingDeps = {</span>
+<span class="cstat-no" title="statement not covered" >        statsRepo,</span>
+<span class="cstat-no" title="statement not covered" >        mailRepo,</span>
+<span class="cstat-no" title="statement not covered" >        notificationRepo,</span>
+<span class="cstat-no" title="statement not covered" >        patientContactRepo,</span>
+<span class="cstat-no" title="statement not covered" >        templateProvider</span>
+<span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    fastify.get('/ping', async () =&gt; ({ status: 'ok' }));</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    fastify.register(async (hybridContext) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        hybridContext.addHook('preHandler', verifyHybridAccess(userRepo));</span>
+<span class="cstat-no" title="statement not covered" >        hybridContext.register(sendWeeklyStats(messagingDeps));</span>
+<span class="cstat-no" title="statement not covered" >        hybridContext.register(syncDailyBiometrics(biometricsRepo));</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    fastify.register(async (professionalApp) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        //professionalApp.addHook('preHandler', verifyProfessional(userRepo));</span>
+<span class="cstat-no" title="statement not covered" >        professionalApp.register(predictDropout({ dropoutRepo }));</span>
+<span class="cstat-no" title="statement not covered" >        professionalApp.register(sendToPatient(messagingDeps));</span>
+<span class="cstat-no" title="statement not covered" >        professionalApp.register(getSessionReport());</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    fastify.register(async (patientApp) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        patientApp.addHook('preHandler', verifyPatient(userRepo));</span>
+<span class="cstat-no" title="statement not covered" >        patientApp.register(presenceMinute());</span>
+<span class="cstat-no" title="statement not covered" >        patientApp.register(patientNotifications({ notificationRepo }));</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-22T09:58:51.151Z
+                at 2026-01-25T11:44:51.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

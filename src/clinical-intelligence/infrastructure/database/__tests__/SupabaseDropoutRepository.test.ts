@@ -1,29 +1,35 @@
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
-import { initTestDatabase } from '@common/infrastructure/database/initTestDatabase';
-import { SupabaseDropoutRepository } from '../SupabaseDropoutRepository';
+import { initClinicalIntelligenceTestDatabase } from '@common/infrastructure/database/test-seeds/clinicalIntelligence.seed';
+import { dropoutRepository } from '../SupabaseDropoutRepository';
 
-describe('SupabaseDropoutRepository', () => {
-    const repository = new SupabaseDropoutRepository(supabaseClient as any);
+describe('Integration | dropoutRepository (Supabase)', () => {
+    const repository = dropoutRepository(supabaseClient as any);
 
     beforeAll(async () => {
-        await initTestDatabase();
+        await initClinicalIntelligenceTestDatabase();
     });
 
-    it('should fetch raw session data from the database correctly', async () => {
+    it('returns patient session data with required fields', async () => {
         const data = await repository.getPatientSessionData();
 
+        expect(Array.isArray(data)).toBe(true);
         expect(data.length).toBeGreaterThan(0);
-        expect(data[0]).toHaveProperty('patientId');
-        expect(data[0]).toHaveProperty('sessionStatus');
+
+        const row = data[0];
+        expect(typeof row.patientId).toBe('number');
+        expect(typeof row.sessionId).toBe('number');
+        expect(typeof row.sessionStatus).toBe('string');
+        expect(typeof row.assignedDate).toBe('string');
+        expect(typeof row.name).toBe('string');
     });
 
-    it('should filter data by patientId when provided', async () => {
-        const allData = await repository.getPatientSessionData();
-        const targetId = allData[0].patientId;
+    it('filters by patientId when provided', async () => {
+        const all = await repository.getPatientSessionData();
+        const targetId = all[0].patientId;
 
-        const filteredData = await repository.getPatientSessionData(targetId);
+        const filtered = await repository.getPatientSessionData(targetId);
 
-        const allMatch = filteredData.every(row => row.patientId === targetId);
-        expect(allMatch).toBe(true);
+        expect(filtered.length).toBeGreaterThan(0);
+        expect(filtered.every((r) => r.patientId === targetId)).toBe(true);
     });
 });

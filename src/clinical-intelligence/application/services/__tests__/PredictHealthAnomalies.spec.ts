@@ -1,127 +1,241 @@
-import { DropoutAnalysisService } from '../DropoutAnalysisService';
+import { processDropoutAnalysis } from '../DropoutAnalysisService';
 import { DropoutRepository } from '../../../domain/interfaces/DropoutRepository';
-import { DropoutRisk } from '../../../domain/models/DropoutRisk';
+import { noDataError, analysisFailedError } from '../../types/PredictDropoutError';
 
-describe('DropoutAnalysisService', () => {
-    let service: DropoutAnalysisService;
+describe('Unit | processDropoutAnalysis', () => {
     let mockRepository: jest.Mocked<DropoutRepository>;
 
     beforeEach(() => {
         mockRepository = {
-            getPatientSessionData: jest.fn()
+            getPatientSessionData: jest.fn(),
         };
-        service = new DropoutAnalysisService(mockRepository);
         jest.clearAllMocks();
     });
 
-    it('should return NO_DATA code when no patient data is found', async () => {
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    it('returns NO_DATA when repository returns empty array', async () => {
         mockRepository.getPatientSessionData.mockResolvedValue([]);
 
-        const result = await service.execute();
+        const result = await processDropoutAnalysis(mockRepository);
 
-        // Comprobamos que devuelve el objeto de error esperado
-        expect(result).toHaveProperty('type');
+        expect(result).toBe(noDataError);
+        expect(mockRepository.getPatientSessionData).toHaveBeenCalledWith(undefined);
     });
 
-    it('should identify a CRITICAL risk for patients with overdue calendars', async () => {
-        const pastDate = new Date();
-        pastDate.setDate(pastDate.getDate() - 5);
+    it('returns ANALYSIS_FAILED when repository throws', async () => {
+        mockRepository.getPatientSessionData.mockRejectedValue(new Error('db down'));
 
-        mockRepository.getPatientSessionData.mockResolvedValue([{
-            patientId: 'p1',
-            name: 'Test Patient',
-            sessionId: 's1',
-            assignedDate: pastDate.toISOString(),
-            sessionStatus: 'assigned',
-            sessionUpdate: null,
-            postEval: 0
-        }]);
+        const result = await processDropoutAnalysis(mockRepository);
 
-        const result = await service.execute('p1');
-
-        if (Array.isArray(result)) {
-            expect(result[0].patientId).toBe('p1');
-            expect(result[0].riskScore).toBeGreaterThanOrEqual(50);
-            expect(result[0].factors).toContain('Retraso en calendario');
-        } else {
-            fail('Result should be an array');
-        }
+        expect(result).toBe(analysisFailedError);
     });
 
-    it('should identify dizziness in last session as a risk factor', async () => {
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + 2);
-
+    it('passes patientId to repository when provided', async () => {
         mockRepository.getPatientSessionData.mockResolvedValue([
             {
-                patientId: 'p2',
-                name: 'Dizzy Patient',
-                sessionId: 's1',
+                patientId: 1,
+                name: 'Test Patient',
+                sessionId: 10,
                 assignedDate: new Date().toISOString(),
                 sessionStatus: 'completed',
                 sessionUpdate: null,
-                postEval: 9
+                postEval: 0,
             },
+        ]);
+
+        await processDropoutAnalysis(mockRepository, 1);
+
+        expect(mockRepository.getPatientSessionData).toHaveBeenCalledWith(1);
+    });
+
+    it('adds overdue calendar factor and increases riskScore by 50', async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-01-25T12:00:00.000Z'));
+
+        mockRepository.getPatientSessionData.mockResolvedValue([
             {
-                patientId: 'p2',
-                name: 'Dizzy Patient',
-                sessionId: 's2',
-                assignedDate: futureDate.toISOString(),
+                patientId: 1,
+                name: 'Test Patient',
+                sessionId: 10,
+                assignedDate: '2026-01-20T12:00:00.000Z',
                 sessionStatus: 'assigned',
                 sessionUpdate: null,
-                postEval: 0
-            }
+                postEval: 0,
+            },
         ]);
 
-        const result = await service.execute();
+        const result = await processDropoutAnalysis(mockRepository);
 
-        if (Array.isArray(result)) {
-            expect(result[0].factors).toContain('Mareo elevado en ultima sesion');
-            expect(result[0].riskScore).toBe(20);
-            expect(result[0].status).toBe('LOW');
-        } else {
-            fail('Result should be an array');
-        }
+        expect(Array.isArray(result)).toBe(true);
+        if (!Array.isArray(result)) return;
+
+        expect(result[0].patientId).toBe('1');
+        expect(result[0].riskScore).toBe(50);
+        expect(result[0].factors).toContain('Retraso en calendario');
+        expect(result[0].status).toBe('MODERATE');
     });
 
-    it('should detect stale in-progress sessions as a significant risk', async () => {
-        const oldUpdate = new Date();
-        oldUpdate.setHours(oldUpdate.getHours() - 30);
+    it('adds dizziness factor from last completed session and increases riskScore by 20', async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-01-25T12:00:00.000Z'));
 
-        mockRepository.getPatientSessionData.mockResolvedValue([{
-            patientId: 'p3',
-            name: 'Stuck Patient',
-            sessionId: 's3',
-            assignedDate: new Date().toISOString(),
-            sessionStatus: 'in_progress',
-            sessionUpdate: oldUpdate.toISOString(),
-            postEval: 0
-        }]);
-
-        const result = await service.execute();
-
-        if (Array.isArray(result)) {
-            expect(result[0].riskScore).toBe(35);
-            expect(result[0].factors).toContain('In-progress antiguo (>24h)');
-        } else {
-            fail('Result should be an array');
-        }
-    });
-
-    it('should sort results by risk score in descending order', async () => {
         mockRepository.getPatientSessionData.mockResolvedValue([
-            { patientId: 'low', name: 'Low Risk', sessionId: 's1', assignedDate: new Date().toISOString(), sessionStatus: 'completed', postEval: 0 },
-            { patientId: 'high', name: 'High Risk', sessionId: 's2', assignedDate: '2000-01-01', sessionStatus: 'assigned', postEval: 0 }
+            {
+                patientId: 2,
+                name: 'Dizzy Patient',
+                sessionId: 20,
+                assignedDate: '2026-01-10T10:00:00.000Z',
+                sessionStatus: 'completed',
+                sessionUpdate: null,
+                postEval: 9,
+            },
+            {
+                patientId: 2,
+                name: 'Dizzy Patient',
+                sessionId: 21,
+                assignedDate: '2026-01-27T12:00:00.000Z',
+                sessionStatus: 'assigned',
+                sessionUpdate: null,
+                postEval: 0,
+            },
         ]);
 
-        const result = await service.execute();
+        const result = await processDropoutAnalysis(mockRepository);
 
-        if (Array.isArray(result)) {
-            expect(result[0].patientId).toBe('high');
-            expect(result[1].patientId).toBe('low');
-            expect(result[0].riskScore).toBeGreaterThan(result[1].riskScore);
-        } else {
-            fail('Result should be an array');
-        }
+        expect(Array.isArray(result)).toBe(true);
+        if (!Array.isArray(result)) return;
+
+        expect(result[0].patientId).toBe('2');
+        expect(result[0].factors).toContain('Mareo elevado en ultima sesion');
+        expect(result[0].riskScore).toBe(20);
+        expect(result[0].status).toBe('LOW');
+    });
+
+    it('applies buffer bonus (-30) when next session is more than 7 days ahead and clamps to 0', async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-01-25T00:00:00.000Z'));
+
+        mockRepository.getPatientSessionData.mockResolvedValue([
+            {
+                patientId: 3,
+                name: 'Buffered Patient',
+                sessionId: 30,
+                assignedDate: '2026-02-10T00:00:00.000Z',
+                sessionStatus: 'assigned',
+                sessionUpdate: null,
+                postEval: 0,
+            },
+        ]);
+
+        const result = await processDropoutAnalysis(mockRepository);
+
+        expect(Array.isArray(result)).toBe(true);
+        if (!Array.isArray(result)) return;
+
+        expect(result[0].patientId).toBe('3');
+        expect(result[0].riskScore).toBe(0);
+        expect(result[0].status).toBe('LOW');
+        expect(result[0].factors).toEqual([]);
+        expect(result[0].bufferDays).toBeGreaterThan(7);
+    });
+
+    it('calculates bufferDays as ceil(dayDiff) relative to now', async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-01-25T12:00:00.000Z'));
+
+        mockRepository.getPatientSessionData.mockResolvedValue([
+            {
+                patientId: 4,
+                name: 'Buffer Days Patient',
+                sessionId: 40,
+                assignedDate: '2026-01-27T13:00:00.000Z',
+                sessionStatus: 'assigned',
+                sessionUpdate: null,
+                postEval: 0,
+            },
+        ]);
+
+        const result = await processDropoutAnalysis(mockRepository);
+
+        expect(Array.isArray(result)).toBe(true);
+        if (!Array.isArray(result)) return;
+
+        expect(result[0].patientId).toBe('4');
+        expect(result[0].bufferDays).toBe(3);
+    });
+
+    it('groups sessions by patient and returns one risk per patient', async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-01-25T12:00:00.000Z'));
+
+        mockRepository.getPatientSessionData.mockResolvedValue([
+            {
+                patientId: 5,
+                name: 'Same Patient',
+                sessionId: 50,
+                assignedDate: '2026-01-10T10:00:00.000Z',
+                sessionStatus: 'completed',
+                sessionUpdate: null,
+                postEval: 0,
+            },
+            {
+                patientId: 5,
+                name: 'Same Patient',
+                sessionId: 51,
+                assignedDate: '2026-01-30T10:00:00.000Z',
+                sessionStatus: 'assigned',
+                sessionUpdate: null,
+                postEval: 0,
+            },
+            {
+                patientId: 6,
+                name: 'Other Patient',
+                sessionId: 60,
+                assignedDate: '2026-01-20T10:00:00.000Z',
+                sessionStatus: 'assigned',
+                sessionUpdate: null,
+                postEval: 0,
+            },
+        ]);
+
+        const result = await processDropoutAnalysis(mockRepository);
+
+        expect(Array.isArray(result)).toBe(true);
+        if (!Array.isArray(result)) return;
+
+        const ids = result.map((r) => r.patientId).sort();
+        expect(ids).toEqual(['5', '6']);
+    });
+
+    it('sorts results by riskScore descending', async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-01-25T12:00:00.000Z'));
+
+        mockRepository.getPatientSessionData.mockResolvedValue([
+            {
+                patientId: 10,
+                name: 'Low Risk',
+                sessionId: 100,
+                assignedDate: '2026-02-10T12:00:00.000Z',
+                sessionStatus: 'assigned',
+                sessionUpdate: null,
+                postEval: 0,
+            },
+            {
+                patientId: 11,
+                name: 'High Risk',
+                sessionId: 110,
+                assignedDate: '2026-01-10T12:00:00.000Z',
+                sessionStatus: 'assigned',
+                sessionUpdate: null,
+                postEval: 0,
+            },
+        ]);
+
+        const result = await processDropoutAnalysis(mockRepository);
+
+        expect(Array.isArray(result)).toBe(true);
+        if (!Array.isArray(result)) return;
+
+        expect(result[0].patientId).toBe('11');
+        expect(result[1].patientId).toBe('10');
+        expect(result[0].riskScore).toBeGreaterThanOrEqual(result[1].riskScore);
     });
 });

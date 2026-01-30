@@ -1,42 +1,40 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { SessionMetricsRepository, BiometricMinuteRow, ContextIntervalRow, SessionRow } from '../../domain/interfaces/SessionMetricsRepository';
 
-export class SupabaseSessionMetricsRepository {
+export class SupabaseSessionMetricsRepository implements SessionMetricsRepository {
     constructor(private readonly client: SupabaseClient) {}
 
-    async getFullSessionContext(patientId: number, sessionId?: string) {
-        // 1. Sesiones del paciente
+    async getFullSessionContext(patientId: number, sessionId?: number) {
         let sessionQuery = this.client
             .from('PatientSession')
             .select('id, state, pre_evaluation, post_evaluation')
             .eq('patient_id', patientId);
 
-        if (sessionId) sessionQuery = sessionQuery.eq('id', parseInt(sessionId));
+        if (sessionId !== undefined) sessionQuery = sessionQuery.eq('id', sessionId);
 
-        // 2. Intervalos del paciente
         let intervalsQuery = this.client
             .from('ContextIntervals')
             .select('start_minute_utc, end_minute_utc, context_type, session_id')
             .eq('patient_id', patientId);
 
-        if (sessionId) intervalsQuery = intervalsQuery.eq('session_id', parseInt(sessionId));
+        if (sessionId !== undefined) intervalsQuery = intervalsQuery.eq('session_id', sessionId);
 
         const [sRes, iRes] = await Promise.all([sessionQuery, intervalsQuery]);
 
         return {
-            sessions: sRes.data || [],
-            intervals: iRes.data || []
+            sessions: ((sRes.data as SessionRow[]) || []),
+            intervals: ((iRes.data as ContextIntervalRow[]) || []),
         };
     }
 
-    async getBiometricData(start: string, end: string) {
-        // Log para ver qué fechas estamos pidiendo exactamente a Supabase
-        console.error(`SQL_QUERY: gte.${start} lte.${end}`);
-
-        return this.client
+    async getBiometricData(startIso: string, endIso: string): Promise<BiometricMinuteRow[]> {
+        const { data } = await this.client
             .from('BiometricMinutes')
             .select('*')
-            .gte('timestamp_iso', start)
-            .lte('timestamp_iso', end)
+            .gte('timestamp_iso', startIso)
+            .lte('timestamp_iso', endIso)
             .order('timestamp_iso', { ascending: true });
+
+        return (data as BiometricMinuteRow[]) || [];
     }
 }

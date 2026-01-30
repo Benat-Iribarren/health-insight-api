@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">54.68% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>35/64</span>
+                <span class='fraction'>0/64</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/8</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">54.68% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>35/64</span>
+                <span class='fraction'>0/64</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -126,44 +126,7 @@
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
+<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -173,50 +136,87 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span></td><td class="text"><pre class="prettyprint lang-js">import { NotificationRepository, Notification } from '../../domain/interfaces/NotificationRepository';
-import { DBClientService } from '@common/infrastructure/database/supabaseClient';
-&nbsp;
-export class SupabaseNotificationRepository implements NotificationRepository {
-    constructor(private readonly supabase: DBClientService) {}
-&nbsp;
-    async saveNotification(patientId: number, subject: string, content: string): Promise&lt;void&gt; {
-        await this.supabase
-            .from('PatientNotifications')
-            .insert({
-                patient_id: patientId,
-                subject: subject,
-                content: content,
-                is_read: false
-            });
-    }
-&nbsp;
-    async getPendingCount(patientId: number): Promise&lt;number&gt; {
-        const { count } = await this.supabase
-            .from('PatientNotifications')
-            .select('*', { count: 'exact', head: true })
-            .eq('patient_id', patientId)
-            .eq('is_read', false);
-&nbsp;
-        return count || 0;
-    }
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async getPatientNotifications(patientId: number): Promise&lt;Notification[]&gt; {</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { NotificationRepository, Notification } from '../../domain/interfaces/NotificationRepository';</span></span></span>
+<span class="cstat-no" title="statement not covered" >import { DBClientService } from '@common/infrastructure/database/supabaseClient';</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export class SupabaseNotificationRepository implements NotificationRepository {</span>
+<span class="cstat-no" title="statement not covered" >    constructor(private readonly supabase: DBClientService) {}</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async saveNotification(patientId: number, subject: string, content: string): Promise&lt;void&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        await this.supabase</span>
+<span class="cstat-no" title="statement not covered" >            .from('PatientNotifications')</span>
+<span class="cstat-no" title="statement not covered" >            .insert({</span>
+<span class="cstat-no" title="statement not covered" >                patient_id: patientId,</span>
+<span class="cstat-no" title="statement not covered" >                subject: subject,</span>
+<span class="cstat-no" title="statement not covered" >                content: content,</span>
+<span class="cstat-no" title="statement not covered" >                is_read: false</span>
+<span class="cstat-no" title="statement not covered" >            });</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async getPendingCount(patientId: number): Promise&lt;number&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        const { count } = await this.supabase</span>
+<span class="cstat-no" title="statement not covered" >            .from('PatientNotifications')</span>
+<span class="cstat-no" title="statement not covered" >            .select('*', { count: 'exact', head: true })</span>
+<span class="cstat-no" title="statement not covered" >            .eq('patient_id', patientId)</span>
+<span class="cstat-no" title="statement not covered" >            .eq('is_read', false);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        return count || 0;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async getPatientNotifications(patientId: number): Promise&lt;Notification[]&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        const { data } = await this.supabase</span>
 <span class="cstat-no" title="statement not covered" >            .from('PatientNotifications')</span>
 <span class="cstat-no" title="statement not covered" >            .select('id, subject, is_read, created_at')</span>
@@ -225,8 +225,8 @@ export class SupabaseNotificationRepository implements NotificationRepository {
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        return (data as Notification[]) || [];</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async getNotificationDetail(patientId: number, notificationId: string): Promise&lt;Notification | null&gt; {</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async getNotificationDetail(patientId: number, notificationId: string): Promise&lt;Notification | null&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        const { data } = await this.supabase</span>
 <span class="cstat-no" title="statement not covered" >            .from('PatientNotifications')</span>
 <span class="cstat-no" title="statement not covered" >            .select('subject, content, created_at')</span>
@@ -236,30 +236,30 @@ export class SupabaseNotificationRepository implements NotificationRepository {
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        return (data as Notification) || null;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async markAsRead(patientId: number, notificationId: string): Promise&lt;void&gt; {</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async markAsRead(patientId: number, notificationId: string): Promise&lt;void&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        await this.supabase</span>
 <span class="cstat-no" title="statement not covered" >            .from('PatientNotifications')</span>
 <span class="cstat-no" title="statement not covered" >            .update({ is_read: true })</span>
 <span class="cstat-no" title="statement not covered" >            .eq('id', notificationId)</span>
 <span class="cstat-no" title="statement not covered" >            .eq('patient_id', patientId);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async deleteNotification(patientId: number, notificationId: string): Promise&lt;void&gt; {</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async deleteNotification(patientId: number, notificationId: string): Promise&lt;void&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        await this.supabase</span>
 <span class="cstat-no" title="statement not covered" >            .from('PatientNotifications')</span>
 <span class="cstat-no" title="statement not covered" >            .delete()</span>
 <span class="cstat-no" title="statement not covered" >            .eq('id', notificationId)</span>
 <span class="cstat-no" title="statement not covered" >            .eq('patient_id', patientId);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-}</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-22T09:58:51.151Z
+                at 2026-01-25T11:44:51.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20.4% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>20/98</span>
+                <span class='fraction'>0/98</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/3</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20.4% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>20/98</span>
+                <span class='fraction'>0/98</span>
             </div>
         
             
@@ -160,25 +160,7 @@
 <a name='L95'></a><a href='#L95'>95</a>
 <a name='L96'></a><a href='#L96'>96</a>
 <a name='L97'></a><a href='#L97'>97</a>
-<a name='L98'></a><a href='#L98'>98</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
+<a name='L98'></a><a href='#L98'>98</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -257,25 +239,43 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span></td><td class="text"><pre class="prettyprint lang-js">import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
-import { parse } from 'csv-parse/sync';
-import { Readable } from 'stream';
-import { SupabaseBiometricsRepository } from '../../infrastructure/database/SupabaseBiometricsRepository';
-&nbsp;
-export class SyncDailyBiometrics {
-    private s3 = new S3Client({
-        region: "us-east-1",
-        credentials: {
-            accessKeyId: process.env.EMPATICA_AWS_ACCESS_KEY!,
-            secretAccessKey: process.env.EMPATICA_AWS_SECRET_KEY!
-        }
-    });
-    private BUCKET = "empatica-us-east-1-prod-data";
-    private PREFIX = "v2/451/1/1/participant_data/";
-&nbsp;
-    constructor(private readonly repository: SupabaseBiometricsRepository) {}
-&nbsp;
-<span class="fstat-no" title="function not covered" >    async execute(date: string): Promise&lt;any&gt; {</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";</span></span></span>
+<span class="cstat-no" title="statement not covered" >import { parse } from 'csv-parse/sync';</span>
+<span class="cstat-no" title="statement not covered" >import { Readable } from 'stream';</span>
+<span class="cstat-no" title="statement not covered" >import { SupabaseBiometricsRepository } from '../../infrastructure/database/SupabaseBiometricsRepository';</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export class SyncDailyBiometrics {</span>
+<span class="cstat-no" title="statement not covered" >    private s3 = new S3Client({</span>
+<span class="cstat-no" title="statement not covered" >        region: "us-east-1",</span>
+<span class="cstat-no" title="statement not covered" >        credentials: {</span>
+<span class="cstat-no" title="statement not covered" >            accessKeyId: process.env.EMPATICA_AWS_ACCESS_KEY!,</span>
+<span class="cstat-no" title="statement not covered" >            secretAccessKey: process.env.EMPATICA_AWS_SECRET_KEY!</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >    private BUCKET = "empatica-us-east-1-prod-data";</span>
+<span class="cstat-no" title="statement not covered" >    private PREFIX = "v2/451/1/1/participant_data/";</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    constructor(private readonly repository: SupabaseBiometricsRepository) {}</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    async execute(date: string): Promise&lt;any&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        let allContents: any[] = [];</span>
 <span class="cstat-no" title="statement not covered" >        let continuationToken: string | undefined = undefined;</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -354,14 +354,14 @@ export class SyncDailyBiometrics {
 <span class="cstat-no" title="statement not covered" >            summary: { filesFound: dailyFiles.length, rowsInserted: rowsToInsert.length }</span>
 <span class="cstat-no" title="statement not covered" >        };</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-}</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-22T09:58:51.151Z
+                at 2026-01-25T11:44:51.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

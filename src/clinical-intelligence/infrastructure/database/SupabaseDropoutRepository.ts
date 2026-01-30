@@ -4,9 +4,7 @@ import { DBClientService } from '@common/infrastructure/database/supabaseClient'
 
 export const dropoutRepository = (supabase: DBClientService): DropoutRepository => ({
     async getPatientSessionData(patientId?: number): Promise<PatientSessionData[]> {
-        const query = supabase
-            .from('PatientSession')
-            .select(`
+        const query = supabase.from('PatientSession').select(`
         patientId: patient_id,
         sessionId: id,
         sessionStatus: state,
@@ -16,7 +14,7 @@ export const dropoutRepository = (supabase: DBClientService): DropoutRepository 
         Patient!inner ( name )
       `);
 
-        if (patientId) {
+        if (patientId !== undefined) {
             query.eq('patient_id', patientId);
         }
 
@@ -33,7 +31,7 @@ export const dropoutRepository = (supabase: DBClientService): DropoutRepository 
             assignedDate: row.assignedDate,
             sessionUpdate: row.sessionUpdate,
             postEval: row.postEval,
-            name: row.Patient.name
+            name: row.Patient.name,
         }));
-    }
+    },
 });

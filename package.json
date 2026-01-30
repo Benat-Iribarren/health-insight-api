@@ -8,9 +8,14 @@
     "dev": "nodemon --ext ts --watch src --exec \"ts-node -r dotenv/config -r tsconfig-paths/register src/common/infrastructure/server/index.ts\"",
     "build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "NODE_ENV=production node dist/common/infrastructure/server/index.js",
-    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
-    "test:coverage": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles --coverage"
+
+    "test": "cross-env NODE_ENV=test jest",
+    "test:watch": "cross-env NODE_ENV=test jest --watch",
+    "test:debug": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
+    "test:coverage": "cross-env NODE_ENV=test jest --coverage",
+    "test:ci": "cross-env NODE_ENV=test jest --runInBand --coverage"
   },
+
   "dependencies": {
     "@aws-sdk/client-s3": "^3.968.0",
     "@fastify/cors": "^11.2.0",
