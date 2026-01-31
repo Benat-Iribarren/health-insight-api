@@ -47,8 +47,9 @@ export function build(): FastifyInstance {
     registerSwagger(app);
     registerSwaggerUI(app);
 
+    // 4. SECURITY LOGGER: Registro de actividades sospechosas (Capa de Aplicación) He cambiardo de preHandle a onResponse para capturar el identificador de usuario
     if (process.env.NODE_ENV !== 'test') {
-        app.addHook('preHandler', securityLogger);
+        app.addHook('onResponse', securityLogger);
     }
 
     registerRoutes(app);
