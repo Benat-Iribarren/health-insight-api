@@ -4,7 +4,8 @@ export interface MailTemplateProvider {
         inProgress: number;
         pending: number;
         nextWeekSessions: number;
-        name: string
+        name: string;
     }): string;
+
     renderMessageNotification(count: number): string;
 }

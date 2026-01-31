@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { supabaseClient } from '@src/common/infrastructure/database/supabaseClient';
 import { SupabasePresenceIntervalRepository } from '../../database/SupabasePresenceIntervalRepository';
-import { RegisterPresenceMinute } from '../../../application/use-cases/RegisterPresenceMinute';
+import { RegisterPresenceMinuteService } from '@src/biometrics/application/services/RegisterPresenceMinuteService';
 import { BiometricsError } from '../../../application/types/BiometricsError';
 import { presenceMinuteSchema } from './schema';
 
@@ -29,7 +29,7 @@ const statusToMessage: Record<BiometricsError, { error: string }> = {
 export default function presenceMinute() {
     return async function (fastify: FastifyInstance) {
         const repository = new SupabasePresenceIntervalRepository(supabaseClient as any);
-        const useCase = new RegisterPresenceMinute(repository);
+        const useCase = new RegisterPresenceMinuteService(repository);
 
         fastify.post(PRESENCE_MINUTE_ENDPOINT, presenceMinuteSchema, async (request: FastifyRequest, reply: FastifyReply) => {
             const user = (request as any).user;

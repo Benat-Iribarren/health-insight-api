@@ -1,4 +1,4 @@
-import { processDropoutAnalysis } from '../DropoutAnalysisService';
+import { processDropoutAnalysisService } from '../DropoutAnalysisService';
 import { DropoutRepository } from '../../../domain/interfaces/DropoutRepository';
 import { noDataError, analysisFailedError } from '../../types/PredictDropoutError';
 
@@ -19,7 +19,7 @@ describe('Unit | processDropoutAnalysis', () => {
     it('returns NO_DATA when repository returns empty array', async () => {
         mockRepository.getPatientSessionData.mockResolvedValue([]);
 
-        const result = await processDropoutAnalysis(mockRepository);
+        const result = await processDropoutAnalysisService(mockRepository);
 
         expect(result).toBe(noDataError);
         expect(mockRepository.getPatientSessionData).toHaveBeenCalledWith(undefined);
@@ -28,7 +28,7 @@ describe('Unit | processDropoutAnalysis', () => {
     it('returns ANALYSIS_FAILED when repository throws', async () => {
         mockRepository.getPatientSessionData.mockRejectedValue(new Error('db down'));
 
-        const result = await processDropoutAnalysis(mockRepository);
+        const result = await processDropoutAnalysisService(mockRepository);
 
         expect(result).toBe(analysisFailedError);
     });
@@ -46,7 +46,7 @@ describe('Unit | processDropoutAnalysis', () => {
             },
         ]);
 
-        await processDropoutAnalysis(mockRepository, 1);
+        await processDropoutAnalysisService(mockRepository, 1);
 
         expect(mockRepository.getPatientSessionData).toHaveBeenCalledWith(1);
     });
@@ -66,7 +66,7 @@ describe('Unit | processDropoutAnalysis', () => {
             },
         ]);
 
-        const result = await processDropoutAnalysis(mockRepository);
+        const result = await processDropoutAnalysisService(mockRepository);
 
         expect(Array.isArray(result)).toBe(true);
         if (!Array.isArray(result)) return;
@@ -101,7 +101,7 @@ describe('Unit | processDropoutAnalysis', () => {
             },
         ]);
 
-        const result = await processDropoutAnalysis(mockRepository);
+        const result = await processDropoutAnalysisService(mockRepository);
 
         expect(Array.isArray(result)).toBe(true);
         if (!Array.isArray(result)) return;
@@ -127,7 +127,7 @@ describe('Unit | processDropoutAnalysis', () => {
             },
         ]);
 
-        const result = await processDropoutAnalysis(mockRepository);
+        const result = await processDropoutAnalysisService(mockRepository);
 
         expect(Array.isArray(result)).toBe(true);
         if (!Array.isArray(result)) return;
@@ -154,7 +154,7 @@ describe('Unit | processDropoutAnalysis', () => {
             },
         ]);
 
-        const result = await processDropoutAnalysis(mockRepository);
+        const result = await processDropoutAnalysisService(mockRepository);
 
         expect(Array.isArray(result)).toBe(true);
         if (!Array.isArray(result)) return;
@@ -196,7 +196,7 @@ describe('Unit | processDropoutAnalysis', () => {
             },
         ]);
 
-        const result = await processDropoutAnalysis(mockRepository);
+        const result = await processDropoutAnalysisService(mockRepository);
 
         expect(Array.isArray(result)).toBe(true);
         if (!Array.isArray(result)) return;
@@ -229,7 +229,7 @@ describe('Unit | processDropoutAnalysis', () => {
             },
         ]);
 
-        const result = await processDropoutAnalysis(mockRepository);
+        const result = await processDropoutAnalysisService(mockRepository);
 
         expect(Array.isArray(result)).toBe(true);
         if (!Array.isArray(result)) return;

@@ -1,3 +1,10 @@
+export type SessionState = "completed" | "in_progress" | "not_started";
+
+export interface PatientSession {
+    state: SessionState | string;
+    scheduled_at: string;
+}
+
 export interface PatientStats {
     id?: number;
     email?: string;
@@ -6,7 +13,7 @@ export interface PatientStats {
     inProgress: number;
     notStarted: number;
     nextWeekSessions: number;
-    sessions?: any[];
+    sessions?: PatientSession[];
 }
 
 export interface StatsRepository {

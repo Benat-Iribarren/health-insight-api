@@ -1,7 +1,7 @@
-import { RegisterPresenceMinute } from '../RegisterPresenceMinute';
+import { RegisterPresenceMinuteService } from '../RegisterPresenceMinuteService';
 import { PresenceIntervalRepository } from '../../../domain/interfaces/PresenceIntervalRepository';
 
-describe('Unit | RegisterPresenceMinute', () => {
+describe('Unit | RegisterPresenceMinuteService', () => {
     const contextTypeMock = { dashboard: 'dashboard', session: 'session' } as const;
 
     it('returns INVALID_INPUT for non-minute timestamp', async () => {
@@ -12,7 +12,7 @@ describe('Unit | RegisterPresenceMinute', () => {
             ContextType: contextTypeMock as any
         };
 
-        const uc = new RegisterPresenceMinute(repo);
+        const uc = new RegisterPresenceMinuteService(repo);
 
         const result = await uc.execute({
             patientId: 'p1',
@@ -41,7 +41,7 @@ describe('Unit | RegisterPresenceMinute', () => {
             ContextType: contextTypeMock as any
         };
 
-        const uc = new RegisterPresenceMinute(repo);
+        const uc = new RegisterPresenceMinuteService(repo);
         const base = new Date();
         base.setUTCSeconds(0, 0);
 

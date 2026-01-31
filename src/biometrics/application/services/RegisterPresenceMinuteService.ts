@@ -14,7 +14,7 @@ export type PresenceResult = {
     action: 'created' | 'extended' | 'idempotent_no_change';
 };
 
-export class RegisterPresenceMinute {
+export class RegisterPresenceMinuteService {
     constructor(private readonly repository: PresenceIntervalRepository) {}
 
     async execute(params: Params): Promise<PresenceResult | BiometricsError> {

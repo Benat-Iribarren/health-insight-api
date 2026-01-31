@@ -128,12 +128,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { FastifyInstance } from 'fastify';</span></span></span>
-<span class="cstat-no" title="statement not covered" >import { SendToPatient } from '../../application/use-cases/SendToPatient';</span>
+<span class="cstat-no" title="statement not covered" >import { SendToPatientService } from '../../application/use-cases/SendToPatientService';</span>
 <span class="cstat-no" title="statement not covered" >import { MESSAGING_RESPONSES } from '@src/messaging/domain/responses/MessagingResponses';</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export default function sendToPatient(deps: any) {</span>
 <span class="cstat-no" title="statement not covered" >    return async function (fastify: FastifyInstance) {</span>
-<span class="cstat-no" title="statement not covered" >        const useCase = new SendToPatient(</span>
+<span class="cstat-no" title="statement not covered" >        const useCase = new SendToPatientService(</span>
 <span class="cstat-no" title="statement not covered" >            deps.patientContactRepo,</span>
 <span class="cstat-no" title="statement not covered" >            deps.mailRepo,</span>
 <span class="cstat-no" title="statement not covered" >            deps.notificationRepo,</span>

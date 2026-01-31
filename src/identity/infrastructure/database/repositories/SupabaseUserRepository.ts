@@ -44,4 +44,17 @@ export class SupabaseUserRepository implements UserRepository {
 
         return !!data;
     }
+
+    async getPatientIdByUserId(userId: UserId): Promise<number> {
+        const { data, error } = await this.client
+            .from('Patient')
+            .select('id')
+            .eq('user_id', userId)
+            .single();
+
+        if (error) throw error;
+        if (!data) throw new Error('Patient not found');
+
+        return data.id as number;
+    }
 }

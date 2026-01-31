@@ -1,14 +1,14 @@
-import { GetUnifiedSessionReport } from '../GetUnifiedSessionReport';
+import { GetUnifiedSessionReportService } from '../GetUnifiedSessionReportService';
 import { SessionMetricsRepository } from '../../../domain/interfaces/SessionMetricsRepository';
 
-describe('Unit | GetUnifiedSessionReport', () => {
+describe('Unit | GetUnifiedSessionReportService', () => {
     it('returns NO_DATA_FOUND when no sessions', async () => {
         const repo: SessionMetricsRepository = {
             getFullSessionContext: async () => ({ sessions: [], intervals: [] }),
             getBiometricData: async () => [],
         };
 
-        const uc = new GetUnifiedSessionReport(repo);
+        const uc = new GetUnifiedSessionReportService(repo);
         const result = await uc.execute(1);
 
         expect(result).toBe('NO_DATA_FOUND');
@@ -23,7 +23,7 @@ describe('Unit | GetUnifiedSessionReport', () => {
             getBiometricData: async () => [],
         };
 
-        const uc = new GetUnifiedSessionReport(repo);
+        const uc = new GetUnifiedSessionReportService(repo);
         const result = await uc.execute(1);
 
         expect(Array.isArray(result)).toBe(true);
@@ -63,7 +63,7 @@ describe('Unit | GetUnifiedSessionReport', () => {
             ],
         };
 
-        const uc = new GetUnifiedSessionReport(repo);
+        const uc = new GetUnifiedSessionReportService(repo);
         const result = await uc.execute(1);
 
         expect(Array.isArray(result)).toBe(true);

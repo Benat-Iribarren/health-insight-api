@@ -1,5 +1,5 @@
 TN:
-SF:src/biometrics/application/use-cases/GetUnifiedSessionReport.ts
+SF:src/biometrics/application/use-cases/GetUnifiedSessionReportService.ts
 FN:1,(empty-report)
 FNF:1
 FNH:0
@@ -144,7 +144,7 @@ BRF:1
 BRH:0
 end_of_record
 TN:
-SF:src/biometrics/application/use-cases/RegisterPresenceMinute.ts
+SF:src/biometrics/application/use-cases/RegisterPresenceMinuteService.ts
 FN:1,(empty-report)
 FNF:1
 FNH:0
@@ -241,7 +241,7 @@ BRF:1
 BRH:0
 end_of_record
 TN:
-SF:src/biometrics/application/use-cases/SyncDailyBiometrics.ts
+SF:src/biometrics/application/use-cases/SyncDailyBiometricsService.ts
 FN:1,(empty-report)
 FNF:1
 FNH:0
@@ -1651,7 +1651,7 @@ BRF:1
 BRH:0
 end_of_record
 TN:
-SF:src/messaging/application/use-cases/ManageNotifications.ts
+SF:src/messaging/application/use-cases/ManageNotificationsService.ts
 FN:1,(empty-report)
 FNF:1
 FNH:0
@@ -1688,7 +1688,7 @@ BRF:1
 BRH:0
 end_of_record
 TN:
-SF:src/messaging/application/use-cases/SendToPatient.ts
+SF:src/messaging/application/use-cases/SendToPatientService.ts
 FN:1,(empty-report)
 FNF:1
 FNH:0
@@ -1743,7 +1743,7 @@ BRF:1
 BRH:0
 end_of_record
 TN:
-SF:src/messaging/application/use-cases/SendWeeklyStats.ts
+SF:src/messaging/application/use-cases/SendWeeklyStatsService.ts
 FN:1,(empty-report)
 FNF:1
 FNH:0

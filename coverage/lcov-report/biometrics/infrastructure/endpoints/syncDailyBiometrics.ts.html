@@ -150,7 +150,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';</span></span></span>
-<span class="cstat-no" title="statement not covered" >import { SyncDailyBiometrics } from '../../application/use-cases/SyncDailyBiometrics';</span>
+<span class="cstat-no" title="statement not covered" >import { SyncDailyBiometricsService } from '../../application/use-cases/SyncDailyBiometricsService';</span>
 <span class="cstat-no" title="statement not covered" >import { SupabaseBiometricsRepository } from '../database/SupabaseBiometricsRepository';</span>
 <span class="cstat-no" title="statement not covered" >import { BIOMETRICS_RESPONSES } from '@src/biometrics/domain/responses/BiometricsResponses';</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -159,7 +159,7 @@
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export default function syncDailyBiometrics(repository: SupabaseBiometricsRepository) {</span>
 <span class="cstat-no" title="statement not covered" >    return async function (fastify: FastifyInstance) {</span>
-<span class="cstat-no" title="statement not covered" >        const useCase = new SyncDailyBiometrics(repository);</span>
+<span class="cstat-no" title="statement not covered" >        const useCase = new SyncDailyBiometricsService(repository);</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        fastify.post('/biometrics/sync-daily', async (request: FastifyRequest, reply: FastifyReply) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            try {</span>

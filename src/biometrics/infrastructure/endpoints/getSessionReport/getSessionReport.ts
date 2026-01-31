@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyReply } from 'fastify';
-import { GetUnifiedSessionReport } from '../../../application/use-cases/GetUnifiedSessionReport';
+import { GetUnifiedSessionReportService } from '@src/biometrics/application/services/GetUnifiedSessionReportService';
 import { SupabaseSessionMetricsRepository } from '../../database/SupabaseSessionMetricsRepository';
 import { BiometricsError } from '../../../application/types/BiometricsError';
 
@@ -28,7 +28,7 @@ interface GetSessionReportDependencies {
 
 export default function getSessionReport(deps: GetSessionReportDependencies) {
     return async function (fastify: FastifyInstance) {
-        const useCase = new GetUnifiedSessionReport(deps.sessionMetricsRepo);
+        const useCase = new GetUnifiedSessionReportService(deps.sessionMetricsRepo);
 
         fastify.get('/reports/:patientId/:sessionId?', async (request, reply: FastifyReply) => {
             try {

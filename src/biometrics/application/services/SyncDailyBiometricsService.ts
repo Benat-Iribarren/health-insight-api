@@ -39,7 +39,7 @@ function toNumberOrNull(value: unknown): number | null {
     return Number.isFinite(n) ? n : null;
 }
 
-export class SyncDailyBiometrics {
+export class SyncDailyBiometricsService {
     constructor(
         private readonly source: BiometricsFileSource,
         private readonly repository: BiometricMinutesRepository

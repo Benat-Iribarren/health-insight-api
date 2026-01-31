@@ -18,7 +18,7 @@ export type UnifiedSessionReport = {
     objective_analysis: { summary: MetricSummary | Record<string, never>; biometric_details: BiometricMinuteRow[] };
 };
 
-export class GetUnifiedSessionReport {
+export class GetUnifiedSessionReportService {
     constructor(private readonly repository: SessionMetricsRepository) {}
 
     async execute(patientId: number, sessionId?: string): Promise<UnifiedSessionReport[] | UnifiedSessionReport | BiometricsError> {

@@ -1,13 +1,13 @@
-import { SyncDailyBiometrics } from '../SyncDailyBiometrics';
+import { SyncDailyBiometricsService } from '../SyncDailyBiometricsService';
 import { BiometricsFileSource } from '../../../domain/interfaces/BiometricsFileSource';
 import { BiometricMinutesRepository } from '../../../domain/interfaces/BiometricMinutesRepository';
 
-describe('Unit | SyncDailyBiometrics', () => {
+describe('Unit | SyncDailyBiometricsService', () => {
     it('returns INVALID_INPUT for invalid date', async () => {
         const source: BiometricsFileSource = { listDailyFiles: async () => [], getFileText: async () => '' };
         const repo: BiometricMinutesRepository = { upsertBiometricMinutes: async () => {} };
 
-        const uc = new SyncDailyBiometrics(source, repo);
+        const uc = new SyncDailyBiometricsService(source, repo);
         const result = await uc.execute('2026/01/01');
 
         expect(result).toBe('INVALID_INPUT');
@@ -36,7 +36,7 @@ describe('Unit | SyncDailyBiometrics', () => {
             },
         };
 
-        const uc = new SyncDailyBiometrics(source, repo);
+        const uc = new SyncDailyBiometricsService(source, repo);
         const result = await uc.execute(date);
 
         expect(typeof result).toBe('object');

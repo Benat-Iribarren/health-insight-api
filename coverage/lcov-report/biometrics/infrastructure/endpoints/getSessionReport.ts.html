@@ -143,7 +143,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { FastifyInstance, FastifyReply } from 'fastify';</span></span></span>
 <span class="cstat-no" title="statement not covered" >import { SupabaseSessionMetricsRepository } from '../../infrastructure/database/SupabaseSessionMetricsRepository';</span>
-<span class="cstat-no" title="statement not covered" >import { GetUnifiedSessionReport } from '../../application/use-cases/GetUnifiedSessionReport';</span>
+<span class="cstat-no" title="statement not covered" >import { GetUnifiedSessionReportService } from '../../application/use-cases/GetUnifiedSessionReportService';</span>
 <span class="cstat-no" title="statement not covered" >import { supabaseClient } from '@src/common/infrastructure/database/supabaseClient';</span>
 <span class="cstat-no" title="statement not covered" >import { BIOMETRICS_RESPONSES } from '@src/biometrics/domain/responses/BiometricsResponses';</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -153,7 +153,7 @@
 <span class="cstat-no" title="statement not covered" >export default function getSessionReport() {</span>
 <span class="cstat-no" title="statement not covered" >    return async (fastify: FastifyInstance) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        const repository = new SupabaseSessionMetricsRepository(supabaseClient);</span>
-<span class="cstat-no" title="statement not covered" >        const useCase = new GetUnifiedSessionReport(repository);</span>
+<span class="cstat-no" title="statement not covered" >        const useCase = new GetUnifiedSessionReportService(repository);</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        fastify.get('/reports/:patientId/:sessionId?', async (request, reply) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            try {</span>

@@ -4,7 +4,7 @@
     <metrics statements="2030" coveredstatements="100" conditionals="64" coveredconditionals="24" methods="43" coveredmethods="4" elements="2137" coveredelements="128" complexity="0" loc="2030" ncloc="2030" packages="25" files="41" classes="41"/>
     <package name="biometrics.application.use-cases">
       <metrics statements="316" coveredstatements="0" conditionals="3" coveredconditionals="0" methods="3" coveredmethods="0"/>
-      <file name="GetUnifiedSessionReport.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/biometrics/application/use-cases/GetUnifiedSessionReport.ts">
+      <file name="GetUnifiedSessionReportService.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/biometrics/application/use-cases/GetUnifiedSessionReportService.ts">
         <metrics statements="133" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="1" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="2" count="0" type="stmt"/>
@@ -140,7 +140,7 @@
         <line num="132" count="0" type="stmt"/>
         <line num="133" count="0" type="stmt"/>
       </file>
-      <file name="RegisterPresenceMinute.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/biometrics/application/use-cases/RegisterPresenceMinute.ts">
+      <file name="RegisterPresenceMinuteService.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/biometrics/application/use-cases/RegisterPresenceMinuteService.ts">
         <metrics statements="85" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="1" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="2" count="0" type="stmt"/>
@@ -228,7 +228,7 @@
         <line num="84" count="0" type="stmt"/>
         <line num="85" count="0" type="stmt"/>
       </file>
-      <file name="SyncDailyBiometrics.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/biometrics/application/use-cases/SyncDailyBiometrics.ts">
+      <file name="SyncDailyBiometricsService.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/biometrics/application/use-cases/SyncDailyBiometricsService.ts">
         <metrics statements="98" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="1" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="2" count="0" type="stmt"/>
@@ -1437,7 +1437,7 @@
     </package>
     <package name="messaging.application.use-cases">
       <metrics statements="145" coveredstatements="0" conditionals="3" coveredconditionals="0" methods="3" coveredmethods="0"/>
-      <file name="ManageNotifications.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/messaging/application/use-cases/ManageNotifications.ts">
+      <file name="ManageNotificationsService.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/messaging/application/use-cases/ManageNotificationsService.ts">
         <metrics statements="25" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="1" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="2" count="0" type="stmt"/>
@@ -1465,7 +1465,7 @@
         <line num="24" count="0" type="stmt"/>
         <line num="25" count="0" type="stmt"/>
       </file>
-      <file name="SendToPatient.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/messaging/application/use-cases/SendToPatient.ts">
+      <file name="SendToPatientService.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/messaging/application/use-cases/SendToPatientService.ts">
         <metrics statements="43" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="1" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="2" count="0" type="stmt"/>
@@ -1511,7 +1511,7 @@
         <line num="42" count="0" type="stmt"/>
         <line num="43" count="0" type="stmt"/>
       </file>
-      <file name="SendWeeklyStats.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/messaging/application/use-cases/SendWeeklyStats.ts">
+      <file name="SendWeeklyStatsService.ts" path="/Users/benatiribarren/Desktop/TFG/health-insight-api/src/messaging/application/use-cases/SendWeeklyStatsService.ts">
         <metrics statements="77" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="1" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="2" count="0" type="stmt"/>

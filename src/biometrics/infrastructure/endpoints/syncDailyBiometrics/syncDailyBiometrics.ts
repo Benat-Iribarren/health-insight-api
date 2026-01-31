@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { SyncDailyBiometrics } from '../../../application/use-cases/SyncDailyBiometrics';
+import { SyncDailyBiometricsService } from '@src/biometrics/application/services/SyncDailyBiometricsService';
 import { BiometricsFileSource } from '../../../domain/interfaces/BiometricsFileSource';
 import { BiometricMinutesRepository } from '../../../domain/interfaces/BiometricMinutesRepository';
 import { BiometricsError } from '../../../application/types/BiometricsError';
@@ -41,7 +41,7 @@ function resolveTargetDate(date?: string): string {
 
 export default function syncDailyBiometrics(deps: SyncDailyBiometricsDependencies) {
     return async function (fastify: FastifyInstance) {
-        const useCase = new SyncDailyBiometrics(deps.source, deps.biometricsRepo);
+        const useCase = new SyncDailyBiometricsService(deps.source, deps.biometricsRepo);
 
         fastify.post(
             SYNC_DAILY_BIOMETRICS_ENDPOINT,
