@@ -20,11 +20,11 @@ const statusToCode: Record<BiometricsError | 'SUCCESSFUL' | 'ACCEPTED', StatusCo
 };
 
 const statusToMessage: Record<BiometricsError, { error: string }> = {
-    INVALID_INPUT: { error: 'Datos de entrada inválidos' },
-    UNAUTHORIZED: { error: 'No autorizado' },
-    FORBIDDEN: { error: 'Acceso no permitido' },
-    NO_DATA_FOUND: { error: 'No se han encontrado datos' },
-    UNKNOWN_ERROR: { error: 'Error interno del servidor' },
+    INVALID_INPUT: { error: 'Invalid input data' },
+    UNAUTHORIZED: { error: 'Unauthorized access' },
+    FORBIDDEN: { error: 'Forbidden access' },
+    NO_DATA_FOUND: { error: 'No data found' },
+    UNKNOWN_ERROR: { error: 'Internal server error' },
 };
 
 type SyncDailyBiometricsDependencies = {
@@ -53,9 +53,8 @@ export default function syncDailyBiometrics(deps: SyncDailyBiometricsDependencie
                 if ((request as any).auth?.userId === 'cron') {
                     useCase.execute(targetDate).catch(err => fastify.log.error(err));
                     return reply.status(statusToCode.ACCEPTED).send({
-                        status: 'accepted',
                         targetDate,
-                        message: 'Sincronización aceptada',
+                        message: 'Synchronization task accepted',
                     });
                 }
 

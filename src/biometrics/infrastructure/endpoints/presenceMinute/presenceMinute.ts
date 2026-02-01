@@ -19,11 +19,11 @@ const statusToCode: Record<BiometricsError | 'SUCCESSFUL', StatusCode> = {
 };
 
 const statusToMessage: Record<BiometricsError, { error: string }> = {
-    INVALID_INPUT: { error: 'Datos de entrada inválidos' },
-    UNAUTHORIZED: { error: 'No autorizado' },
-    FORBIDDEN: { error: 'Acceso no permitido' },
-    NO_DATA_FOUND: { error: 'No se han encontrado datos' },
-    UNKNOWN_ERROR: { error: 'Error interno del servidor' },
+    INVALID_INPUT: { error: 'Invalid input data' },
+    UNAUTHORIZED: { error: 'Unauthorized access' },
+    FORBIDDEN: { error: 'Forbidden access' },
+    NO_DATA_FOUND: { error: 'No data found' },
+    UNKNOWN_ERROR: { error: 'Internal server error' },
 };
 
 export default function presenceMinute() {
@@ -52,10 +52,9 @@ export default function presenceMinute() {
             }
 
             return reply.status(statusToCode.SUCCESSFUL).send({
-                status: 'ok',
                 action: result.action,
                 intervalId: result.intervalId,
-                message: 'Presencia registrada correctamente',
+                message: 'Presence registered successfully',
             });
         });
     };

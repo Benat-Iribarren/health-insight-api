@@ -15,7 +15,6 @@ export const presenceMinuteSchema = {
             200: {
                 type: 'object',
                 properties: {
-                    status: { type: 'string' },
                     action: { type: 'string' },
                     intervalId: { type: 'string' },
                     message: { type: 'string' },
