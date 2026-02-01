@@ -47,13 +47,14 @@ export function build(): FastifyInstance {
     registerSwagger(app);
     registerSwaggerUI(app);
 
+    // Registramos las rutas primero para que los preHandlers inyecten el auth en la request
+    registerRoutes(app);
+
     // 4. SECURITY LOGGER: Registro de actividades sospechosas (Capa de Aplicación) He cambiardo de preHandle a onResponse para capturar el identificador de usuario
     app.addHook('onSend', async (request, reply, payload) => {
         securityLogger(app, request, reply).catch(err => app.log.error(err));
         return payload;
     });
-
-    registerRoutes(app);
 
     return app;
 }
