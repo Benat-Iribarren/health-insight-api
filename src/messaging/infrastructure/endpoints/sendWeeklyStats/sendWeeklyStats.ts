@@ -46,6 +46,23 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                     return reply.status(statusToCode.INVALID_PATIENT_ID).send(statusToMessage.INVALID_PATIENT_ID);
                 }
 
+                if ((request as any).auth?.userId === 'cron') {
+                    processSendWeeklyStatsService(
+                        dependencies.statsRepo,
+                        dependencies.mailRepo,
+                        dependencies.notificationRepo,
+                        dependencies.patientContactRepo,
+                        dependencies.templateProvider,
+                        dependencies.imageGenerator,
+                        patientId
+                    ).catch(err => fastify.log.error(err));
+
+                    return reply.status(200).send({
+                        message: 'Weekly health reports processing started in background',
+                        data: { sentAt: new Date().toISOString() }
+                    });
+                }
+
                 const result = await processSendWeeklyStatsService(
                     dependencies.statsRepo,
                     dependencies.mailRepo,
