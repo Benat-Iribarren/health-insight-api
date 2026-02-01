@@ -8,13 +8,13 @@ export const securityLogger = async (
 ): Promise<void> => {
     if (request.url === '/ping' || request.routeOptions.url === '/ping') return;
 
-    let userId: string | null = request.auth?.userId ?? null;
+    let userId: string | null = (request as any).auth?.userId ?? null;
 
     if (!userId) {
         const authHeader = request.headers.authorization;
         if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
             try {
-                const token = authHeader.slice('Bearer '.length);
+                const token = authHeader.slice(7);
                 const decoded = fastify.jwt.decode(token) as { sub?: string } | null;
                 userId = decoded?.sub ?? null;
             } catch {
