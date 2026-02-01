@@ -34,7 +34,7 @@ export const sendToPatientSchema = {
                         required: ['recipientId', 'sentAt']
                     }
                 },
-                required: ['status', 'message', 'data'],
+                required: ['message', 'data'],
             },
             400: errorSchema,
             404: errorSchema,

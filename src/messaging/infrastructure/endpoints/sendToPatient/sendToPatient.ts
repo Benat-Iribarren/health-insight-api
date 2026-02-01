@@ -64,12 +64,15 @@ function sendToPatient(dependencies: SendToPatientDependencies) {
                         recipientId: patientId,
                         sentAt: new Date().toISOString()
                     }
-                });            } catch (error) {
+                });
+            } catch (error) {
                 fastify.log.error(error);
-                throw error;
+                return reply.status(500).send({
+                    error: 'Internal Server Error',
+                    message: error instanceof Error ? error.message : 'Unknown error'
+                });
             }
         });
     };
 }
-
 export default sendToPatient;
