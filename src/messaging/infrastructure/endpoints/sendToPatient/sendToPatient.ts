@@ -58,8 +58,13 @@ function sendToPatient(dependencies: SendToPatientDependencies) {
                     return reply.status(statusToCode[result]).send(statusToMessage[result]);
                 }
 
-                return reply.status(200).send({ ok: true });
-            } catch (error) {
+                return reply.status(200).send({
+                    message: 'Message sent and notification logged.',
+                    data: {
+                        recipientId: patientId,
+                        sentAt: new Date().toISOString()
+                    }
+                });            } catch (error) {
                 fastify.log.error(error);
                 throw error;
             }

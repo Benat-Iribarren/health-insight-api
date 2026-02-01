@@ -18,21 +18,23 @@ export async function initClinicalIntelligenceTestDatabase() {
         .insert([{ number: 1, day_offset: 1 }])
         .select();
 
+    if (!pData || !sData) throw new Error("Fallo al insertar datos en Clinical Intelligence Seed");
+
     const overdueDate = new Date();
     overdueDate.setDate(overdueDate.getDate() - 15);
 
     await supabaseClient.from('PatientSession').insert([
         {
-            session_id: sData![0].id,
-            patient_id: pData![0].id,
+            session_id: sData[0].id,
+            patient_id: pData[0].id,
             state: 'assigned',
             assigned_date: overdueDate.toISOString(),
             pre_evaluation: 0,
             post_evaluation: 0
         },
         {
-            session_id: sData![0].id,
-            patient_id: pData![1].id,
+            session_id: sData[0].id,
+            patient_id: pData[1].id,
             state: 'completed',
             assigned_date: new Date().toISOString(),
             pre_evaluation: 5,
@@ -41,7 +43,7 @@ export async function initClinicalIntelligenceTestDatabase() {
     ]);
 
     return {
-        patientIdOverdue: pData![0].id,
-        patientIdHealthy: pData![1].id
+        patientIdOverdue: pData[0].id,
+        patientIdHealthy: pData[1].id
     };
 }

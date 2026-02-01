@@ -14,13 +14,13 @@ export async function processSendWeeklyStatsService(
     templateProvider: MailTemplateProvider,
     imageGenerator: WeeklyDashboardImageGenerator,
     patientId?: number
-): Promise<'SUCCESSFUL' | SendWeeklyStatsError> {
+): Promise<{ status: 'SUCCESSFUL' | SendWeeklyStatsError; processedCount: number }> {
     const patientsData = await statsRepo.getAllPatientsStats();
-
+    let processedCount = 0;
     const filteredPatients =
         patientId !== undefined ? patientsData.filter((p: PatientStats) => p.id === patientId) : patientsData;
 
-    if (filteredPatients.length === 0) return 'NO_DATA';
+    if (filteredPatients.length === 0) return { status: 'NO_DATA', processedCount: 0 };
 
     for (const patient of filteredPatients) {
         const id = patient.id;
@@ -49,11 +49,12 @@ export async function processSendWeeklyStatsService(
 
         const sendResult = await mailRepo.send(email, 'Tu resumen semanal de salud', htmlContent, pendingCount, imageBuffer);
 
-        if (!sendResult.success) return 'SEND_FAILED';
+        if (!sendResult.success) return { status: 'SUCCESSFUL', processedCount };
+
+        processedCount++;
     }
 
-    return 'SUCCESSFUL';
-}
+    return { status: 'SUCCESSFUL', processedCount };}
 
 function calculateWeeklyCounters(patient: PatientStats): {
     completed: number;

@@ -3,6 +3,15 @@ import { UserRepository } from '../../domain/interfaces/repositories/UserReposit
 import { authenticate } from './authenticate';
 import { IDENTITY_RESPONSES } from '@src/identity/domain/responses/IdentityResponses';
 
+declare module 'fastify' {
+    interface FastifyRequest {
+        auth?: {
+            userId: string;
+            patientId?: number;
+        };
+    }
+}
+
 const send = (reply: FastifyReply, err: { status: number; message: string }) =>
     reply.status(err.status).send({ error: err.message });
 
@@ -13,8 +22,7 @@ const getUserIdOrReply = async (
     const ok = await authenticate(request, reply);
     if (!ok) return null;
 
-    const userId = request.auth?.userId;
-    return userId ?? null;
+    return request.auth?.userId ?? null;
 };
 
 export const verifyHybridAccess = (userRepository: UserRepository) => {

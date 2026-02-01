@@ -54,7 +54,7 @@ function patientNotifications(dependencies: NotificationsDependencies) {
             }
         });
 
-        fastify.get(NOTIFICATION_BY_ID_ENDPOINT, readNotificationSchema, async (request, reply) => {
+        fastify.post(NOTIFICATION_BY_ID_ENDPOINT, readNotificationSchema, async (request, reply) => {
             try {
                 const patientId = request.auth?.patientId;
                 if (!patientId) {

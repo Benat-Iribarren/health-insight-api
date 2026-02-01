@@ -4,19 +4,23 @@ export const sendWeeklyStatsSchema = {
     schema: {
         params: {
             type: 'object',
-            additionalProperties: false,
-            properties: {
-                patientId: { type: 'string' },
-            },
+            properties: { patientId: { type: 'string' } }
         },
         response: {
             200: {
                 type: 'object',
-                additionalProperties: false,
                 properties: {
-                    ok: { type: 'boolean' },
+                    message: { type: 'string' },
+                    data: {
+                        type: 'object',
+                        properties: {
+                            processedRecipients: { type: 'number' },
+                            sentAt: { type: 'string' }
+                        },
+                        required: ['processedRecipients', 'sentAt']
+                    }
                 },
-                required: ['ok'],
+                required: ['message', 'data']
             },
             400: errorSchema,
             404: errorSchema,

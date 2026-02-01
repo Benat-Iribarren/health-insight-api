@@ -18,14 +18,12 @@ export async function sendToPatientService(
 
     try {
         await notificationRepo.saveNotification(patientId, subject, body);
-
         const pendingCount = await notificationRepo.getPendingCount(patientId);
         const htmlContent = templateProvider.renderMessageNotification(pendingCount);
 
         const result = await mailRepo.send(email, subject, htmlContent, pendingCount);
-
         return result.success ? 'SUCCESSFUL' : 'SEND_FAILED';
-    } catch {
+    } catch (error) {
         return 'SEND_FAILED';
     }
 }

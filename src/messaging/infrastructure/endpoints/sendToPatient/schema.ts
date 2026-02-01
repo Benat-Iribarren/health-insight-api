@@ -23,8 +23,18 @@ export const sendToPatientSchema = {
             200: {
                 type: 'object',
                 additionalProperties: false,
-                properties: { ok: { type: 'boolean' } },
-                required: ['ok'],
+                properties: {
+                    message: { type: 'string' },
+                    data: {
+                        type: 'object',
+                        properties: {
+                            recipientId: { type: 'number' },
+                            sentAt: { type: 'string' }
+                        },
+                        required: ['recipientId', 'sentAt']
+                    }
+                },
+                required: ['status', 'message', 'data'],
             },
             400: errorSchema,
             404: errorSchema,

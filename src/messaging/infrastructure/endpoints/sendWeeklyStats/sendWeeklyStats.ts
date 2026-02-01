@@ -37,7 +37,7 @@ interface SendWeeklyStatsDependencies {
 
 function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
     return async function (fastify: FastifyInstance) {
-        fastify.get(SEND_WEEKLY_STATS_ENDPOINT, sendWeeklyStatsSchema, async (request, reply) => {
+        fastify.post(SEND_WEEKLY_STATS_ENDPOINT, sendWeeklyStatsSchema, async (request, reply) => {
             try {
                 const { patientId: rawId } = request.params as { patientId?: string };
                 const patientId = rawId ? Number(rawId) : undefined;
@@ -56,11 +56,17 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                     patientId
                 );
 
-                if (typeof result === 'string' && result !== 'SUCCESSFUL') {
-                    return reply.status(statusToCode[result]).send(statusToMessage[result]);
+                if (result.status !== 'SUCCESSFUL') {
+                    return reply.status(statusToCode[result.status]).send(statusToMessage[result.status]);
                 }
 
-                return reply.status(statusToCode.SUCCESSFUL).send({ ok: true });
+                return reply.status(200).send({
+                    message: 'Weekly health reports processed successfully',
+                    data: {
+                        processedRecipients: result.processedCount,
+                        sentAt: new Date().toISOString()
+                    }
+                });
             } catch (error) {
                 fastify.log.error(error);
                 throw error;
