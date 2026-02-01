@@ -9,7 +9,7 @@ import { processSendWeeklyStatsService } from '../../../application/services/Sen
 import { SendWeeklyStatsError } from '../../../application/types/SendWeeklyStatsError';
 import { sendWeeklyStatsSchema } from './schema';
 
-export const SEND_WEEKLY_STATS_ENDPOINT = '/messaging/send-weekly/:patientId?';
+export const SEND_WEEKLY_STATS_ENDPOINT = '/messaging/send-weekly-stats/:patientId?';
 
 type StatusCode = 200 | 400 | 404 | 500;
 
