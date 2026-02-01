@@ -15,53 +15,49 @@ declare module 'fastify' {
 const send = (reply: FastifyReply, err: { status: number; message: string }) =>
     reply.status(err.status).send({ error: err.message });
 
-const getUserIdOrReply = async (
-    request: FastifyRequest,
-    reply: FastifyReply
-): Promise<string | null> => {
-    const ok = await authenticate(request, reply);
-    if (!ok) return null;
-
-    return request.auth?.userId ?? null;
-};
-
 export const verifyHybridAccess = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         const cronSecret = request.headers['x-health-insight-cron'];
+
         if (cronSecret && cronSecret === process.env.CRON_SECRET_KEY) {
             request.auth = { userId: 'cron' };
             return;
         }
 
-        const userId = await getUserIdOrReply(request, reply);
+        const ok = await authenticate(request, reply);
+        if (!ok) return;
+
+        const userId = request.auth?.userId;
         if (!userId) return;
 
         const isProp = await userRepository.isProfessional(userId);
         if (!isProp) {
             return send(reply, IDENTITY_RESPONSES.ERRORS.FORBIDDEN_HYBRID_ACCESS);
         }
-
-        request.auth = { userId };
     };
 };
 
 export const verifyProfessional = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
-        const userId = await getUserIdOrReply(request, reply);
+        const ok = await authenticate(request, reply);
+        if (!ok) return;
+
+        const userId = request.auth?.userId;
         if (!userId) return;
 
         const isProp = await userRepository.isProfessional(userId);
         if (!isProp) {
             return send(reply, IDENTITY_RESPONSES.ERRORS.FORBIDDEN_PROFESSIONAL_ONLY);
         }
-
-        request.auth = { userId };
     };
 };
 
 export const verifyPatient = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
-        const userId = await getUserIdOrReply(request, reply);
+        const ok = await authenticate(request, reply);
+        if (!ok) return;
+
+        const userId = request.auth?.userId;
         if (!userId) return;
 
         const isPatient = await userRepository.isPatient(userId);
