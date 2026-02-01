@@ -68,8 +68,11 @@ export const deleteNotificationSchema = {
             200: {
                 type: 'object',
                 additionalProperties: false,
-                properties: { ok: { type: 'boolean' } },
-                required: ['ok'],
+                properties: {
+                    message: { type: 'string' },
+                    id: { type: 'string' }
+                },
+                required: ['message', 'id'],
             },
             400: errorSchema,
             401: errorSchema,

@@ -101,7 +101,7 @@ function patientNotifications(dependencies: NotificationsDependencies) {
                     return reply.status(statusToCode[result]).send(statusToMessage[result]);
                 }
 
-                return reply.status(200).send({ ok: true });
+                return reply.status(200).send({message: 'Notification deleted successfully'});
             } catch (error) {
                 fastify.log.error(error);
                 throw error;
