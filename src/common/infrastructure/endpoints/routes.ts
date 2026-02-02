@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 
 import { SupabaseUserRepository } from '@src/identity/infrastructure/database/repositories/SupabaseUserRepository';
-import {verifyHybridAccess, verifyPatient, verifyProfessional} from '@src/identity/infrastructure/http/verifyUser';
+import {verifyHybridAccess, verifyPatient, verifyProfessional} from '@src/identity/infrastructure/middlewares/IdentityMiddlewares';
 
 import presenceMinute from '@src/biometrics/infrastructure/endpoints/presenceMinute/presenceMinute';
 import syncDailyBiometrics from '@src/biometrics/infrastructure/endpoints/syncDailyBiometrics/syncDailyBiometrics';
