@@ -2,6 +2,12 @@ import { errorSchema } from '@common/infrastructure/endpoints/errorSchema';
 
 export const sendWeeklyStatsSchema = {
     schema: {
+        headers: {
+            type: 'object',
+            properties: {
+                'x-health-insight-cron': { type: 'string' }
+            }
+        },
         params: {
             type: 'object',
             properties: { patientId: { type: 'string' } }
@@ -18,6 +24,20 @@ export const sendWeeklyStatsSchema = {
                             sentAt: { type: 'string' }
                         },
                         required: ['processedRecipients', 'sentAt']
+                    }
+                },
+                required: ['message', 'data']
+            },
+            202: {
+                type: 'object',
+                properties: {
+                    message: { type: 'string' },
+                    data: {
+                        type: 'object',
+                        properties: {
+                            sentAt: { type: 'string' }
+                        },
+                        required: ['sentAt']
                     }
                 },
                 required: ['message', 'data']

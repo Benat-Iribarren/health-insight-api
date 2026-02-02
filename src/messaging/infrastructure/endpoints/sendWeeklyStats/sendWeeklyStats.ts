@@ -11,10 +11,11 @@ import { sendWeeklyStatsSchema } from './schema';
 
 export const SEND_WEEKLY_STATS_ENDPOINT = '/messaging/send-weekly-stats/:patientId?';
 
-type StatusCode = 200 | 400 | 404 | 500;
+type StatusCode = 200 | 202 | 400 | 404 | 500;
 
-const statusToCode: Record<SendWeeklyStatsError | 'INVALID_PATIENT_ID' | 'SUCCESSFUL', StatusCode> = {
+const statusToCode: Record<SendWeeklyStatsError | 'INVALID_PATIENT_ID' | 'SUCCESSFUL' | 'ACCEPTED', StatusCode> = {
     SUCCESSFUL: 200,
+    ACCEPTED: 202,
     INVALID_PATIENT_ID: 400,
     NO_DATA: 404,
     SEND_FAILED: 500,
@@ -47,6 +48,7 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                 }
 
                 if ((request as any).auth?.userId === 'cron') {
+                    // TODO: FIRE AND FORGET - Si es ejecución por cron, procesar en background y responder 202 Accepted
                     processSendWeeklyStatsService(
                         dependencies.statsRepo,
                         dependencies.mailRepo,
@@ -57,7 +59,7 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                         patientId
                     ).catch(err => fastify.log.error(err));
 
-                    return reply.status(200).send({
+                    return reply.status(statusToCode.ACCEPTED).send({
                         message: 'Weekly health reports processing started in background',
                         data: { sentAt: new Date().toISOString() }
                     });
@@ -77,7 +79,7 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                     return reply.status(statusToCode[result.status]).send(statusToMessage[result.status]);
                 }
 
-                return reply.status(200).send({
+                return reply.status(statusToCode.SUCCESSFUL).send({
                     message: 'Weekly health reports processed successfully',
                     data: {
                         processedRecipients: result.processedCount,

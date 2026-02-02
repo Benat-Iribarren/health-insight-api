@@ -2,6 +2,12 @@ import { errorSchema } from '@common/infrastructure/endpoints/errorSchema';
 
 export const syncDailyBiometricsSchema = {
     schema: {
+        headers: {
+            type: 'object',
+            properties: {
+                'x-health-insight-cron': { type: 'string' }
+            }
+        },
         body: {
             type: 'object',
             properties: {
@@ -13,7 +19,6 @@ export const syncDailyBiometricsSchema = {
             200: {
                 type: 'object',
                 properties: {
-                    status: { type: 'string', enum: ['success'] },
                     dateProcessed: { type: 'string' },
                     summary: {
                         type: 'object',
@@ -25,17 +30,16 @@ export const syncDailyBiometricsSchema = {
                         additionalProperties: false,
                     },
                 },
-                required: ['status', 'dateProcessed', 'summary'],
+                required: ['dateProcessed', 'summary'],
                 additionalProperties: false,
             },
             202: {
                 type: 'object',
                 properties: {
-                    status: { type: 'string', enum: ['accepted'] },
                     targetDate: { type: 'string' },
                     message: { type: 'string' },
                 },
-                required: ['status', 'targetDate', 'message'],
+                required: ['targetDate', 'message'],
                 additionalProperties: false,
             },
             400: errorSchema,
