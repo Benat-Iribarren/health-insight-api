@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { StatsRepository } from '../../../domain/interfaces/StatsRepository';
 import { MailRepository } from '../../../domain/interfaces/MailRepository';
 import { NotificationRepository } from '../../../domain/interfaces/NotificationRepository';
@@ -38,7 +38,7 @@ interface SendWeeklyStatsDependencies {
 
 function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
     return async function (fastify: FastifyInstance) {
-        fastify.post(SEND_WEEKLY_STATS_ENDPOINT, sendWeeklyStatsSchema, async (request, reply) => {
+        fastify.post(SEND_WEEKLY_STATS_ENDPOINT, sendWeeklyStatsSchema, async (request: FastifyRequest, reply) => {
             try {
                 const { patientId: rawId } = request.params as { patientId?: string };
                 const patientId = rawId ? Number(rawId) : undefined;
@@ -47,8 +47,7 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                     return reply.status(statusToCode.INVALID_PATIENT_ID).send(statusToMessage.INVALID_PATIENT_ID);
                 }
 
-                if ((request as any).auth?.userId === 'cron') {
-                    // TODO: FIRE AND FORGET - Si es ejecución por cron, procesar en background y responder 202 Accepted
+                if (request.auth?.userId === 'cron') {
                     processSendWeeklyStatsService(
                         dependencies.statsRepo,
                         dependencies.mailRepo,

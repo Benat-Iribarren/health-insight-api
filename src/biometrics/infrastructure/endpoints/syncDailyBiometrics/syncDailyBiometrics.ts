@@ -50,7 +50,7 @@ export default function syncDailyBiometrics(deps: SyncDailyBiometricsDependencie
                 const { date } = request.body as { date?: string };
                 const targetDate = resolveTargetDate(date);
 
-                if ((request as any).auth?.userId === 'cron') {
+                if (request.auth?.userId === 'cron') {
                     useCase.execute(targetDate).catch(err => fastify.log.error(err));
                     return reply.status(statusToCode.ACCEPTED).send({
                         targetDate,
