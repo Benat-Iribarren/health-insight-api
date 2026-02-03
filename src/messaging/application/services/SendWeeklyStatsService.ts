@@ -15,10 +15,20 @@ export async function SendWeeklyStatsService(
     imageGenerator: WeeklyDashboardImageGenerator,
     patientId?: number
 ): Promise<{ status: 'SUCCESSFUL' | SendWeeklyStatsError; processedCount: number }> {
-    const patientsData = await statsRepo.getAllPatientsStats();
+    let patientsData: PatientStats[];
+    if (patientId !== undefined) {
+        try {
+            const patient = await statsRepo.getWeeklyStats(patientId);
+            patientsData = [patient];
+        } catch {
+            return { status: 'NO_DATA', processedCount: 0 };
+        }
+    } else {
+        patientsData = await statsRepo.getAllPatientsStats();
+    }
+
     let processedCount = 0;
-    const filteredPatients =
-        patientId !== undefined ? patientsData.filter((p: PatientStats) => p.id === patientId) : patientsData;
+    const filteredPatients = patientsData;
 
     if (filteredPatients.length === 0) return { status: 'NO_DATA', processedCount: 0 };
 
