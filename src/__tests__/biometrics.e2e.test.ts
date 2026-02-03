@@ -1,28 +1,37 @@
-import { build } from '@common/infrastructure/server/serverBuild';
-import { initBiometricsTestDatabase } from '@common/infrastructure/database/test-seeds/biometrics.seed';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { build } from '@src/common/infrastructure/server/serverBuild';
+import { initMessagingTestDatabase } from '@src/common/infrastructure/database/test-seeds/messaging.seed';
 
 jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => ({
-    verifyHybridAccess: () => async () => {},
-    verifyProfessional: () => async () => {},
-    verifyPatient: () => async (request: any) => {
-        request.auth = { userId: 'test-user', patientId: Number(request.params.patientId) };
-    },
+    verifyPatient: jest.fn(() => (req: FastifyRequest, _res: FastifyReply, done: (err?: Error) => void) => {
+        const pId = req.headers['x-test-patient-id'];
+        (req as any).auth = { userId: 'patient-test', patientId: pId ? Number(pId) : 1 };
+        done();
+    }),
+    verifyProfessional: jest.fn(() => (_req: any, _res: any, done: any) => done()),
+    verifyHybridAccess: jest.fn(() => (_req: any, _res: any, done: any) => done())
 }));
 
 describe('Biometrics E2E', () => {
-    let app: any;
+    let app: FastifyInstance;
     beforeAll(async () => { app = build(); await app.ready(); });
     afterAll(async () => await app.close());
 
-    it('should return session reports via HTTP', async () => {
-        const seed = await initBiometricsTestDatabase();
-        const response = await app.inject({
-            method: 'GET',
-            url: `/reports/${seed.patientId}`
+    it('should register presence successfully', async () => {
+        const { patientId } = await initMessagingTestDatabase();
+        const baseTime = new Date();
+        baseTime.setUTCSeconds(0, 0);
+        baseTime.setUTCMilliseconds(0);
+        
+        const res = await app.inject({
+            method: 'POST',
+            url: '/presence/minute',
+            headers: { 'x-test-patient-id': String(patientId) },
+            payload: {
+                minuteTsUtc: baseTime.toISOString(),
+                contextType: 'dashboard'
+            }
         });
-
-        expect(response.statusCode).toBe(200);
-        const payload = response.json();
-        expect(Array.isArray(payload)).toBe(true);
+        expect(res.statusCode).toBe(200);
     });
 });

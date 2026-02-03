@@ -5,7 +5,7 @@ import { NotificationRepository } from '../../../domain/interfaces/NotificationR
 import { PatientContactRepository } from '../../../domain/interfaces/PatientContactRepository';
 import { MailTemplateProvider } from '../../../domain/interfaces/MailTemplateProvider';
 import { WeeklyDashboardImageGenerator } from '../../../domain/interfaces/WeeklyDashboardImageGenerator';
-import { processSendWeeklyStatsService } from '../../../application/services/SendWeeklyStatsService';
+import { SendWeeklyStatsService } from '../../../application/services/SendWeeklyStatsService';
 import { SendWeeklyStatsError } from '../../../application/types/SendWeeklyStatsError';
 import { sendWeeklyStatsSchema } from './schema';
 
@@ -47,24 +47,14 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                     return reply.status(statusToCode.INVALID_PATIENT_ID).send(statusToMessage.INVALID_PATIENT_ID);
                 }
 
-                if (request.auth?.userId === 'cron') {
-                    processSendWeeklyStatsService(
-                        dependencies.statsRepo,
-                        dependencies.mailRepo,
-                        dependencies.notificationRepo,
-                        dependencies.patientContactRepo,
-                        dependencies.templateProvider,
-                        dependencies.imageGenerator,
-                        patientId
-                    ).catch(err => fastify.log.error(err));
-
-                    return reply.status(statusToCode.ACCEPTED).send({
-                        message: 'Weekly health reports processing started in background',
-                        data: { sentAt: new Date().toISOString() }
+                const cronSecret = request.headers['x-health-insight-cron'];
+                if (cronSecret && request.auth?.userId !== 'cron') {
+                    return reply.status(403).send({
+                        error: 'Invalid cron secret'
                     });
                 }
 
-                const result = await processSendWeeklyStatsService(
+                const result = await SendWeeklyStatsService(
                     dependencies.statsRepo,
                     dependencies.mailRepo,
                     dependencies.notificationRepo,
@@ -75,16 +65,27 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                 );
 
                 if (result.status !== 'SUCCESSFUL') {
-                    return reply.status(statusToCode[result.status]).send(statusToMessage[result.status]);
+                    return reply.status(statusToCode[result.status]).send({
+                        error: statusToMessage[result.status as SendWeeklyStatsError].error,
+                        code: result.status
+                    });
+                }
+
+                if (request.auth?.userId === 'cron' && patientId === undefined) {
+                    return reply.status(statusToCode.ACCEPTED).send({
+                        message: 'Weekly health reports processing started in background',
+                        data: { sentAt: new Date().toISOString() }
+                    });
                 }
 
                 return reply.status(statusToCode.SUCCESSFUL).send({
                     message: 'Weekly health reports processed successfully',
                     data: {
-                        processedRecipients: result.processedCount,
+                        processedCount: result.processedCount,
                         sentAt: new Date().toISOString()
                     }
                 });
+
             } catch (error) {
                 fastify.log.error(error);
                 throw error;
