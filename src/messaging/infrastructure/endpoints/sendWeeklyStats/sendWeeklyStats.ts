@@ -66,8 +66,7 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
 
                 if (result.status !== 'SUCCESSFUL') {
                     return reply.status(statusToCode[result.status]).send({
-                        error: statusToMessage[result.status as SendWeeklyStatsError].error,
-                        code: result.status
+                        error: statusToMessage[result.status as SendWeeklyStatsError].error
                     });
                 }
 

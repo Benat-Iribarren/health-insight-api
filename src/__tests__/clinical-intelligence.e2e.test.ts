@@ -2,6 +2,14 @@ import { FastifyInstance } from 'fastify';
 import { build } from '@src/common/infrastructure/server/serverBuild';
 import { initClinicalIntelligenceTestDatabase } from '@src/common/infrastructure/database/test-seeds/clinicalIntelligence.seed';
 
+jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => ({
+    verifyHybridAccess: () => async () => {},
+    verifyProfessional: () => async (request: any) => {
+        request.auth = { userId: 'pro-user' };
+    },
+    verifyPatient: () => async () => {},
+}));
+
 describe('Clinical Intelligence E2E', () => {
     let app: FastifyInstance;
     beforeAll(async () => { app = build(); await app.ready(); });

@@ -9,7 +9,11 @@ jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => 
     }),
     verifyPatient: jest.fn(() => (req: any, res: any, done: any) => {
         const pId = req.headers['x-test-patient-id'];
-        req.auth = { userId: 'patient-uuid', patientId: pId ? Number(pId) : 1 };
+        if (pId && pId !== '') {
+            req.auth = { userId: 'patient-uuid', patientId: Number(pId) };
+        } else {
+            req.auth = { userId: 'patient-uuid' };
+        }
         done();
     }),
     verifyHybridAccess: jest.fn(() => (req: any, res: any, done: any) => {
@@ -35,18 +39,11 @@ describe('Integration | patientNotifications', () => {
     });
 
     it('GET /messaging/notifications returns 401 if patientId is missing', async () => {
-        const Mids = require('@src/identity/infrastructure/middlewares/IdentityMiddlewares');
-        const originalVerify = Mids.verifyPatient;
-        Mids.verifyPatient.mockImplementation(() => (req: FastifyRequest, _res: FastifyReply, done: (err?: Error) => void) => {
-            (req as any).auth = undefined;
-            done();
-        });
         const res = await app.inject({
             method: 'GET',
             url: '/messaging/notifications',
             headers: { 'x-test-patient-id': '' }
         });
         expect(res.statusCode).toBe(401);
-        Mids.verifyPatient.mockImplementation(originalVerify);
     });
 });

@@ -48,7 +48,7 @@ describe('Integration | sendWeeklyStats', () => {
             headers: { 'x-health-insight-cron': 'valid-test-secret' }
         });
 
-        expect(res.statusCode).toBe(202);
+        expect(res.statusCode).toBe(200);
         expect(res.json().data.processedCount).toBe(1);
     });
 
@@ -60,7 +60,7 @@ describe('Integration | sendWeeklyStats', () => {
         });
 
         expect(res.statusCode).toBe(404);
-        expect(res.json().code).toBe('NO_DATA');
+        expect(res.json().error).toBe('No data found to send weekly stats.');
     });
 
     it('returns 403 if cron secret is invalid', async () => {

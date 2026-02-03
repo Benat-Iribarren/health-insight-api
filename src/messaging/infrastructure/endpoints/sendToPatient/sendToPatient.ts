@@ -56,8 +56,7 @@ function sendToPatient(dependencies: SendToPatientDependencies) {
 
                 if (result !== 'SUCCESSFUL') {
                     return reply.status(statusToCode[result]).send({
-                        ...statusToMessage[result as SendToPatientError],
-                        code: result
+                        ...statusToMessage[result as SendToPatientError]
                     });
                 }
 
