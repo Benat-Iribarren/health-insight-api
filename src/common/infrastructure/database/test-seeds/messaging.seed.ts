@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 
 export async function initMessagingTestDatabase() {
     await supabaseClient.from('PatientNotifications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabaseClient.from('PatientSession').delete().neq('id', 0);
+    await supabaseClient.from('Session').delete().neq('id', 0);
     await supabaseClient.from('Patient').delete().neq('id', 0);
 
     const userId = randomUUID();
@@ -15,6 +17,23 @@ export async function initMessagingTestDatabase() {
         gender: 'F',
         username: `msg_user_${userId.slice(0, 8)}`,
     }]).select().single();
+
+    const { data: session } = await supabaseClient.from('Session').insert([{
+        number: 1,
+        day_offset: 0
+    }]).select().single();
+
+    const sessionDate = new Date();
+    sessionDate.setDate(sessionDate.getDate() - 1);
+
+    await supabaseClient.from('PatientSession').insert([{
+        session_id: session!.id,
+        patient_id: patient!.id,
+        state: 'completed',
+        assigned_date: sessionDate.toISOString(),
+        pre_evaluation: 2,
+        post_evaluation: 6
+    }]);
 
     const { data: notification } = await supabaseClient.from('PatientNotifications').insert([{
         patient_id: patient!.id,
