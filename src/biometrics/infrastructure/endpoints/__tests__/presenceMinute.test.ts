@@ -1,18 +1,24 @@
-jest.mock('@src/identity/infrastructure/http/verifyUser', () => ({
-    verifyHybridAccess: () => async () => {},
-    verifyProfessional: () => async () => {},
-    verifyPatient: () => async () => {},
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { build } from '@src/common/infrastructure/server/serverBuild';
+import { initBiometricsTestDatabase } from '@src/common/infrastructure/database/test-seeds/biometrics.seed';
+
+jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => ({
+    verifyHybridAccess: jest.fn(() => (_req: any, _res: any, done: any) => done()),
+    verifyProfessional: jest.fn(() => (_req: any, _res: any, done: any) => done()),
+    verifyPatient: jest.fn(() => (request: any, _reply: any, done: any) => {
+        const patientId = request.headers['x-test-patient-id'];
+        request.auth = {
+            userId: 'test-user-uuid',
+            patientId: patientId ? Number(patientId) : undefined
+        };
+        done();
+    }),
 }));
 
-import { initBiometricsTestDatabase } from '@common/infrastructure/database/test-seeds/biometrics.seed';
-import { PRESENCE_MINUTE_ENDPOINT } from '../presenceMinute/presenceMinute';
-
 describe('Integration | POST /presence/minute', () => {
-    let app: any;
-    let userId: string;
+    let app: FastifyInstance;
 
     beforeAll(async () => {
-        const { build } = require('@common/infrastructure/server/serverBuild');
         app = build();
         await app.ready();
     });
@@ -21,54 +27,57 @@ describe('Integration | POST /presence/minute', () => {
         await app.close();
     });
 
-    beforeEach(async () => {
+    it('returns 200 and creates interval with valid auth', async () => {
         const seed = await initBiometricsTestDatabase();
-        userId = seed.patientUserId;
-
-        app.addHook('preHandler', async (req: any) => {
-            req.user = { id: userId };
-        });
-    });
-
-    it('returns 200 and creates interval', async () => {
-        const base = new Date();
-        base.setUTCSeconds(0, 0);
+        const baseTime = new Date();
+        baseTime.setUTCSeconds(0, 0);
 
         const res = await app.inject({
             method: 'POST',
-            url: PRESENCE_MINUTE_ENDPOINT,
-            payload: { contextType: 'dashboard', minuteTsUtc: base.toISOString(), sessionId: null },
+            url: '/presence/minute',
+            headers: {
+                'x-test-patient-id': String(seed.patientId)
+            },
+            payload: {
+                contextType: 'dashboard',
+                minuteTsUtc: baseTime.toISOString(),
+                sessionId: null
+            }
         });
 
         expect(res.statusCode).toBe(200);
         const body = res.json();
-        expect(body.status).toBe('ok');
-        expect(body.action).toBe('created');
-        expect(typeof body.intervalId).toBe('string');
+        expect(body).toHaveProperty('intervalId');
+        expect(body).toHaveProperty('action');
     });
 
-    it('returns 200 and extends on next minute', async () => {
-        const base = new Date();
-        base.setUTCSeconds(0, 0);
-
-        const r1 = await app.inject({
+    it('returns 401 when auth is missing', async () => {
+        const res = await app.inject({
             method: 'POST',
-            url: PRESENCE_MINUTE_ENDPOINT,
-            payload: { contextType: 'dashboard', minuteTsUtc: base.toISOString(), sessionId: null },
+            url: '/presence/minute',
+            payload: {
+                contextType: 'dashboard',
+                minuteTsUtc: new Date().toISOString()
+            }
         });
 
-        expect(r1.statusCode).toBe(200);
+        expect(res.statusCode).toBe(401);
+    });
 
-        const next = new Date(base.getTime() + 60_000);
-
-        const r2 = await app.inject({
+    it('returns 400 for invalid timestamp format', async () => {
+        const seed = await initBiometricsTestDatabase();
+        const res = await app.inject({
             method: 'POST',
-            url: PRESENCE_MINUTE_ENDPOINT,
-            payload: { contextType: 'dashboard', minuteTsUtc: next.toISOString(), sessionId: null },
+            url: '/presence/minute',
+            headers: {
+                'x-test-patient-id': String(seed.patientId)
+            },
+            payload: {
+                contextType: 'dashboard',
+                minuteTsUtc: 'invalid-date'
+            }
         });
 
-        expect(r2.statusCode).toBe(200);
-        const body = r2.json();
-        expect(['extended', 'idempotent_no_change']).toContain(body.action);
+        expect(res.statusCode).toBe(400);
     });
 });

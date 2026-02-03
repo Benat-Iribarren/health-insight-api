@@ -7,9 +7,13 @@ import { presenceMinuteSchema } from './schema';
 
 export const PRESENCE_MINUTE_ENDPOINT = '/presence/minute';
 
-type StatusCode = 200 | 400 | 401 | 403 | 404 | 500;
+type PresenceBody = {
+    minuteTsUtc?: string;
+    contextType: 'dashboard' | 'session';
+    sessionId?: number | null;
+};
 
-const statusToCode: Record<BiometricsError | 'SUCCESSFUL', StatusCode> = {
+const statusToCode: Record<BiometricsError | 'SUCCESSFUL', number> = {
     SUCCESSFUL: 200,
     INVALID_INPUT: 400,
     UNAUTHORIZED: 401,
@@ -28,34 +32,38 @@ const statusToMessage: Record<BiometricsError, { error: string }> = {
 
 export default function presenceMinute() {
     return async function (fastify: FastifyInstance) {
-        const repository = new SupabasePresenceIntervalRepository(supabaseClient as any);
+        const repository = new SupabasePresenceIntervalRepository(supabaseClient);
         const useCase = new RegisterPresenceMinuteService(repository);
 
-        fastify.post(PRESENCE_MINUTE_ENDPOINT, presenceMinuteSchema, async (request: FastifyRequest, reply: FastifyReply) => {
-            const user = (request as any).user;
+        fastify.post<{ Body: PresenceBody }>(
+            PRESENCE_MINUTE_ENDPOINT,
+            presenceMinuteSchema,
+            async (request: FastifyRequest<{ Body: PresenceBody }>, reply: FastifyReply) => {
+                const auth = request.auth;
 
-            const { minuteTsUtc, contextType, sessionId } = request.body as {
-                minuteTsUtc?: string;
-                contextType: any;
-                sessionId?: string | null;
-            };
+                if (!auth?.patientId) {
+                    return reply.status(statusToCode.UNAUTHORIZED).send(statusToMessage.UNAUTHORIZED);
+                }
 
-            const result = await useCase.execute({
-                patientId: user?.id,
-                minuteTsUtc,
-                contextType,
-                sessionId: sessionId ?? null,
-            });
+                const { minuteTsUtc, contextType, sessionId } = request.body;
 
-            if (typeof result === 'string') {
-                return reply.status(statusToCode[result]).send(statusToMessage[result]);
+                const result = await useCase.execute({
+                    patientId: auth.patientId,
+                    minuteTsUtc,
+                    contextType,
+                    sessionId: sessionId ?? null,
+                });
+
+                if (typeof result === 'string') {
+                    return reply.status(statusToCode[result]).send(statusToMessage[result]);
+                }
+
+                return reply.status(statusToCode.SUCCESSFUL).send({
+                    action: result.action,
+                    intervalId: result.intervalId,
+                    message: 'Presence registered successfully',
+                });
             }
-
-            return reply.status(statusToCode.SUCCESSFUL).send({
-                action: result.action,
-                intervalId: result.intervalId,
-                message: 'Presence registered successfully',
-            });
-        });
+        );
     };
 }

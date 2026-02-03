@@ -1,10 +1,10 @@
 export type ContextType = 'dashboard' | 'session';
 
 export interface PresenceInterval {
-    id?: string;
-    patientId: string;
+    id: number;
+    patientId: number;
     contextType: ContextType;
-    sessionId: string | null;
+    sessionId: number | null;
     startMinuteUtc: string;
     endMinuteUtc: string;
     attemptNo?: number | null;

@@ -19,7 +19,7 @@ export const presenceMinuteSchema = {
                     intervalId: { type: 'string' },
                     message: { type: 'string' },
                 },
-                required: ['status', 'action', 'intervalId', 'message'],
+                required: ['action', 'intervalId', 'message'],
             },
             400: errorSchema,
             401: errorSchema,

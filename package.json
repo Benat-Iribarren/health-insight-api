@@ -8,10 +8,10 @@
     "dev": "nodemon --ext ts --watch src --exec \"ts-node -r dotenv/config -r tsconfig-paths/register src/common/infrastructure/server/index.ts\"",
     "build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "NODE_ENV=production node dist/common/infrastructure/server/index.js",
-    "test": "cross-env NODE_ENV=test jest",
+    "test": "cross-env NODE_ENV=test jest --runInBand --forceExit",
     "test:watch": "cross-env NODE_ENV=test jest --watch",
     "test:debug": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
-    "test:coverage": "cross-env NODE_ENV=test jest --coverage",
+    "test:coverage": "cross-env NODE_ENV=test jest --runInBand --coverage",
     "test:ci": "cross-env NODE_ENV=test jest --runInBand --coverage"
   },
   "dependencies": {

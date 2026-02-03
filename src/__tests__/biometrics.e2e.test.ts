@@ -1,37 +1,28 @@
 import { build } from '@common/infrastructure/server/serverBuild';
 import { initBiometricsTestDatabase } from '@common/infrastructure/database/test-seeds/biometrics.seed';
 
-describe('E2E | Biometrics', () => {
+jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => ({
+    verifyHybridAccess: () => async () => {},
+    verifyProfessional: () => async () => {},
+    verifyPatient: () => async (request: any) => {
+        request.auth = { userId: 'test-user', patientId: Number(request.params.patientId) };
+    },
+}));
+
+describe('Biometrics E2E', () => {
     let app: any;
-    let patientUserId: string;
-    let patientSessionId: number;
+    beforeAll(async () => { app = build(); await app.ready(); });
+    afterAll(async () => await app.close());
 
-    beforeAll(async () => {
-        app = build();
-        await app.ready();
-    });
-
-    afterAll(async () => {
-        await app.close();
-    });
-
-    beforeEach(async () => {
+    it('should return session reports via HTTP', async () => {
         const seed = await initBiometricsTestDatabase();
-        patientUserId = seed.patientUserId;
-        patientSessionId = seed.patientSessionCompletedId!;
-
-        app.addHook('preHandler', async (req: any) => {
-            req.user = { id: patientUserId };
-        });
-    });
-
-    it('biometrics flow', async () => {
-        const res = await app.inject({
+        const response = await app.inject({
             method: 'GET',
-            url: `/reports/${patientSessionId}`,
+            url: `/reports/${seed.patientId}`
         });
 
-        expect(res.statusCode).toBe(200);
-        expect(res.json()).toBeDefined();
+        expect(response.statusCode).toBe(200);
+        const payload = response.json();
+        expect(Array.isArray(payload)).toBe(true);
     });
 });

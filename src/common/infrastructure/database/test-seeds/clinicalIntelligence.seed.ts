@@ -1,24 +1,25 @@
 import { supabaseClient } from '../supabaseClient';
+import { randomUUID } from 'node:crypto';
 
 export async function initClinicalIntelligenceTestDatabase() {
     await supabaseClient.from('PatientSession').delete().neq('id', 0);
     await supabaseClient.from('Session').delete().neq('id', 0);
     await supabaseClient.from('Patient').delete().neq('id', 0);
 
-    const { data: pData } = await supabaseClient
+    const { data: pData, error: pErr } = await supabaseClient
         .from('Patient')
         .insert([
-            { name: 'Overdue', surname: 'Patient', email: 'overdue@test.com', phone: '1', birth_date: '1990-01-01', gender: 'M', username: 'overdue', user_id: 'u1' },
-            { name: 'Healthy', surname: 'Patient', email: 'healthy@test.com', phone: '2', birth_date: '1990-01-01', gender: 'F', username: 'healthy', user_id: 'u2' }
+            { name: 'Overdue', surname: 'Patient', email: 'overdue@test.com', phone: '111', birth_date: '1990-01-01', gender: 'M', username: 'overdue', user_id: randomUUID() },
+            { name: 'Healthy', surname: 'Patient', email: 'healthy@test.com', phone: '222', birth_date: '1990-01-01', gender: 'F', username: 'healthy', user_id: randomUUID() }
         ])
         .select();
 
-    const { data: sData } = await supabaseClient
+    const { data: sData, error: sErr } = await supabaseClient
         .from('Session')
         .insert([{ number: 1, day_offset: 1 }])
         .select();
 
-    if (!pData || !sData) throw new Error("Fallo al insertar datos en Clinical Intelligence Seed");
+    if (pErr || sErr || !pData || !sData) throw new Error('Fallo Seed Clinical Intelligence');
 
     const overdueDate = new Date();
     overdueDate.setDate(overdueDate.getDate() - 15);

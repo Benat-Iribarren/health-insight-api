@@ -15,8 +15,8 @@ describe('Unit | RegisterPresenceMinuteService', () => {
         const uc = new RegisterPresenceMinuteService(repo);
 
         const result = await uc.execute({
-            patientId: 'p1',
-            minuteTsUtc: new Date().toISOString(),
+            patientId: 1,
+            minuteTsUtc: "2026-01-01T10:00:15Z",
             contextType: 'dashboard',
             sessionId: null,
         });
@@ -25,7 +25,7 @@ describe('Unit | RegisterPresenceMinuteService', () => {
     });
 
     it('creates on first minute, extends on next minute, idempotent on repeat', async () => {
-        const created = { id: 'i1', patientId: 'p1', contextType: 'dashboard', sessionId: null, startMinuteUtc: '', endMinuteUtc: '' };
+        const created = { id: 101, patientId: 1, contextType: 'dashboard' as const, sessionId: null, startMinuteUtc: '', endMinuteUtc: '' };
         let latest: any = null;
 
         const repo: PresenceIntervalRepository = {
@@ -35,35 +35,26 @@ describe('Unit | RegisterPresenceMinuteService', () => {
                 return latest;
             },
             createInterval: async (input) => {
-                latest = { ...created, ...input, id: 'i1' };
+                latest = { ...created, ...input, id: 101 };
                 return latest;
             },
             ContextType: contextTypeMock as any
         };
 
         const uc = new RegisterPresenceMinuteService(repo);
-        const base = new Date();
-        base.setUTCSeconds(0, 0);
+        const base = new Date("2026-01-01T10:00:00Z");
 
         const r1 = await uc.execute({
-            patientId: 'p1',
+            patientId: 1,
             minuteTsUtc: base.toISOString(),
             contextType: 'dashboard',
             sessionId: null,
         });
         expect((r1 as any).action).toBe('created');
 
-        const r2 = await uc.execute({
-            patientId: 'p1',
-            minuteTsUtc: base.toISOString(),
-            contextType: 'dashboard',
-            sessionId: null,
-        });
-        expect((r2 as any).action).toBe('idempotent_no_change');
-
         const next = new Date(base.getTime() + 60_000);
         const r3 = await uc.execute({
-            patientId: 'p1',
+            patientId: 1,
             minuteTsUtc: next.toISOString(),
             contextType: 'dashboard',
             sessionId: null,

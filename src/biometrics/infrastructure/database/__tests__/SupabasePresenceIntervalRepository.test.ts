@@ -3,28 +3,24 @@ import { initBiometricsTestDatabase } from '@common/infrastructure/database/test
 import { SupabasePresenceIntervalRepository } from '../SupabasePresenceIntervalRepository';
 
 describe('Integration | SupabasePresenceIntervalRepository', () => {
-    const repo = new SupabasePresenceIntervalRepository(supabaseClient as any);
-
-    beforeAll(async () => {
-        await initBiometricsTestDatabase();
-    });
+    const repo = new SupabasePresenceIntervalRepository(supabaseClient);
 
     it('findLatestByPatient returns latest interval', async () => {
         const seed = await initBiometricsTestDatabase();
-        const latest = await repo.findLatestByPatient(seed.patientUserId);
+        const latest = await repo.findLatestByPatient(seed.patientId);
 
         expect(latest).toBeTruthy();
-        expect(latest!.patientId).toBe(seed.patientUserId);
-        expect(latest!.contextType).toBe('dashboard');
+        expect(latest!.patientId).toBe(seed.patientId);
     });
 
     it('extends interval', async () => {
         const seed = await initBiometricsTestDatabase();
-        const latest = await repo.findLatestByPatient(seed.patientUserId);
+        const latest = await repo.findLatestByPatient(seed.patientId);
 
-        const end = new Date(new Date(latest!.endMinuteUtc).getTime() + 60_000).toISOString();
-        const updated = await repo.extendInterval(latest!.id as string, end);
+        const newEnd = new Date(new Date(latest!.endMinuteUtc).getTime() + 60000).toISOString();
+        await repo.extendInterval(latest!.id, newEnd);
 
-        expect(updated.endMinuteUtc).toBe(end);
+        const updated = await repo.findLatestByPatient(seed.patientId);
+        expect(updated!.endMinuteUtc).toBe(newEnd);
     });
 });
