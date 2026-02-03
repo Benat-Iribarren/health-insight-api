@@ -3,8 +3,6 @@ import { randomUUID } from 'node:crypto';
 
 export async function initMessagingTestDatabase() {
     await supabaseClient.from('PatientNotifications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    await supabaseClient.from('PatientSession').delete().neq('id', 0);
-    await supabaseClient.from('Session').delete().neq('id', 0);
     await supabaseClient.from('Patient').delete().neq('id', 0);
 
     const userId = randomUUID();
