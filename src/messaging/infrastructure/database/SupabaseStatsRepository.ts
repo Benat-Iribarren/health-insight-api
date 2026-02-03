@@ -44,7 +44,12 @@ export class SupabaseStatsRepository implements StatsRepository {
             .eq('id', patientId)
             .single();
 
-        if (error) throw error;
+        if (error) {
+            if (error.code === 'PGRST116') {
+                throw new Error('Patient stats not found');
+            }
+            throw error;
+        }
         if (!data) throw new Error('Patient stats not found');
 
         const p = data as unknown as SupabasePatientRow;
