@@ -3,7 +3,7 @@ import { PatientContactRepository } from '../../../domain/interfaces/PatientCont
 import { MailRepository } from '../../../domain/interfaces/MailRepository';
 import { NotificationRepository } from '../../../domain/interfaces/NotificationRepository';
 import { MailTemplateProvider } from '../../../domain/interfaces/MailTemplateProvider';
-import { sendToPatientService } from '../../../application/services/SendToPatientService';
+import { SendToPatientService } from '../../../application/services/SendToPatientService';
 import { SendToPatientError } from '../../../application/types/SendToPatientError';
 import { sendToPatientSchema } from './schema';
 
@@ -44,7 +44,7 @@ function sendToPatient(dependencies: SendToPatientDependencies) {
 
                 const { subject, body } = request.body as { subject: string; body: string };
 
-                const result = await sendToPatientService(
+                const result = await SendToPatientService(
                     dependencies.patientContactRepo,
                     dependencies.mailRepo,
                     dependencies.notificationRepo,
@@ -55,10 +55,13 @@ function sendToPatient(dependencies: SendToPatientDependencies) {
                 );
 
                 if (result !== 'SUCCESSFUL') {
-                    return reply.status(statusToCode[result]).send(statusToMessage[result]);
+                    return reply.status(statusToCode[result]).send({
+                        ...statusToMessage[result as SendToPatientError],
+                        code: result
+                    });
                 }
 
-                return reply.status(200).send({
+                return reply.status(statusToCode.SUCCESSFUL).send({
                     message: 'Message sent and notification logged.',
                     data: {
                         recipientId: patientId,
@@ -67,12 +70,10 @@ function sendToPatient(dependencies: SendToPatientDependencies) {
                 });
             } catch (error) {
                 fastify.log.error(error);
-                return reply.status(500).send({
-                    error: 'Internal Server Error',
-                    message: error instanceof Error ? error.message : 'Unknown error'
-                });
+                return reply.status(statusToCode.SEND_FAILED).send(statusToMessage.SEND_FAILED);
             }
         });
     };
 }
+
 export default sendToPatient;

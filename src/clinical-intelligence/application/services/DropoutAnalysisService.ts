@@ -5,7 +5,7 @@ import { analysisFailedError, noDataError, PredictDropoutError } from '../types/
 
 type PatientSessions = Map<string, { name: string; sessions: PatientSessionData[] }>;
 
-export async function processDropoutAnalysisService(
+export async function ProcessDropoutAnalysisService(
     repository: DropoutRepository,
     patientId?: number
 ): Promise<DropoutRisk[] | PredictDropoutError> {

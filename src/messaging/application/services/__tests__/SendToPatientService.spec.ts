@@ -1,40 +1,35 @@
-import { sendToPatientService } from '../SendToPatientService';
+import { SendToPatientService } from '../SendToPatientService';
+import { PatientContactRepository } from '../../../domain/interfaces/PatientContactRepository';
+import { MailRepository } from '../../../domain/interfaces/MailRepository';
+import { NotificationRepository } from '../../../domain/interfaces/NotificationRepository';
+import { MailTemplateProvider } from '../../../domain/interfaces/MailTemplateProvider';
 
 describe('Unit | SendToPatientService', () => {
-    const mailRepo = { send: jest.fn().mockResolvedValue({ success: true }) };
-    const notificationRepo = { saveNotification: jest.fn().mockResolvedValue(undefined) };
-    const contactRepo = { getEmailByPatientId: jest.fn().mockResolvedValue('patient@test.com') };
-    const templateProvider = { render: jest.fn().mockReturnValue('<html></html>') };
+    const contactRepo = { getEmailByPatientId: jest.fn() } as unknown as jest.Mocked<PatientContactRepository>;
+    const mailRepo = { send: jest.fn() } as unknown as jest.Mocked<MailRepository>;
+    const notifyRepo = { saveNotification: jest.fn(), getPendingCount: jest.fn() } as unknown as jest.Mocked<NotificationRepository>;
+    const template = { renderMessageNotification: jest.fn() } as unknown as jest.Mocked<MailTemplateProvider>;
 
-    const service = new sendToPatientService(
-        mailRepo as any,
-        notificationRepo as any,
-        contactRepo as any,
-        templateProvider as any
-    );
-
-    it('coordinates the complete flow for sending a message', async () => {
-        const params = {
-            patientId: 1,
-            subject: 'Test Subject',
-            body: 'Test Body'
-        };
-
-        await service.execute(params);
-
-        expect(contactRepo.getEmailByPatientId).toHaveBeenCalledWith(1);
-        expect(templateProvider.render).toHaveBeenCalledWith('professional-message', expect.any(Object));
-        expect(mailRepo.send).toHaveBeenCalledWith('patient@test.com', 'Test Subject', '<html></html>');
-        expect(notificationRepo.saveNotification).toHaveBeenCalledWith(1, 'Test Subject', 'Test Body');
+    it('returns PATIENT_NOT_FOUND if contact email is missing', async () => {
+        contactRepo.getEmailByPatientId.mockResolvedValue(null);
+        const result = await SendToPatientService(contactRepo, mailRepo, notifyRepo, template, 1, 'S', 'B');
+        expect(result).toBe('PATIENT_NOT_FOUND');
     });
 
-    it('throws error when patient contact is missing', async () => {
-        contactRepo.getEmailByPatientId.mockResolvedValueOnce(null);
+    it('returns SEND_FAILED when saveNotification throws', async () => {
+        contactRepo.getEmailByPatientId.mockResolvedValue('test@test.com');
+        notifyRepo.saveNotification.mockRejectedValue(new Error('DB Error'));
+        const result = await SendToPatientService(contactRepo, mailRepo, notifyRepo, template, 1, 'S', 'B');
+        expect(result).toBe('SEND_FAILED');
+    });
 
-        await expect(service.execute({
-            patientId: 99,
-            subject: 'Error',
-            body: 'Error'
-        })).rejects.toThrow();
+    it('returns SEND_FAILED when mail service fails', async () => {
+        contactRepo.getEmailByPatientId.mockResolvedValue('test@test.com');
+        notifyRepo.getPendingCount.mockResolvedValue(1);
+        template.renderMessageNotification.mockReturnValue('html');
+        mailRepo.send.mockResolvedValue({ success: false });
+
+        const result = await SendToPatientService(contactRepo, mailRepo, notifyRepo, template, 1, 'S', 'B');
+        expect(result).toBe('SEND_FAILED');
     });
 });

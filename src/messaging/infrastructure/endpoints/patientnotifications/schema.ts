@@ -44,7 +44,7 @@ export const readNotificationSchema = {
                 type: 'object',
                 additionalProperties: false,
                 properties: notificationProperties,
-                required: ['id', 'patient_id', 'subject', 'content', 'is_read', 'created_at'],
+                required: ['id', 'patient_id', 'subject', 'content', 'created_at'],
             },
             400: errorSchema,
             401: errorSchema,

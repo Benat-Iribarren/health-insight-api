@@ -12,9 +12,9 @@ describe('Unit | RegisterPresenceMinuteService', () => {
             ContextType: contextTypeMock as any
         };
 
-        const uc = new RegisterPresenceMinuteService(repo);
+        const service = new RegisterPresenceMinuteService(repo);
 
-        const result = await uc.execute({
+        const result = await service.execute({
             patientId: 1,
             minuteTsUtc: "2026-01-01T10:00:15Z",
             contextType: 'dashboard',
@@ -41,24 +41,24 @@ describe('Unit | RegisterPresenceMinuteService', () => {
             ContextType: contextTypeMock as any
         };
 
-        const uc = new RegisterPresenceMinuteService(repo);
+        const service = new RegisterPresenceMinuteService(repo);
         const base = new Date("2026-01-01T10:00:00Z");
 
-        const r1 = await uc.execute({
+        const firstCall = await service.execute({
             patientId: 1,
             minuteTsUtc: base.toISOString(),
             contextType: 'dashboard',
             sessionId: null,
         });
-        expect((r1 as any).action).toBe('created');
+        expect((firstCall as any).action).toBe('created');
 
-        const next = new Date(base.getTime() + 60_000);
-        const r3 = await uc.execute({
+        const nextMinute = new Date(base.getTime() + 60_000);
+        const secondCall = await service.execute({
             patientId: 1,
-            minuteTsUtc: next.toISOString(),
+            minuteTsUtc: nextMinute.toISOString(),
             contextType: 'dashboard',
             sessionId: null,
         });
-        expect((r3 as any).action).toBe('extended');
+        expect((secondCall as any).action).toBe('extended');
     });
 });

@@ -4,7 +4,7 @@ import { NotificationRepository } from '../../domain/interfaces/NotificationRepo
 import { MailTemplateProvider } from '../../domain/interfaces/MailTemplateProvider';
 import { SendToPatientError } from '../types/SendToPatientError';
 
-export async function sendToPatientService(
+export async function SendToPatientService(
     patientContactRepo: PatientContactRepository,
     mailRepo: MailRepository,
     notificationRepo: NotificationRepository,

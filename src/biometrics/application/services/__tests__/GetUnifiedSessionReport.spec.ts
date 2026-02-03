@@ -1,6 +1,6 @@
 import { GetUnifiedSessionReportService } from '../GetUnifiedSessionReportService';
 
-describe('GetUnifiedSessionReportService', () => {
+describe('Unit | GetUnifiedSessionReportService', () => {
     const mockRepo = {
         getFullSessionContext: jest.fn(),
         getBiometricData: jest.fn()

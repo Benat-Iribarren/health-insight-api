@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { build } from '@src/common/infrastructure/server/serverBuild';
-import { initBiometricsTestDatabase } from '@src/common/infrastructure/database/test-seeds/biometrics.seed';
+import { build } from '@common/infrastructure/server/serverBuild';
+import { initBiometricsTestDatabase } from '@common/infrastructure/database/test-seeds/biometrics.seed';
 
 jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => ({
     verifyHybridAccess: jest.fn(() => (_req: any, _res: any, done: any) => done()),

@@ -1,7 +1,7 @@
 import {Notification, NotificationRepository} from '../../domain/interfaces/NotificationRepository';
 import {ManageNotificationsError} from '../types/ManageNotificationsError';
 
-export async function getPatientInboxService(
+export async function GetPatientInboxService(
     notificationRepo: NotificationRepository,
     patientId: number
 ): Promise<Notification[] | ManageNotificationsError> {
@@ -12,7 +12,7 @@ export async function getPatientInboxService(
     }
 }
 
-export async function readNotificationService(
+export async function ReadNotificationService(
     notificationRepo: NotificationRepository,
     patientId: number,
     notificationId: string
@@ -31,7 +31,7 @@ export async function readNotificationService(
     }
 }
 
-export async function deleteNotificationService(
+export async function DeleteNotificationService(
     notificationRepo: NotificationRepository,
     patientId: number,
     notificationId: string

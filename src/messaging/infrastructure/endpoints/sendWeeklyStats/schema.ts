@@ -20,10 +20,10 @@ export const sendWeeklyStatsSchema = {
                     data: {
                         type: 'object',
                         properties: {
-                            processedRecipients: { type: 'number' },
-                            sentAt: { type: 'string' }
+                            processedCount: { type: 'integer' },
+                            sentAt: { type: 'string', format: 'date-time' }
                         },
-                        required: ['processedRecipients', 'sentAt']
+                        required: ['processedCount', 'sentAt']
                     }
                 },
                 required: ['message', 'data']

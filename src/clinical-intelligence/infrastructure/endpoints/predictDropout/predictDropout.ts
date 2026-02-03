@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { DropoutRepository } from '../../../domain/interfaces/DropoutRepository';
-import { processDropoutAnalysisService } from '../../../application/services/DropoutAnalysisService';
+import { ProcessDropoutAnalysisService } from '../../../application/services/DropoutAnalysisService';
 import { PredictDropoutError } from '../../../application/types/PredictDropoutError';
 import { predictDropoutSchema } from './schema';
 
@@ -36,7 +36,7 @@ function predictDropout(dependencies: PredictDropoutDependencies) {
                     return reply.status(statusToCode.INVALID_PATIENT_ID).send(statusToMessage.INVALID_PATIENT_ID);
                 }
 
-                const result = await processDropoutAnalysisService(dependencies.dropoutRepo, patientId);
+                const result = await ProcessDropoutAnalysisService(dependencies.dropoutRepo, patientId);
 
                 if (typeof result === 'string') {
                     return reply.status(statusToCode[result]).send(statusToMessage[result]);

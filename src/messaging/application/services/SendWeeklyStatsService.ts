@@ -6,7 +6,7 @@ import { PatientContactRepository } from '../../domain/interfaces/PatientContact
 import { WeeklyDashboardImageGenerator } from '../../domain/interfaces/WeeklyDashboardImageGenerator';
 import { SendWeeklyStatsError } from '../types/SendWeeklyStatsError';
 
-export async function processSendWeeklyStatsService(
+export async function SendWeeklyStatsService(
     statsRepo: StatsRepository,
     mailRepo: MailRepository,
     notificationRepo: NotificationRepository,
