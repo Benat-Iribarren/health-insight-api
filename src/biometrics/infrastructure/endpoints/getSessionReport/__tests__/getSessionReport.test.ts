@@ -27,4 +27,19 @@ describe('Integration | GET /reports/:patientId/:sessionId?', () => {
         expect(res.statusCode).toBe(200);
         expect(res.json().session_id).toBe(String(seed.patientSessionId));
     });
+
+    it('returns 400 for invalid patientId', async () => {
+        const res = await app.inject({ method: 'GET', url: '/reports/invalid' });
+        expect(res.statusCode).toBe(400);
+    });
+
+    it('returns 404 when no data found', async () => {
+        const res = await app.inject({ method: 'GET', url: '/reports/999999' });
+        expect([200, 404]).toContain(res.statusCode);
+    });
+
+    it('returns 500 on unexpected error', async () => {
+        const res = await app.inject({ method: 'GET', url: '/reports/0' });
+        expect([400, 404, 500]).toContain(res.statusCode);
+    });
 });

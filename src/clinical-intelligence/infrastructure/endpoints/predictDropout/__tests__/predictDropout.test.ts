@@ -23,4 +23,28 @@ describe('Integration | GET /clinical-intelligence/predict-dropout', () => {
         expect(response.statusCode).toBe(200);
         expect(Array.isArray(response.json())).toBe(true);
     });
+
+    it('returns 400 for invalid patientId', async () => {
+        const response = await app.inject({
+            method: 'GET',
+            url: '/clinical-intelligence/predict-dropout/invalid'
+        });
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 for negative patientId', async () => {
+        const response = await app.inject({
+            method: 'GET',
+            url: '/clinical-intelligence/predict-dropout/-1'
+        });
+        expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 404 when no data found for patientId', async () => {
+        const response = await app.inject({
+            method: 'GET',
+            url: '/clinical-intelligence/predict-dropout/999999'
+        });
+        expect(response.statusCode).toBe(404);
+    });
 });

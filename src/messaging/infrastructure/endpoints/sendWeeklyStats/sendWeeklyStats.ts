@@ -54,6 +54,23 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                     });
                 }
 
+                if (request.auth?.userId === 'cron' && patientId === undefined) {
+                    SendWeeklyStatsService(
+                        dependencies.statsRepo,
+                        dependencies.mailRepo,
+                        dependencies.notificationRepo,
+                        dependencies.patientContactRepo,
+                        dependencies.templateProvider,
+                        dependencies.imageGenerator,
+                        patientId
+                    ).catch(err => fastify.log.error(err));
+
+                    return reply.status(statusToCode.ACCEPTED).send({
+                        message: 'Weekly health reports processing started in background',
+                        data: { sentAt: new Date().toISOString() }
+                    });
+                }
+
                 const result = await SendWeeklyStatsService(
                     dependencies.statsRepo,
                     dependencies.mailRepo,
@@ -67,13 +84,6 @@ function sendWeeklyStats(dependencies: SendWeeklyStatsDependencies) {
                 if (result.status !== 'SUCCESSFUL') {
                     return reply.status(statusToCode[result.status]).send({
                         error: statusToMessage[result.status as SendWeeklyStatsError].error
-                    });
-                }
-
-                if (request.auth?.userId === 'cron' && patientId === undefined) {
-                    return reply.status(statusToCode.ACCEPTED).send({
-                        message: 'Weekly health reports processing started in background',
-                        data: { sentAt: new Date().toISOString() }
                     });
                 }
 

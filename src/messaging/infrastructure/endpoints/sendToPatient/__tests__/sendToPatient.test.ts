@@ -81,4 +81,24 @@ describe('Integration | sendToPatient', () => {
 
         expect(res.statusCode).toBe(400);
     });
+
+    it('returns 400 for zero patientId', async () => {
+        const res = await app.inject({
+            method: 'POST',
+            url: '/messaging/send-to-patient/0',
+            payload: { subject: 'Test', body: 'Test' }
+        });
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it('returns 400 for negative patientId', async () => {
+        const res = await app.inject({
+            method: 'POST',
+            url: '/messaging/send-to-patient/-1',
+            payload: { subject: 'Test', body: 'Test' }
+        });
+
+        expect(res.statusCode).toBe(400);
+    });
 });

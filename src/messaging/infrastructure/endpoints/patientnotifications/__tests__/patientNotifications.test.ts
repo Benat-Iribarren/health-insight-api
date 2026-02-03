@@ -46,4 +46,66 @@ describe('Integration | patientNotifications', () => {
         });
         expect(res.statusCode).toBe(401);
     });
+
+    it('GET /messaging/notifications returns 200 with notifications list', async () => {
+        const { patientId } = await initMessagingTestDatabase();
+        const res = await app.inject({
+            method: 'GET',
+            url: '/messaging/notifications',
+            headers: { 'x-test-patient-id': String(patientId) }
+        });
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.json())).toBe(true);
+    });
+
+    it('POST /messaging/notifications/:id returns 401 if patientId is missing', async () => {
+        const { notificationId } = await initMessagingTestDatabase();
+        const res = await app.inject({
+            method: 'POST',
+            url: `/messaging/notifications/${notificationId}`,
+            headers: { 'x-test-patient-id': '' }
+        });
+        expect(res.statusCode).toBe(401);
+    });
+
+    it('POST /messaging/notifications/:id returns 404 for non-existent notification', async () => {
+        const { patientId } = await initMessagingTestDatabase();
+        const res = await app.inject({
+            method: 'POST',
+            url: '/messaging/notifications/00000000-0000-0000-0000-000000000000',
+            headers: { 'x-test-patient-id': String(patientId) }
+        });
+        expect(res.statusCode).toBe(404);
+    });
+
+    it('DELETE /messaging/notifications/:id returns 200 on success', async () => {
+        const { patientId, notificationId } = await initMessagingTestDatabase();
+        const res = await app.inject({
+            method: 'DELETE',
+            url: `/messaging/notifications/${notificationId}`,
+            headers: { 'x-test-patient-id': String(patientId) }
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().message).toContain('deleted');
+    });
+
+    it('DELETE /messaging/notifications/:id returns 401 if patientId is missing', async () => {
+        const { notificationId } = await initMessagingTestDatabase();
+        const res = await app.inject({
+            method: 'DELETE',
+            url: `/messaging/notifications/${notificationId}`,
+            headers: { 'x-test-patient-id': '' }
+        });
+        expect(res.statusCode).toBe(401);
+    });
+
+    it('DELETE /messaging/notifications/:id returns 404 for non-existent notification', async () => {
+        const { patientId } = await initMessagingTestDatabase();
+        const res = await app.inject({
+            method: 'DELETE',
+            url: '/messaging/notifications/00000000-0000-0000-0000-000000000000',
+            headers: { 'x-test-patient-id': String(patientId) }
+        });
+        expect(res.statusCode).toBe(404);
+    });
 });

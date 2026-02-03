@@ -1,6 +1,18 @@
 import { build } from '@src/common/infrastructure/server/serverBuild';
 import { initMessagingTestDatabase } from '@src/common/infrastructure/database/test-seeds/messaging.seed';
 
+jest.mock('@src/messaging/infrastructure/gmail/GmailApiMailRepository', () => ({
+    GmailApiMailRepository: jest.fn().mockImplementation(() => ({
+        send: jest.fn().mockResolvedValue({ success: true })
+    }))
+}));
+
+jest.mock('@src/messaging/infrastructure/images/HtmlImageGenerator', () => ({
+    HtmlImageGenerator: jest.fn().mockImplementation(() => ({
+        generateWeeklyDashboard: jest.fn().mockResolvedValue(Buffer.from('abc'))
+    }))
+}));
+
 jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => ({
     verifyProfessional: jest.fn(() => (req: any, res: any, done: any) => {
         req.auth = { userId: 'pro-user-uuid' };
@@ -71,5 +83,35 @@ describe('Integration | sendWeeklyStats', () => {
         });
 
         expect(res.statusCode).toBe(403);
+    });
+
+    it('returns 400 for invalid patientId format', async () => {
+        const res = await app.inject({
+            method: 'POST',
+            url: '/messaging/send-weekly-stats/invalid',
+            headers: { 'x-health-insight-cron': 'valid-test-secret' }
+        });
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it('returns 400 for zero patientId', async () => {
+        const res = await app.inject({
+            method: 'POST',
+            url: '/messaging/send-weekly-stats/0',
+            headers: { 'x-health-insight-cron': 'valid-test-secret' }
+        });
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it('returns 400 for negative patientId', async () => {
+        const res = await app.inject({
+            method: 'POST',
+            url: '/messaging/send-weekly-stats/-1',
+            headers: { 'x-health-insight-cron': 'valid-test-secret' }
+        });
+
+        expect(res.statusCode).toBe(400);
     });
 });
