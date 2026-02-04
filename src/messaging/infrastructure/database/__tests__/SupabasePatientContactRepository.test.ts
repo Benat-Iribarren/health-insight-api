@@ -3,21 +3,21 @@ import { supabaseClient } from '@src/common/infrastructure/database/supabaseClie
 import { initMessagingTestDatabase } from '@src/common/infrastructure/database/test-seeds/messaging.seed';
 
 describe('Integration | SupabasePatientContactRepository', () => {
-    const repository = new SupabasePatientContactRepository(supabaseClient);
+  const repository = new SupabasePatientContactRepository(supabaseClient);
 
-    it('returns the email string for a valid patient', async () => {
-        const { patientId } = await initMessagingTestDatabase();
+  it('returns the email string for a valid patient', async () => {
+    const { patientId } = await initMessagingTestDatabase();
 
-        const email = await repository.getEmailByPatientId(patientId);
+    const email = await repository.getEmailByPatientId(patientId);
 
-        expect(typeof email).toBe('string');
-        expect(email).toContain('@example.com');
-    });
+    expect(typeof email).toBe('string');
+    expect(email).toContain('@competition.com');
+  });
 
-    it('returns null if the patient does not exist', async () => {
-        await initMessagingTestDatabase();
-        const email = await repository.getEmailByPatientId(999999);
+  it('returns null if the patient does not exist', async () => {
+    await initMessagingTestDatabase();
+    const email = await repository.getEmailByPatientId(999999);
 
-        expect(email).toBeNull();
-    });
+    expect(email).toBeNull();
+  });
 });
