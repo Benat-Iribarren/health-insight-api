@@ -1,16 +1,21 @@
 import { errorSchema } from '@common/infrastructure/endpoints/errorSchema';
-
 export const sendWeeklyStatsSchema = {
     schema: {
+        body: false,
         headers: {
             type: 'object',
             properties: {
-                'x-health-insight-cron': { type: 'string' }
-            }
+                'x-health-insight-cron': { type: 'string' },
+            },
+            additionalProperties: true,
         },
         params: {
             type: 'object',
-            properties: { patientId: { type: 'string' } }
+            properties: {
+                patientId: { type: 'string' },
+            },
+            required: [],
+            additionalProperties: false,
         },
         response: {
             200: {
@@ -21,12 +26,12 @@ export const sendWeeklyStatsSchema = {
                         type: 'object',
                         properties: {
                             processedCount: { type: 'integer' },
-                            sentAt: { type: 'string', format: 'date-time' }
+                            sentAt: { type: 'string', format: 'date-time' },
                         },
-                        required: ['processedCount', 'sentAt']
-                    }
+                        required: ['processedCount', 'sentAt'],
+                    },
                 },
-                required: ['message', 'data']
+                required: ['message', 'data'],
             },
             202: {
                 type: 'object',
@@ -35,12 +40,12 @@ export const sendWeeklyStatsSchema = {
                     data: {
                         type: 'object',
                         properties: {
-                            sentAt: { type: 'string' }
+                            sentAt: { type: 'string' },
                         },
-                        required: ['sentAt']
-                    }
+                        required: ['sentAt'],
+                    },
                 },
-                required: ['message', 'data']
+                required: ['message', 'data'],
             },
             400: errorSchema,
             403: errorSchema,

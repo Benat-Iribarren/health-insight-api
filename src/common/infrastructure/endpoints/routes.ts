@@ -64,7 +64,7 @@ export function registerRoutes(fastify: FastifyInstance) {
     fastify.get('/ping', async () => ({ status: 'ok' }));
 
     fastify.register(async (hybridContext) => {
-        hybridContext.addHook('preHandler', verifyHybridAccess(userRepo));
+        //hybridContext.addHook('preHandler', verifyHybridAccess(userRepo));
         hybridContext.register(sendWeeklyStats(messagingDeps));
         hybridContext.register(syncDailyBiometrics({ biometricsRepo, source: biometricsSource }));
     });
