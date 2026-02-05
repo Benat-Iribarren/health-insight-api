@@ -1,15 +1,15 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { SyncDailyBiometricsService } from '@src/biometrics/application/services/SyncDailyBiometricsService';
-import { BiometricsFileSource } from '../../../domain/interfaces/BiometricsFileSource';
-import { BiometricMinutesRepository } from '../../../domain/interfaces/BiometricMinutesRepository';
-import { BiometricsError } from '../../../application/types/BiometricsError';
-import { syncDailyBiometricsSchema } from './schema';
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { SyncDailyBiometricsService } from "@src/biometrics/application/services/SyncDailyBiometricsService";
+import { BiometricsFileSource } from "../../../domain/interfaces/BiometricsFileSource";
+import { BiometricMinutesRepository } from "../../../domain/interfaces/BiometricMinutesRepository";
+import { BiometricsError } from "../../../application/types/BiometricsError";
+import { syncDailyBiometricsSchema } from "./schema";
 
-export const SYNC_DAILY_BIOMETRICS_ENDPOINT = '/biometrics/sync-daily';
+export const SYNC_DAILY_BIOMETRICS_ENDPOINT = "/biometrics/sync-daily";
 
 type StatusCode = 200 | 202 | 400 | 401 | 403 | 404 | 500;
 
-const statusToCode: Record<BiometricsError | 'SUCCESSFUL' | 'ACCEPTED', StatusCode> = {
+const statusToCode: Record<BiometricsError | "SUCCESSFUL" | "ACCEPTED", StatusCode> = {
     SUCCESSFUL: 200,
     ACCEPTED: 202,
     INVALID_INPUT: 400,
@@ -20,11 +20,11 @@ const statusToCode: Record<BiometricsError | 'SUCCESSFUL' | 'ACCEPTED', StatusCo
 };
 
 const statusToMessage: Record<BiometricsError, { error: string }> = {
-    INVALID_INPUT: { error: 'Invalid input data' },
-    UNAUTHORIZED: { error: 'Unauthorized access' },
-    FORBIDDEN: { error: 'Forbidden access' },
-    NO_DATA_FOUND: { error: 'No data found' },
-    UNKNOWN_ERROR: { error: 'Internal server error' },
+    INVALID_INPUT: { error: "Invalid input data" },
+    UNAUTHORIZED: { error: "Unauthorized access" },
+    FORBIDDEN: { error: "Forbidden access" },
+    NO_DATA_FOUND: { error: "No data found" },
+    UNKNOWN_ERROR: { error: "Internal server error" },
 };
 
 type SyncDailyBiometricsDependencies = {
@@ -32,11 +32,10 @@ type SyncDailyBiometricsDependencies = {
     biometricsRepo: BiometricMinutesRepository;
 };
 
-function resolveTargetDate(date?: string): string {
-    if (date) return date;
+function resolveTargetDate(): string {
     const d = new Date();
     d.setDate(d.getDate() - 1);
-    return d.toISOString().split('T')[0];
+    return d.toISOString().split("T")[0] ?? "";
 }
 
 export default function syncDailyBiometrics(deps: SyncDailyBiometricsDependencies) {
@@ -47,25 +46,27 @@ export default function syncDailyBiometrics(deps: SyncDailyBiometricsDependencie
             SYNC_DAILY_BIOMETRICS_ENDPOINT,
             syncDailyBiometricsSchema,
             async (request: FastifyRequest, reply: FastifyReply) => {
-                const { date } = request.body as { date?: string };
-                const targetDate = resolveTargetDate(date);
+                const targetDate = resolveTargetDate();
 
-                if (request.auth?.userId === 'cron') {
-                    useCase.execute(targetDate).catch(err => fastify.log.error(err));
+                if (request.auth?.userId === "cron") {
+                    useCase.execute(targetDate).catch((err) => {
+                        fastify.log.error(err);
+                    });
+
                     return reply.status(statusToCode.ACCEPTED).send({
                         targetDate,
-                        message: 'Synchronization task accepted',
+                        message: "Synchronization task accepted",
                     });
                 }
 
                 const result = await useCase.execute(targetDate);
 
-                if (typeof result === 'string') {
+                if (typeof result === "string") {
                     return reply.status(statusToCode[result]).send(statusToMessage[result]);
                 }
 
                 return reply.status(statusToCode.SUCCESSFUL).send(result);
-            }
+            },
         );
     };
 }

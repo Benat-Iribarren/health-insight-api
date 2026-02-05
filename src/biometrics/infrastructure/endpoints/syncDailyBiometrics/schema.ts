@@ -1,45 +1,40 @@
-import { errorSchema } from '@common/infrastructure/endpoints/errorSchema';
+import { errorSchema } from "@common/infrastructure/endpoints/errorSchema";
 
 export const syncDailyBiometricsSchema = {
     schema: {
         headers: {
-            type: 'object',
+            type: "object",
             properties: {
-                'x-health-insight-cron': { type: 'string' }
-            }
-        },
-        body: {
-            type: 'object',
-            properties: {
-                date: { type: 'string' },
+                "x-health-insight-cron": { type: "string" },
             },
-            additionalProperties: false,
+            additionalProperties: true,
         },
+        body: false,
         response: {
             200: {
-                type: 'object',
+                type: "object",
                 properties: {
-                    dateProcessed: { type: 'string' },
+                    dateProcessed: { type: "string" },
                     summary: {
-                        type: 'object',
+                        type: "object",
                         properties: {
-                            filesFound: { type: 'number' },
-                            rowsInserted: { type: 'number' },
+                            filesFound: { type: "number" },
+                            rowsInserted: { type: "number" },
                         },
-                        required: ['filesFound', 'rowsInserted'],
+                        required: ["filesFound", "rowsInserted"],
                         additionalProperties: false,
                     },
                 },
-                required: ['dateProcessed', 'summary'],
+                required: ["dateProcessed", "summary"],
                 additionalProperties: false,
             },
             202: {
-                type: 'object',
+                type: "object",
                 properties: {
-                    targetDate: { type: 'string' },
-                    message: { type: 'string' },
+                    targetDate: { type: "string" },
+                    message: { type: "string" },
                 },
-                required: ['targetDate', 'message'],
+                required: ["targetDate", "message"],
                 additionalProperties: false,
             },
             400: errorSchema,
