@@ -16,21 +16,36 @@ export type UnifiedSessionReport = {
     no_biometrics?: true;
     subjective_analysis: { pre_evaluation: number; post_evaluation: number; delta: number };
     objective_analysis: { summary: MetricSummary | Record<string, never>; biometric_details: BiometricMinuteRow[] };
+    meta?: { total: number; page: number; limit: number };
 };
 
 export class GetUnifiedSessionReportService {
     constructor(private readonly repository: SessionMetricsRepository) {}
 
-    async execute(patientId: number, sessionId?: string): Promise<UnifiedSessionReport[] | UnifiedSessionReport | BiometricsError> {
+    async execute(
+        patientId: number,
+        sessionId?: string,
+        page: number = 1,
+        limit: number = 10
+    ): Promise<{ data: UnifiedSessionReport[] | UnifiedSessionReport; meta?: any } | BiometricsError> {
         try {
             const parsedSessionId = sessionId ? Number(sessionId) : undefined;
-            const { sessions, intervals } = await this.repository.getFullSessionContext(patientId, parsedSessionId);
+            const offset = (page - 1) * limit;
+
+            const { sessions, intervals, total } = await this.repository.getFullSessionContext(
+                patientId,
+                parsedSessionId,
+                limit,
+                offset
+            );
 
             if (!sessions.length) return noDataFoundError;
 
             if (!intervals.length) {
                 const empty = sessions.map((s) => this.mapEmptyReport(s));
-                return parsedSessionId ? (empty[0] ?? noDataFoundError) : empty;
+                return parsedSessionId
+                    ? { data: empty[0] ?? noDataFoundError }
+                    : { data: empty, meta: { total, page, limit } };
             }
 
             const { globalStartIso, globalEndIso } = this.getGlobalRange(intervals);
@@ -40,8 +55,16 @@ export class GetUnifiedSessionReportService {
                 .map((session) => this.buildReport(session, intervals, biometrics))
                 .sort((a, b) => Number(b.session_id) - Number(a.session_id));
 
-            if (parsedSessionId) return reports[0] ?? noDataFoundError;
-            return reports;
+            if (parsedSessionId) {
+                return reports[0]
+                    ? { data: reports[0] }
+                    : noDataFoundError;
+            }
+
+            return {
+                data: reports,
+                meta: { total, page, limit }
+            };
         } catch {
             return unknownError;
         }

@@ -4,26 +4,30 @@ import { SessionMetricsRepository, BiometricMinuteRow, ContextIntervalRow, Sessi
 export class SupabaseSessionMetricsRepository implements SessionMetricsRepository {
     constructor(private readonly client: SupabaseClient) {}
 
-    async getFullSessionContext(patientId: number, sessionId?: number) {
+    async getFullSessionContext(patientId: number, sessionId?: number, limit = 10, offset = 0) {
         let sessionQuery = this.client
             .from('PatientSession')
-            .select('id, state, pre_evaluation, post_evaluation')
-            .eq('patient_id', patientId);
+            .select('id, state, pre_evaluation, post_evaluation', { count: 'exact' })
+            .eq('patient_id', patientId)
+            .order('id', { ascending: false });
 
-        if (sessionId !== undefined) sessionQuery = sessionQuery.eq('id', sessionId);
+        if (sessionId !== undefined) {
+            sessionQuery = sessionQuery.eq('id', sessionId);
+        } else {
+            sessionQuery = sessionQuery.range(offset, offset + limit - 1);
+        }
 
         let intervalsQuery = this.client
             .from('ContextIntervals')
             .select('start_minute_utc, end_minute_utc, context_type, session_id')
             .eq('patient_id', patientId);
 
-        if (sessionId !== undefined) intervalsQuery = intervalsQuery.eq('session_id', sessionId);
-
         const [sRes, iRes] = await Promise.all([sessionQuery, intervalsQuery]);
 
         return {
-            sessions: ((sRes.data as SessionRow[]) || []),
-            intervals: ((iRes.data as ContextIntervalRow[]) || []),
+            sessions: (sRes.data as SessionRow[]) || [],
+            intervals: (iRes.data as ContextIntervalRow[]) || [],
+            total: sRes.count || 0
         };
     }
 

@@ -84,6 +84,17 @@ const reportSchema = {
     additionalProperties: false,
 };
 
+const paginationMetaSchema = {
+    type: 'object',
+    properties: {
+        total: { type: 'number' },
+        page: { type: 'number' },
+        limit: { type: 'number' }
+    },
+    required: ['total', 'page', 'limit'],
+    additionalProperties: false
+};
+
 export const getSessionReportSchema = {
     schema: {
         params: {
@@ -95,14 +106,31 @@ export const getSessionReportSchema = {
             required: ['patientId'],
             additionalProperties: false,
         },
+        querystring: {
+            type: 'object',
+            properties: {
+                page: { type: 'string', pattern: '^[0-9]+$' },
+                limit: { type: 'string', pattern: '^[0-9]+$' }
+            },
+            additionalProperties: false
+        },
         response: {
             200: {
-                type: ['array', 'object', 'null'],
-                if: { type: 'array' },
-                then: { items: reportSchema },
-                else: reportSchema,
+                type: 'object',
+                properties: {
+                    data: {
+                        oneOf: [
+                            { type: 'array', items: reportSchema },
+                            reportSchema
+                        ]
+                    },
+                    meta: paginationMetaSchema
+                },
+                required: ['data'],
+                additionalProperties: false
             },
             400: errorSchema,
+            401: errorSchema,
             404: errorSchema,
             500: errorSchema,
         },

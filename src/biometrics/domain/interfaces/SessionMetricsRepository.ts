@@ -22,12 +22,13 @@ export type BiometricMinuteRow = {
     respiratory_rate_brpm: number | null;
     body_position_type: string | null;
 };
-
 export interface SessionMetricsRepository {
-    getFullSessionContext(patientId: number, sessionId?: number): Promise<{
-        sessions: SessionRow[];
-        intervals: ContextIntervalRow[];
-    }>;
+    getFullSessionContext(
+        patientId: number,
+        sessionId?: number,
+        limit?: number,
+        offset?: number
+    ): Promise<{ sessions: SessionRow[]; intervals: ContextIntervalRow[]; total: number }>;
 
     getBiometricData(startIso: string, endIso: string): Promise<BiometricMinuteRow[]>;
 }

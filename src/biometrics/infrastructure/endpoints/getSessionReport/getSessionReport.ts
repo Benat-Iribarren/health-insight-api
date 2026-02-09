@@ -37,6 +37,11 @@ export default function getSessionReport(deps: GetSessionReportDependencies) {
                     sessionId?: string;
                 };
 
+                const { page, limit } = request.query as {
+                    page?: string;
+                    limit?: string;
+                };
+
                 const pid = Number(patientId);
                 if (!pid || Number.isNaN(pid)) {
                     return reply
@@ -44,12 +49,15 @@ export default function getSessionReport(deps: GetSessionReportDependencies) {
                         .send(statusToMessage.INVALID_INPUT);
                 }
 
-                const result = await useCase.execute(pid, sessionId);
+                const p = Number(page) || 1;
+                const l = Number(limit) || 10;
 
-                if (result === null || (Array.isArray(result) && result.length === 0)) {
+                const result = await useCase.execute(pid, sessionId, p, l);
+
+                if (typeof result === 'string') {
                     return reply
-                        .status(statusToCode.NO_DATA_FOUND)
-                        .send(statusToMessage.NO_DATA_FOUND);
+                        .status(statusToCode[result])
+                        .send(statusToMessage[result]);
                 }
 
                 return reply.status(statusToCode.SUCCESSFUL).send(result);
