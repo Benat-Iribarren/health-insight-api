@@ -38,6 +38,8 @@ export function build(): FastifyInstance {
                 'http://localhost:4173',
                 'http://localhost:5173',
                 'https://health-insight-api.onrender.com',
+                'https://digital-therapy-platform.web.app',
+                'https://digital-therapy-platform.firebaseapp.com'
             ],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
