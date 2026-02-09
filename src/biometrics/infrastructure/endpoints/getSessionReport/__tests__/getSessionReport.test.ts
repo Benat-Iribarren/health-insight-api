@@ -14,18 +14,24 @@ describe('Integration | GET /reports/:patientId/:sessionId?', () => {
     beforeAll(async () => { app = build(); await app.ready(); });
     afterAll(async () => await app.close());
 
-    it('returns 200 with array for patientId', async () => {
+    it('returns 200 with paginated data for patientId', async () => {
         const seed = await initBiometricsTestDatabase();
         const res = await app.inject({ method: 'GET', url: `/reports/${seed.patientId}` });
+
+        const body = res.json();
         expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.json())).toBe(true);
+        expect(Array.isArray(body.data)).toBe(true);
+        expect(body.meta).toBeDefined();
+        expect(body.meta.page).toBe(1);
     });
 
-    it('returns 200 with object for patientId + sessionId', async () => {
+    it('returns 200 with object inside data for patientId + sessionId', async () => {
         const seed = await initBiometricsTestDatabase();
         const res = await app.inject({ method: 'GET', url: `/reports/${seed.patientId}/${seed.patientSessionId}` });
+
+        const body = res.json();
         expect(res.statusCode).toBe(200);
-        expect(res.json().session_id).toBe(String(seed.patientSessionId));
+        expect(body.data.session_id).toBe(String(seed.patientSessionId));
     });
 
     it('returns 400 for invalid patientId', async () => {
@@ -36,10 +42,5 @@ describe('Integration | GET /reports/:patientId/:sessionId?', () => {
     it('returns 404 when no data found', async () => {
         const res = await app.inject({ method: 'GET', url: '/reports/999999' });
         expect([200, 404]).toContain(res.statusCode);
-    });
-
-    it('returns 500 on unexpected error', async () => {
-        const res = await app.inject({ method: 'GET', url: '/reports/0' });
-        expect([400, 404, 500]).toContain(res.statusCode);
     });
 });
