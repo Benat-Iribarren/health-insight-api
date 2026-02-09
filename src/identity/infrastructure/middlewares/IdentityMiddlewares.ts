@@ -19,6 +19,7 @@ export const verifyHybridAccess = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         const cronSecret = request.headers['x-health-insight-cron'];
 
+
         if (cronSecret && cronSecret === process.env.CRON_SECRET_KEY) {
             request.auth = { userId: 'cron' };
             return;
@@ -28,7 +29,9 @@ export const verifyHybridAccess = (userRepository: UserRepository) => {
         if (!ok) return;
 
         const userId = request.auth?.userId;
-        if (!userId) return;
+        if (!userId) {
+            return reply.status(401).send({ error: 'Unauthorized' });
+        }
 
         const isProp = await userRepository.isProfessional(userId);
         if (!isProp) {
@@ -38,7 +41,6 @@ export const verifyHybridAccess = (userRepository: UserRepository) => {
         }
     };
 };
-
 export const verifyProfessional = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         const ok = await authenticate(request, reply);
