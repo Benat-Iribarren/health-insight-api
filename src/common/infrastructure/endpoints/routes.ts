@@ -16,7 +16,7 @@ import { SupabaseBiometricsRepository } from '@src/biometrics/infrastructure/dat
 
 import sendToPatient from '@src/messaging/infrastructure/endpoints/sendToPatient/sendToPatient';
 import sendWeeklyStats from '@src/messaging/infrastructure/endpoints/sendWeeklyStats/sendWeeklyStats';
-import patientNotifications from '@src/messaging/infrastructure/endpoints/patientnotifications/patientNotifications';
+import patientNotifications from '@src/messaging/infrastructure/endpoints/patientNotifications/patientNotifications';
 
 import { SupabasePatientContactRepository } from '@src/messaging/infrastructure/database/SupabasePatientContactRepository';
 import { SupabaseStatsRepository } from '@src/messaging/infrastructure/database/SupabaseStatsRepository';
