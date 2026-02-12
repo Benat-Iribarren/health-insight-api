@@ -11,38 +11,38 @@ import { registerRoutes } from '../endpoints/routes';
 import { securityLogger } from './securityLogger';
 
 export function build(): FastifyInstance {
-    const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
-    const isTest = process.env.NODE_ENV === 'test';
+    const isDev = process.env.NODE_ENV === 'development';
 
     const app = Fastify({
         trustProxy: true,
-        logger: isTest
-            ? false
-            : {
-                transport: isDev ? { target: 'pino-pretty' } : undefined,
-            },
-        keepAliveTimeout: isTest ? 1000 : 5000,
-        connectionTimeout: isTest ? 1000 : 0,
+        logger: {
+            transport: isDev ? { target: 'pino-pretty' } : undefined
+        }
     });
 
     // 1. HELMET: Protege cabeceras HTTP (Capa de Infraestructura)
     app.register(helmet, {
-        contentSecurityPolicy: false, // Recomendado para APIs REST puras
+        contentSecurityPolicy: false,
     });
 
     // 2. CORS: Control de acceso por origen (Capa de Red)
+    const allowedOrigins = [
+        'https://digital-therapy-platform.web.app',
+        'https://digital-therapy-platform.firebaseapp.com',
+        'http://localhost:4174',
+        'http://localhost:4173',
+    ];
+
     app.register(cors, {
-        origin: isDev
-            ? true
-            : [
-                'http://localhost:4173',
-                'http://localhost:5173',
-                'https://health-insight-api.onrender.com',
-                'https://digital-therapy-platform.web.app',
-                'https://digital-therapy-platform.firebaseapp.com'
-            ],
+        origin: (origin, cb) => {
+            if (!origin) return cb(null, true);
+            if (isDev) return cb(null, true);
+            if (allowedOrigins.includes(origin)) return cb(null, true);
+            return cb(new Error('Not allowed by CORS'), false);
+        },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
+        maxAge: 86400,
     });
 
     // 3. RATE LIMIT: Evita abusos y ataques DDoS (Capa de Aplicación)
@@ -50,24 +50,22 @@ export function build(): FastifyInstance {
         max: 100,
         timeWindow: '1 minute',
         errorResponseBuilder: () => ({
-            error: 'Demasiadas peticiones. Por favor, inténtelo de nuevo en un minuto.',
-        }),
+            error: 'Demasiadas peticiones. Por favor, inténtelo de nuevo en un minuto.'
+        })
     });
 
     app.register(jwt, {
-        secret: process.env.SUPABASE_JWT_SECRET || 'super-secret-key',
+        secret: process.env.SUPABASE_JWT_SECRET || 'super-secret-key'
     });
 
     registerSwagger(app);
     registerSwaggerUI(app);
 
-    // Registramos las rutas primero para que los preHandlers inyecten el auth en la request
     registerRoutes(app);
 
-    // 4. SECURITY LOGGER: Registro de actividades sospechosas (Capa de Aplicación)
-    // He cambiardo de preHandle a onResponse para capturar el identificador de usuario
+    // 4. SECURITY LOGGER: Registro de actividades sospechosas (Capa de Aplicación) He cambiardo de preHandle a onResponse para capturar el identificador de usuario
     app.addHook('onSend', async (request, reply, payload) => {
-        securityLogger(app, request, reply).catch((err: any) => app.log.error(err));
+        securityLogger(app, request, reply).catch(err => app.log.error(err));
         return payload;
     });
 
