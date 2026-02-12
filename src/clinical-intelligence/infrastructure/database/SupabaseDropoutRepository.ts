@@ -4,34 +4,53 @@ import { DBClientService } from '@common/infrastructure/database/supabaseClient'
 
 export const dropoutRepository = (supabase: DBClientService): DropoutRepository => ({
     async getPatientSessionData(patientId?: number): Promise<PatientSessionData[]> {
-        const query = supabase.from('PatientSession').select(`
-        patientId: patient_id,
-        sessionId: id,
-        sessionStatus: state,
-        assignedDate: assigned_date,
-        sessionUpdate: created_at,
-        postEval: post_evaluation,
-        Patient!inner ( name )
-      `);
+        let sessionQuery = supabase.from('PatientSession').select(`
+            patient_id,
+            id,
+            state,
+            assigned_date,
+            created_at,
+            post_evaluation
+        `);
 
         if (patientId !== undefined) {
-            query.eq('patient_id', patientId);
+            sessionQuery = sessionQuery.eq('patient_id', patientId);
         }
 
-        const { data, error } = await query;
+        const { data: sessionData, error: sessionError } = await sessionQuery;
 
-        if (error) {
-            throw error;
+        if (sessionError) {
+            throw sessionError;
         }
 
-        return (data || []).map((row: any) => ({
-            patientId: row.patientId,
-            sessionId: row.sessionId,
-            sessionStatus: row.sessionStatus,
-            assignedDate: row.assignedDate,
-            sessionUpdate: row.sessionUpdate,
-            postEval: row.postEval,
-            name: row.Patient.name,
+        if (!sessionData || sessionData.length === 0) {
+            return [];
+        }
+
+        const patientIds = [...new Set(sessionData.map((s) => s.patient_id))];
+
+        const { data: patientData, error: patientError } = await supabase
+            .from('Patient')
+            .select('id, name')
+            .in('id', patientIds);
+
+        if (patientError) {
+            throw patientError;
+        }
+
+        const patientMap = new Map<number, string>();
+        patientData?.forEach((p) => {
+            patientMap.set(p.id, p.name);
+        });
+
+        return sessionData.map((row) => ({
+            patientId: row.patient_id,
+            sessionId: row.id,
+            sessionStatus: row.state,
+            assignedDate: row.assigned_date,
+            sessionUpdate: row.created_at,
+            postEval: row.post_evaluation ?? 0,
+            name: patientMap.get(row.patient_id) ?? 'Desconocido',
         }));
     },
 });
