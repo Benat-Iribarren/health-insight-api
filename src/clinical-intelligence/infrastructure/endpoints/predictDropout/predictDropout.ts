@@ -4,7 +4,9 @@ import { ProcessDropoutAnalysisService } from '../../../application/services/Dro
 import { PredictDropoutError } from '../../../application/types/PredictDropoutError';
 import { predictDropoutSchema } from './schema';
 
-export const PREDICT_DROPOUT_ENDPOINT = '/clinical-intelligence/predict-dropout/:patientId?';
+export const PREDICT_DROPOUT_ENDPOINT =
+    '/clinical-intelligence/predict-dropout/:patientId?';
+
 
 type StatusCode = 200 | 400 | 404 | 500;
 
