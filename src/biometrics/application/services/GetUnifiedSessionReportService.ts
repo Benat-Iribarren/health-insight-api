@@ -54,7 +54,7 @@ export class GetUnifiedSessionReportService {
                 const empty = validSessions.map((s) => this.mapEmptyReport(s));
                 return parsedSessionId
                     ? { data: empty[0] ?? noDataFoundError }
-                    : { data: empty, meta: { total, page, limit } };
+                    : { data: empty, meta: { total: validSessions.length, page, limit } };
             }
 
             const { globalStartIso, globalEndIso } = this.getGlobalRange(intervals);
@@ -72,7 +72,7 @@ export class GetUnifiedSessionReportService {
 
             return {
                 data: reports,
-                meta: { total, page, limit }
+                meta: { total: validSessions.length, page, limit }
             };
         } catch {
             return unknownError;
