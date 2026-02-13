@@ -39,10 +39,19 @@ export class GetUnifiedSessionReportService {
                 offset
             );
 
-            if (!sessions.length) return noDataFoundError;
+            const now = new Date().getTime();
+            const validSessions = sessions.filter((session) => {
+                const assignedDate = (session as any).assigned_date;
+                const isAssigned = session.state === 'assigned';
+                const isFuture = assignedDate ? new Date(assignedDate).getTime() > now : false;
+
+                return !(isAssigned && isFuture);
+            });
+
+            if (!validSessions.length) return noDataFoundError;
 
             if (!intervals.length) {
-                const empty = sessions.map((s) => this.mapEmptyReport(s));
+                const empty = validSessions.map((s) => this.mapEmptyReport(s));
                 return parsedSessionId
                     ? { data: empty[0] ?? noDataFoundError }
                     : { data: empty, meta: { total, page, limit } };
@@ -51,7 +60,7 @@ export class GetUnifiedSessionReportService {
             const { globalStartIso, globalEndIso } = this.getGlobalRange(intervals);
             const biometrics = await this.repository.getBiometricData(globalStartIso, globalEndIso);
 
-            const reports = sessions
+            const reports = validSessions
                 .map((session) => this.buildReport(session, intervals, biometrics))
                 .sort((a, b) => Number(b.session_id) - Number(a.session_id));
 
