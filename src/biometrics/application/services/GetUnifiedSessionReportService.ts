@@ -1,4 +1,9 @@
-import { SessionMetricsRepository, BiometricMinuteRow, ContextIntervalRow, SessionRow } from '../../domain/interfaces/SessionMetricsRepository';
+import {
+    SessionMetricsRepository,
+    BiometricMinuteRow,
+    ContextIntervalRow,
+    SessionRow,
+} from '../../domain/interfaces/SessionMetricsRepository';
 import { BiometricsError, noDataFoundError, unknownError } from '../types/BiometricsError';
 
 type Stats = { avg: number; max: number; min: number };
@@ -39,67 +44,65 @@ export class GetUnifiedSessionReportService {
                 offset
             );
 
-            const now = new Date().getTime();
-            const validSessions = sessions.filter((session) => {
-                const assignedDate = (session as any).assigned_date;
-                const isAssigned = session.state === 'assigned';
-                const isFuture = assignedDate ? new Date(assignedDate).getTime() > now : false;
-
-                return !(isAssigned && isFuture);
-            });
-
-            if (!validSessions.length) return noDataFoundError;
+            if (!sessions.length) return noDataFoundError;
 
             if (!intervals.length) {
-                const empty = validSessions.map((s) => this.mapEmptyReport(s));
+                const empty = sessions.map((s) => this.mapEmptyReport(s));
                 return parsedSessionId
                     ? { data: empty[0] ?? noDataFoundError }
-                    : { data: empty, meta: { total: validSessions.length, page, limit } };
+                    : { data: empty, meta: { total: total || sessions.length, page, limit } };
             }
 
             const { globalStartIso, globalEndIso } = this.getGlobalRange(intervals);
             const biometrics = await this.repository.getBiometricData(globalStartIso, globalEndIso);
 
-            const reports = validSessions
+            const reports = sessions
                 .map((session) => this.buildReport(session, intervals, biometrics))
                 .sort((a, b) => Number(b.session_id) - Number(a.session_id));
 
             if (parsedSessionId) {
-                return reports[0]
-                    ? { data: reports[0] }
-                    : noDataFoundError;
+                return reports[0] ? { data: reports[0] } : noDataFoundError;
             }
 
-            return {
-                data: reports,
-                meta: { total: validSessions.length, page, limit }
-            };
+            return { data: reports, meta: { total: total || sessions.length, page, limit } };
         } catch {
             return unknownError;
         }
     }
 
-    private buildReport(session: SessionRow, intervals: ContextIntervalRow[], biometrics: BiometricMinuteRow[]): UnifiedSessionReport {
-        const currentId = String(session.id);
-        const sIntervals = intervals.filter((i) => String(i.session_id ?? '') === currentId);
+    private buildReport(
+        session: SessionRow,
+        intervals: ContextIntervalRow[],
+        biometrics: BiometricMinuteRow[]
+    ): UnifiedSessionReport {
+        const sessionId = Number(session.session_id);
+
+        const sIntervals = intervals
+            .filter((i) => Number(i.session_id) === sessionId && i.context_type === 'session')
+            .sort((a, b) => new Date(a.start_minute_utc).getTime() - new Date(b.start_minute_utc).getTime());
 
         if (!sIntervals.length) return this.mapEmptyReport(session);
 
-        const sessionStart = new Date(sIntervals[0].start_minute_utc).getTime();
-        const sessionEnd = new Date(sIntervals[sIntervals.length - 1].end_minute_utc).getTime();
+        const sessionStartIso = sIntervals[0].start_minute_utc;
+        const sessionEndIso = sIntervals[sIntervals.length - 1].end_minute_utc;
+
+        const sessionStartMs = new Date(sessionStartIso).getTime();
+        const sessionEndMs = new Date(sessionEndIso).getTime();
 
         const preInt = intervals
-            .filter((i) => i.context_type === 'dashboard' && new Date(i.end_minute_utc).getTime() <= sessionStart)
-            .pop();
+            .filter((i) => i.context_type === 'dashboard' && new Date(i.end_minute_utc).getTime() <= sessionStartMs)
+            .sort((a, b) => new Date(b.end_minute_utc).getTime() - new Date(a.end_minute_utc).getTime())[0];
 
-        const postInt = intervals.find((i) => i.context_type === 'dashboard' && new Date(i.start_minute_utc).getTime() >= sessionEnd);
+        const postInt = intervals
+            .filter((i) => i.context_type === 'dashboard' && new Date(i.start_minute_utc).getTime() >= sessionEndMs)
+            .sort((a, b) => new Date(a.start_minute_utc).getTime() - new Date(b.start_minute_utc).getTime())[0];
 
-        const limitStart = preInt ? new Date(preInt.start_minute_utc).getTime() : sessionStart;
-        const limitEnd = postInt ? new Date(postInt.end_minute_utc).getTime() : sessionEnd;
+        const limitStartMs = preInt ? new Date(preInt.start_minute_utc).getTime() : sessionStartMs;
+        const limitEndMs = postInt ? new Date(postInt.end_minute_utc).getTime() : sessionEndMs;
 
         const sessionData = biometrics.filter((b) => {
             const t = new Date(b.timestamp_iso).getTime();
-            return t >= limitStart && t <= limitEnd;
+            return t >= limitStartMs && t <= limitEndMs;
         });
 
         if (!sessionData.length) return this.mapEmptyReport(session);
@@ -110,25 +113,28 @@ export class GetUnifiedSessionReportService {
             preInt?.end_minute_utc,
             postInt?.start_minute_utc,
             postInt?.end_minute_utc,
-            sIntervals[0].start_minute_utc,
-            sIntervals[sIntervals.length - 1].end_minute_utc
+            sessionStartIso,
+            sessionEndIso
         );
 
         return {
-            session_id: currentId,
+            session_id: String(session.session_id),
             state: session.state,
             dizziness_percentage: this.calculateDizziness(session, summary),
             subjective_analysis: {
                 pre_evaluation: Number(session.pre_evaluation) || 0,
                 post_evaluation: Number(session.post_evaluation) || 0,
-                delta: session.state === 'completed' ? (Number(session.post_evaluation) - Number(session.pre_evaluation)) : 0,
+                delta: session.state === 'completed' ? Number(session.post_evaluation) - Number(session.pre_evaluation) : 0,
             },
             objective_analysis: { summary, biometric_details: sessionData },
         };
     }
 
     private getGlobalRange(intervals: ContextIntervalRow[]) {
-        const times = intervals.flatMap((i) => [new Date(i.start_minute_utc).getTime(), new Date(i.end_minute_utc).getTime()]);
+        const times = intervals.flatMap((i) => [
+            new Date(i.start_minute_utc).getTime(),
+            new Date(i.end_minute_utc).getTime(),
+        ]);
         return {
             globalStartIso: new Date(Math.min(...times)).toISOString(),
             globalEndIso: new Date(Math.max(...times)).toISOString(),
@@ -209,12 +215,12 @@ export class GetUnifiedSessionReportService {
             objScore({ pre: m.pulse_rate_bpm.pre, session: m.pulse_rate_bpm.session }, 0.3) +
             objScore({ pre: m.temperature_celsius.pre, session: m.temperature_celsius.session }, 0.3, true);
 
-        return Number(((sub * 0.4) + (totalObj * 0.6)).toFixed(2));
+        return Number((sub * 0.4 + totalObj * 0.6).toFixed(2));
     }
 
     private mapEmptyReport(session: SessionRow): UnifiedSessionReport {
         return {
-            session_id: String(session.id),
+            session_id: String(session.session_id),
             state: session.state,
             dizziness_percentage: 0,
             no_biometrics: true,

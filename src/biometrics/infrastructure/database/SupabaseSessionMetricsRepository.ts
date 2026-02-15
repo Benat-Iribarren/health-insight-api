@@ -1,5 +1,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { SessionMetricsRepository, BiometricMinuteRow, ContextIntervalRow, SessionRow } from '../../domain/interfaces/SessionMetricsRepository';
+import {
+    SessionMetricsRepository,
+    BiometricMinuteRow,
+    ContextIntervalRow,
+    SessionRow,
+} from '../../domain/interfaces/SessionMetricsRepository';
 
 export class SupabaseSessionMetricsRepository implements SessionMetricsRepository {
     constructor(private readonly client: SupabaseClient) {}
@@ -7,39 +12,57 @@ export class SupabaseSessionMetricsRepository implements SessionMetricsRepositor
     async getFullSessionContext(patientId: number, sessionId?: number, limit = 10, offset = 0) {
         let sessionQuery = this.client
             .from('PatientSession')
-            .select('id, state, pre_evaluation, post_evaluation', { count: 'exact' })
+            .select('id, session_id, state, pre_evaluation, post_evaluation, assigned_date', { count: 'exact' })
             .eq('patient_id', patientId)
             .eq('state', 'completed')
-            .order('id', { ascending: false });
+            .order('session_id', { ascending: false });
 
         if (sessionId !== undefined) {
-            sessionQuery = sessionQuery.eq('id', sessionId);
+            sessionQuery = sessionQuery.eq('session_id', sessionId);
         } else {
             sessionQuery = sessionQuery.range(offset, offset + limit - 1);
         }
 
-        let intervalsQuery = this.client
+        const { data: sessionsData, count, error } = await sessionQuery;
+
+        if (error || !sessionsData || sessionsData.length === 0) {
+            return { sessions: [], intervals: [], total: 0 };
+        }
+
+        const sessions = sessionsData as SessionRow[];
+        const sessionIds = sessions.map((s) => Number(s.session_id)).filter((v) => Number.isFinite(v));
+
+        const { data: intervalsData, error: intervalsError } = await this.client
             .from('ContextIntervals')
             .select('start_minute_utc, end_minute_utc, context_type, session_id')
-            .eq('patient_id', patientId);
+            .eq('patient_id', patientId)
+            .or(`session_id.in.(${sessionIds.join(',')}),context_type.eq.dashboard`)
+            .order('start_minute_utc', { ascending: true });
 
-        const [sRes, iRes] = await Promise.all([sessionQuery, intervalsQuery]);
+        if (intervalsError) {
+            return { sessions, intervals: [], total: count || 0 };
+        }
 
         return {
-            sessions: (sRes.data as SessionRow[]) || [],
-            intervals: (iRes.data as ContextIntervalRow[]) || [],
-            total: sRes.count || 0
+            sessions,
+            intervals: (intervalsData as ContextIntervalRow[]) || [],
+            total: count || 0,
         };
     }
 
     async getBiometricData(startIso: string, endIso: string): Promise<BiometricMinuteRow[]> {
-        const { data } = await this.client
+        const { data, error } = await this.client
             .from('BiometricMinutes')
             .select('*')
             .gte('timestamp_iso', startIso)
             .lte('timestamp_iso', endIso)
             .order('timestamp_iso', { ascending: true });
 
-        return (data as BiometricMinuteRow[]) || [];
+        if (error || !data) return [];
+
+        return (data as any[]).map((r) => ({
+            ...r,
+            timestamp_unix_ms: new Date(r.timestamp_iso).getTime(),
+        })) as BiometricMinuteRow[];
     }
 }

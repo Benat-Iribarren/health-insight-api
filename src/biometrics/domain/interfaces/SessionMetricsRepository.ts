@@ -1,8 +1,9 @@
 export type SessionRow = {
-    id: number;
+    session_id: number;
     state: string;
     pre_evaluation: number | null;
     post_evaluation: number | null;
+    assigned_date?: string;
 };
 
 export type ContextIntervalRow = {
@@ -22,6 +23,7 @@ export type BiometricMinuteRow = {
     respiratory_rate_brpm: number | null;
     body_position_type: string | null;
 };
+
 export interface SessionMetricsRepository {
     getFullSessionContext(
         patientId: number,
