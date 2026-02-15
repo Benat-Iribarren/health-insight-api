@@ -14,6 +14,29 @@ export type Database = {
   }
   public: {
     Tables: {
+      ActiveSessionBiometrics: {
+        Row: {
+          activated_at: string
+          patient_id: number
+        }
+        Insert: {
+          activated_at?: string
+          patient_id: number
+        }
+        Update: {
+          activated_at?: string
+          patient_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ActiveSessionBiometrics_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: true
+            referencedRelation: "Patient"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       BiometricMinutes: {
         Row: {
           accel_std_g: number | null
@@ -24,29 +47,26 @@ export type Database = {
           respiratory_rate_brpm: number | null
           temperature_celsius: number | null
           timestamp_iso: string
-          timestamp_unix_ms: number | null
         }
         Insert: {
           accel_std_g?: number | null
           body_position_type?: string | null
           eda_scl_usiemens?: number | null
-          id?: number
+          id?: never
           pulse_rate_bpm?: number | null
           respiratory_rate_brpm?: number | null
           temperature_celsius?: number | null
           timestamp_iso: string
-          timestamp_unix_ms?: number | null
         }
         Update: {
           accel_std_g?: number | null
           body_position_type?: string | null
           eda_scl_usiemens?: number | null
-          id?: number
+          id?: never
           pulse_rate_bpm?: number | null
           respiratory_rate_brpm?: number | null
           temperature_celsius?: number | null
           timestamp_iso?: string
-          timestamp_unix_ms?: number | null
         }
         Relationships: []
       }
@@ -54,7 +74,7 @@ export type Database = {
         Row: {
           attempt_no: number | null
           context_type: string
-          created_at: string
+          created_at: string | null
           end_minute_utc: string
           id: number
           patient_id: number
@@ -64,9 +84,9 @@ export type Database = {
         Insert: {
           attempt_no?: number | null
           context_type: string
-          created_at?: string
+          created_at?: string | null
           end_minute_utc: string
-          id?: number
+          id?: never
           patient_id: number
           session_id?: number | null
           start_minute_utc: string
@@ -74,9 +94,9 @@ export type Database = {
         Update: {
           attempt_no?: number | null
           context_type?: string
-          created_at?: string
+          created_at?: string | null
           end_minute_utc?: string
-          id?: number
+          id?: never
           patient_id?: number
           session_id?: number | null
           start_minute_utc?: string
@@ -101,7 +121,7 @@ export type Database = {
       Patient: {
         Row: {
           birth_date: string
-          created_at: string
+          created_at: string | null
           email: string
           gender: string
           id: number
@@ -111,22 +131,22 @@ export type Database = {
           username: string
         }
         Insert: {
-          birth_date?: string
-          created_at?: string
-          email?: string
-          gender?: string
-          id?: number
+          birth_date: string
+          created_at?: string | null
+          email: string
+          gender: string
+          id?: never
           name: string
           surname: string
           user_id: string
-          username?: string
+          username: string
         }
         Update: {
           birth_date?: string
-          created_at?: string
+          created_at?: string | null
           email?: string
           gender?: string
-          id?: number
+          id?: never
           name?: string
           surname?: string
           user_id?: string
@@ -161,7 +181,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patientnotifications_patient_id_fkey"
+            foreignKeyName: "PatientNotifications_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "Patient"
@@ -173,7 +193,7 @@ export type Database = {
         Row: {
           assigned_date: string
           completed_date: string | null
-          created_at: string
+          created_at: string | null
           id: number
           patient_id: number
           post_evaluation: number | null
@@ -185,20 +205,20 @@ export type Database = {
         Insert: {
           assigned_date: string
           completed_date?: string | null
-          created_at?: string
-          id?: number
+          created_at?: string | null
+          id?: never
           patient_id: number
           post_evaluation?: number | null
           pre_evaluation?: number | null
           resume_at?: number | null
           session_id: number
-          state?: string
+          state: string
         }
         Update: {
           assigned_date?: string
           completed_date?: string | null
-          created_at?: string
-          id?: number
+          created_at?: string | null
+          id?: never
           patient_id?: number
           post_evaluation?: number | null
           pre_evaluation?: number | null
@@ -260,19 +280,11 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "SecurityLogs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "Patient"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       Session: {
         Row: {
-          created_at: string
+          created_at: string | null
           day_offset: number
           duration: number | null
           id: number
@@ -280,18 +292,18 @@ export type Database = {
           source: string | null
         }
         Insert: {
-          created_at?: string
-          day_offset?: number
+          created_at?: string | null
+          day_offset: number
           duration?: number | null
-          id?: number
+          id?: never
           number: number
           source?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           day_offset?: number
           duration?: number | null
-          id?: number
+          id?: never
           number?: number
           source?: string | null
         }
@@ -308,14 +320,14 @@ export type Database = {
         Insert: {
           completed_date: string
           evaluation: number
-          id?: number
+          id?: never
           patient_id: number
           question_id: number
         }
         Update: {
           completed_date?: string
           evaluation?: number
-          id?: number
+          id?: never
           patient_id?: number
           question_id?: number
         }
