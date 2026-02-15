@@ -9,6 +9,7 @@ export class SupabaseSessionMetricsRepository implements SessionMetricsRepositor
             .from('PatientSession')
             .select('id, state, pre_evaluation, post_evaluation', { count: 'exact' })
             .eq('patient_id', patientId)
+            .eq('state', 'completed')
             .order('id', { ascending: false });
 
         if (sessionId !== undefined) {
