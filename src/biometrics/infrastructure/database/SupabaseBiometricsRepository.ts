@@ -6,7 +6,6 @@ export class SupabaseBiometricsRepository {
     async upsertBiometricMinutes(minutes: any[]) {
         const toInsert = minutes.map(m => ({
             timestamp_iso: m.timestamp_iso,
-            patient_id: m.patient_id,
             pulse_rate_bpm: m.pulse_rate_bpm,
             eda_scl_usiemens: m.eda_scl_usiemens,
             temperature_celsius: m.temperature_celsius,

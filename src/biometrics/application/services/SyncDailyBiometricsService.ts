@@ -24,7 +24,6 @@ type CsvRow = {
 
 type UnifiedMinute = {
     timestamp_iso: string;
-    timestamp_unix_ms: number;
     pulse_rate_bpm: number | null;
     eda_scl_usiemens: number | null;
     temperature_celsius: number | null;
@@ -74,7 +73,6 @@ export class SyncDailyBiometricsService {
                     if (!unifiedData[ts]) {
                         unifiedData[ts] = {
                             timestamp_iso: ts,
-                            timestamp_unix_ms: unixMs,
                             pulse_rate_bpm: null,
                             eda_scl_usiemens: null,
                             temperature_celsius: null,
@@ -121,8 +119,10 @@ export class SyncDailyBiometricsService {
                 dateProcessed: date,
                 summary: { filesFound: dailyFiles.length, rowsInserted: rowsToInsert.length },
             };
-        } catch {
+        } catch (err) {
+            console.error("SyncDailyBiometricsService error:", err);
             return unknownError;
         }
+
     }
 }
