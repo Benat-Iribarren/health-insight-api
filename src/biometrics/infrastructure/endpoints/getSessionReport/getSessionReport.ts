@@ -3,21 +3,17 @@ import { GetUnifiedSessionReportService } from '@src/biometrics/application/serv
 import { SupabaseSessionMetricsRepository } from '../../database/SupabaseSessionMetricsRepository';
 import { BiometricsError } from '../../../application/types/BiometricsError';
 
-type StatusCode = 200 | 400 | 401 | 403 | 404 | 500;
+type StatusCode = 200 | 400 | 404 | 500;
 
 const statusToCode: Record<BiometricsError | 'SUCCESSFUL', StatusCode> = {
     SUCCESSFUL: 200,
     INVALID_INPUT: 400,
-    UNAUTHORIZED: 401,
-    FORBIDDEN: 403,
     NO_DATA_FOUND: 404,
     UNKNOWN_ERROR: 500,
 };
 
 const statusToMessage: Record<BiometricsError, { error: string }> = {
     INVALID_INPUT: { error: 'Invalid input' },
-    UNAUTHORIZED: { error: 'Unauthorized' },
-    FORBIDDEN: { error: 'Forbidden' },
     NO_DATA_FOUND: { error: 'No data found' },
     UNKNOWN_ERROR: { error: 'Internal server error' },
 };

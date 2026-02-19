@@ -22,9 +22,9 @@ const statusToCode: Record<SendWeeklyStatsError | 'INVALID_PATIENT_ID' | 'SUCCES
 };
 
 const statusToMessage: Record<SendWeeklyStatsError | 'INVALID_PATIENT_ID', { error: string }> = {
-    INVALID_PATIENT_ID: { error: 'The provided patient ID is invalid.' },
-    NO_DATA: { error: 'No data found to send weekly stats.' },
-    SEND_FAILED: { error: 'An error occurred while sending weekly stats.' },
+    INVALID_PATIENT_ID: { error: 'Invalid input' },
+    NO_DATA: { error: 'No data found' },
+    SEND_FAILED: { error: 'Internal server error' },
 };
 
 interface SendWeeklyStatsDependencies {

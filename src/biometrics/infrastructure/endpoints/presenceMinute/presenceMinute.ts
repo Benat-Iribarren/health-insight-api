@@ -16,16 +16,12 @@ type PresenceBody = {
 const statusToCode: Record<BiometricsError | 'SUCCESSFUL', number> = {
     SUCCESSFUL: 200,
     INVALID_INPUT: 400,
-    UNAUTHORIZED: 401,
-    FORBIDDEN: 403,
     NO_DATA_FOUND: 404,
     UNKNOWN_ERROR: 500,
 };
 
 const statusToMessage: Record<BiometricsError, { error: string }> = {
     INVALID_INPUT: { error: 'Invalid input data' },
-    UNAUTHORIZED: { error: 'Unauthorized access' },
-    FORBIDDEN: { error: 'Forbidden access' },
     NO_DATA_FOUND: { error: 'No data found' },
     UNKNOWN_ERROR: { error: 'Internal server error' },
 };
@@ -41,14 +37,11 @@ export default function presenceMinute() {
             async (request: FastifyRequest<{ Body: PresenceBody }>, reply: FastifyReply) => {
                 const auth = request.auth;
 
-                if (!auth?.patientId) {
-                    return reply.status(statusToCode.UNAUTHORIZED).send(statusToMessage.UNAUTHORIZED);
-                }
-
                 const { minuteTsUtc, contextType, sessionId } = request.body;
 
                 const result = await useCase.execute({
-                    patientId: auth.patientId,
+                    // @ts-ignore
+                    patientId: auth!.patientId,
                     minuteTsUtc,
                     contextType,
                     sessionId: sessionId ?? null,

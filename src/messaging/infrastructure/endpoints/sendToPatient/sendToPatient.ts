@@ -19,9 +19,9 @@ const statusToCode: Record<SendToPatientError | 'INVALID_PATIENT_ID' | 'SUCCESSF
 };
 
 const statusToMessage: Record<SendToPatientError | 'INVALID_PATIENT_ID', { error: string }> = {
-    INVALID_PATIENT_ID: { error: 'The provided patient ID is invalid.' },
-    PATIENT_NOT_FOUND: { error: 'Patient not found.' },
-    SEND_FAILED: { error: 'An error occurred while sending the message.' },
+    INVALID_PATIENT_ID: { error: 'Invalid input' },
+    PATIENT_NOT_FOUND: { error: 'No data found' },
+    SEND_FAILED: { error: 'Internal server error' },
 };
 
 interface SendToPatientDependencies {

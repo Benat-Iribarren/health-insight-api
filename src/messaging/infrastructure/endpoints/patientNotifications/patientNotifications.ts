@@ -11,21 +11,19 @@ import { getNotificationsSchema, readNotificationSchema, deleteNotificationSchem
 export const GET_NOTIFICATIONS_ENDPOINT = '/messaging/notifications';
 export const NOTIFICATION_BY_ID_ENDPOINT = '/messaging/notifications/:id';
 
-type StatusCode = 200 | 400 | 401 | 404 | 500;
+type StatusCode = 200 | 400 | 404 | 500;
 
 const statusToCode: Record<ManageNotificationsError | 'SUCCESSFUL', StatusCode> = {
     SUCCESSFUL: 200,
     INVALID_NOTIFICATION_ID: 400,
-    UNAUTHORIZED: 401,
     NOT_FOUND: 404,
     OPERATION_FAILED: 500,
 };
 
 const statusToMessage: Record<ManageNotificationsError, { error: string }> = {
-    UNAUTHORIZED: { error: 'Unauthorized.' },
-    INVALID_NOTIFICATION_ID: { error: 'The provided notification ID is invalid.' },
-    NOT_FOUND: { error: 'Notification not found.' },
-    OPERATION_FAILED: { error: 'An error occurred while processing notifications.' },
+    INVALID_NOTIFICATION_ID: { error: 'Invalid input' },
+    NOT_FOUND: { error: 'No data found' },
+    OPERATION_FAILED: { error: 'Internal server error' },
 };
 
 interface NotificationsDependencies {
@@ -35,12 +33,8 @@ interface NotificationsDependencies {
 function patientNotifications(dependencies: NotificationsDependencies) {
     return async function (fastify: FastifyInstance) {
         fastify.get(GET_NOTIFICATIONS_ENDPOINT, getNotificationsSchema, async (request, reply) => {
-            const patientId = request.auth?.patientId;
-            if (!patientId) {
-                return reply.status(statusToCode.UNAUTHORIZED).send(statusToMessage.UNAUTHORIZED);
-            }
+            const result = await GetPatientInboxService(dependencies.notificationRepo, request.auth!.patientId!);
 
-            const result = await GetPatientInboxService(dependencies.notificationRepo, patientId);
             if (typeof result === 'string') {
                 return reply.status(statusToCode[result]).send(statusToMessage[result]);
             }
@@ -49,13 +43,8 @@ function patientNotifications(dependencies: NotificationsDependencies) {
         });
 
         fastify.post(NOTIFICATION_BY_ID_ENDPOINT, readNotificationSchema, async (request, reply) => {
-            const patientId = request.auth?.patientId;
-            if (!patientId) {
-                return reply.status(statusToCode.UNAUTHORIZED).send(statusToMessage.UNAUTHORIZED);
-            }
-
             const { id } = request.params as { id: string };
-            const result = await ReadNotificationService(dependencies.notificationRepo, patientId, id);
+            const result = await ReadNotificationService(dependencies.notificationRepo, request.auth!.patientId!, id);
 
             if (typeof result === 'string') {
                 return reply.status(statusToCode[result]).send(statusToMessage[result]);
@@ -64,13 +53,8 @@ function patientNotifications(dependencies: NotificationsDependencies) {
         });
 
         fastify.delete(NOTIFICATION_BY_ID_ENDPOINT, deleteNotificationSchema, async (request, reply) => {
-            const patientId = request.auth?.patientId;
-            if (!patientId) {
-                return reply.status(statusToCode.UNAUTHORIZED).send(statusToMessage.UNAUTHORIZED);
-            }
-
             const { id } = request.params as { id: string };
-            const result = await DeleteNotificationService(dependencies.notificationRepo, patientId, id);
+            const result = await DeleteNotificationService(dependencies.notificationRepo, request.auth!.patientId!, id);
 
             if (result !== 'SUCCESSFUL') {
                 return reply.status(statusToCode[result]).send(statusToMessage[result]);

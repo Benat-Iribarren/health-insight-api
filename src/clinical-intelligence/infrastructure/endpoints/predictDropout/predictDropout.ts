@@ -19,8 +19,8 @@ const statusToCode: Record<PredictDropoutError | 'INVALID_PATIENT_ID' | 'SUCCESS
 
 const statusToMessage: Record<PredictDropoutError | 'INVALID_PATIENT_ID', { error: string }> = {
     INVALID_PATIENT_ID: { error: 'The provided patient ID is invalid.' },
-    NO_DATA: { error: 'No clinical data found for analysis.' },
-    ANALYSIS_FAILED: { error: 'An error occurred during clinical analysis.' },
+    NO_DATA: { error: 'No data found' },
+    ANALYSIS_FAILED: { error: 'Internal server error' },
 };
 
 interface PredictDropoutDependencies {

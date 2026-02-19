@@ -36,7 +36,7 @@ export const verifyHybridAccess = (userRepository: UserRepository) => {
         const isProp = await userRepository.isProfessional(userId);
         if (!isProp) {
             return reply.status(403).send({
-                error: 'Only professionals or system tasks can access this resource'
+                error: 'Access restricted to professionals only'
             });
         }
     };

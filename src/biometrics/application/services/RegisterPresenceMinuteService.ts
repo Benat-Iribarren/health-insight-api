@@ -1,5 +1,5 @@
 import { PresenceIntervalRepository } from '../../domain/interfaces/PresenceIntervalRepository';
-import { BiometricsError, invalidInputError, unauthorizedError, unknownError } from '../types/BiometricsError';
+import { BiometricsError, invalidInputError, unknownError } from '../types/BiometricsError';
 
 type Params = {
     patientId: number;
@@ -17,8 +17,6 @@ export class RegisterPresenceMinuteService {
         if (Number.isNaN(minute.getTime()) || minute.getUTCSeconds() !== 0 || minute.getUTCMilliseconds() !== 0) {
             return invalidInputError;
         }
-
-        if (!params.patientId) return unauthorizedError;
 
         try {
             const endMinute = new Date(minute.getTime() + 60000).toISOString();

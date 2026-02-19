@@ -7,22 +7,18 @@ import { syncDailyBiometricsSchema } from "./schema";
 
 export const SYNC_DAILY_BIOMETRICS_ENDPOINT = "/biometrics/sync-daily";
 
-type StatusCode = 200 | 202 | 400 | 401 | 403 | 404 | 500;
+type StatusCode = 200 | 202 | 400 | 404 | 500;
 
 const statusToCode: Record<BiometricsError | "SUCCESSFUL" | "ACCEPTED", StatusCode> = {
     SUCCESSFUL: 200,
     ACCEPTED: 202,
     INVALID_INPUT: 400,
-    UNAUTHORIZED: 401,
-    FORBIDDEN: 403,
     NO_DATA_FOUND: 404,
     UNKNOWN_ERROR: 500,
 };
 
 const statusToMessage: Record<BiometricsError, { error: string }> = {
     INVALID_INPUT: { error: "Invalid input data" },
-    UNAUTHORIZED: { error: "Unauthorized access" },
-    FORBIDDEN: { error: "Forbidden access" },
     NO_DATA_FOUND: { error: "No data found" },
     UNKNOWN_ERROR: { error: "Internal server error" },
 };
