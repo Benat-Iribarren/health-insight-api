@@ -70,7 +70,7 @@ export const deleteNotificationSchema = {
                 additionalProperties: false,
                 properties: {
                     message: { type: 'string' },
-                    id: { type: 'string' }
+                    id: { type: 'string' },
                 },
                 required: ['message', 'id'],
             },

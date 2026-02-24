@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 
 import { SupabaseUserRepository } from '@src/identity/infrastructure/database/repositories/SupabaseUserRepository';
-import {verifyHybridAccess, verifyPatient, verifyProfessional} from '@src/identity/infrastructure/middlewares/IdentityMiddlewares';
+import { verifyHybridAccess, verifyPatient, verifyProfessional } from '@src/identity/infrastructure/middlewares/IdentityMiddlewares';
 
 import presenceMinute from '@src/biometrics/infrastructure/endpoints/presenceMinute/presenceMinute';
 import syncDailyBiometrics from '@src/biometrics/infrastructure/endpoints/syncDailyBiometrics/syncDailyBiometrics';
@@ -28,6 +28,10 @@ import { HtmlImageGenerator } from '@src/messaging/infrastructure/images/HtmlIma
 
 import { EmpaticaS3FileSource } from '@src/biometrics/infrastructure/aws/EmpaticaS3FileSource';
 
+import respond from '@src/messaging/infrastructure/endpoints/respond/respond';
+import patientResponses from '@src/messaging/infrastructure/endpoints/patientResponses/patientResponses';
+import { SupabasePatientResponseRepository } from '@src/messaging/infrastructure/database/SupabasePatientResponseRepository';
+
 export function registerRoutes(fastify: FastifyInstance) {
     const userRepo = new SupabaseUserRepository(supabaseClient);
 
@@ -36,6 +40,8 @@ export function registerRoutes(fastify: FastifyInstance) {
     const statsRepo = new SupabaseStatsRepository(supabaseClient);
     const patientContactRepo = new SupabasePatientContactRepository(supabaseClient);
     const notificationRepo = new SupabaseNotificationRepository(supabaseClient);
+
+    const patientResponseRepo = new SupabasePatientResponseRepository(supabaseClient);
 
     const biometricsRepo = new SupabaseBiometricsRepository(supabaseClient);
     const sessionMetricsRepo = new SupabaseSessionMetricsRepository(supabaseClient);
@@ -74,11 +80,18 @@ export function registerRoutes(fastify: FastifyInstance) {
         professionalApp.register(predictDropout({ dropoutRepo }));
         professionalApp.register(sendToPatient(messagingDeps));
         professionalApp.register(getSessionReport({ sessionMetricsRepo }));
+        professionalApp.register(patientResponses({ patientResponseRepo, notificationRepo }));
     });
 
     fastify.register(async (patientApp) => {
         patientApp.addHook('preHandler', verifyPatient(userRepo));
         patientApp.register(presenceMinute());
         patientApp.register(patientNotifications({ notificationRepo }));
+        patientApp.register(
+            respond({
+                notificationRepo,
+                patientResponseRepo,
+            })
+        );
     });
 }

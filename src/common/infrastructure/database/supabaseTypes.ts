@@ -18,20 +18,23 @@ export type Database = {
         Row: {
           activated_at: string
           patient_id: number
+          singleton_id: number
         }
         Insert: {
           activated_at?: string
           patient_id: number
+          singleton_id?: number
         }
         Update: {
           activated_at?: string
           patient_id?: number
+          singleton_id?: number
         }
         Relationships: [
           {
             foreignKeyName: "ActiveSessionBiometrics_patient_id_fkey"
             columns: ["patient_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "Patient"
             referencedColumns: ["id"]
           },
@@ -159,6 +162,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          is_deleted: boolean
           is_read: boolean | null
           patient_id: number | null
           subject: string
@@ -167,6 +171,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          is_deleted?: boolean
           is_read?: boolean | null
           patient_id?: number | null
           subject: string
@@ -175,6 +180,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          is_deleted?: boolean
           is_read?: boolean | null
           patient_id?: number | null
           subject?: string
@@ -182,6 +188,48 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "PatientNotifications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "Patient"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      PatientResponses: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message_id: string
+          patient_id: number
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_id: string
+          patient_id: number
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_id?: string
+          patient_id?: number
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_patientresponses_message"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "PatientNotifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_patientresponses_patient"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "Patient"
@@ -353,7 +401,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_patient_id: { Args: never; Returns: number }
+      is_cron: { Args: never; Returns: boolean }
+      is_patient: { Args: never; Returns: boolean }
+      is_patient_user: { Args: never; Returns: boolean }
       is_professional: { Args: never; Returns: boolean }
+      jwt_role: { Args: never; Returns: string }
+      jwt_user_role: { Args: never; Returns: string }
+      my_patient_id: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
