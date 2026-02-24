@@ -42,13 +42,14 @@ function patientNotifications(dependencies: NotificationsDependencies) {
             return reply.status(statusToCode.SUCCESSFUL).send(result);
         });
 
-        fastify.post(NOTIFICATION_BY_ID_ENDPOINT, readNotificationSchema, async (request, reply) => {
+        fastify.patch(NOTIFICATION_BY_ID_ENDPOINT, readNotificationSchema, async (request, reply) => {
             const { id } = request.params as { id: string };
             const result = await ReadNotificationService(dependencies.notificationRepo, request.auth!.patientId!, id);
 
             if (typeof result === 'string') {
                 return reply.status(statusToCode[result]).send(statusToMessage[result]);
             }
+
             return reply.status(statusToCode.SUCCESSFUL).send(result);
         });
 

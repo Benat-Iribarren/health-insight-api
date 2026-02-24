@@ -12,6 +12,7 @@ export interface NotificationRepository {
     getPatientNotifications(patientId: number): Promise<Notification[]>;
     getNotificationDetail(patientId: number, notificationId: string): Promise<Notification | null>;
     markAsRead(patientId: number, notificationId: string): Promise<void>;
-    deleteNotification(patientId: number, notificationId: string): Promise<void>;
+    markNotificationAsDeleted(patientId: number, notificationId: string): Promise<void>;
+    deleteNotification(notificationId: string): Promise<boolean>;
     getPendingCount(patientId: number): Promise<number>;
 }

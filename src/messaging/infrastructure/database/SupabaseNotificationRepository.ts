@@ -8,6 +8,7 @@ type NotificationRow = {
     content: string;
     is_read: boolean;
     created_at: string;
+    is_deleted: boolean;
 };
 
 export class SupabaseNotificationRepository implements NotificationRepository {
@@ -27,7 +28,7 @@ export class SupabaseNotificationRepository implements NotificationRepository {
     async getPatientNotifications(patientId: number): Promise<Notification[]> {
         const { data, error } = await this.supabase
             .from('PatientNotifications')
-            .select('id, patient_id, subject, content, is_read, created_at')
+            .select('id, patient_id, subject, content, is_read, created_at, is_deleted')
             .eq('patient_id', patientId)
             .order('created_at', { ascending: false });
 
@@ -57,10 +58,10 @@ export class SupabaseNotificationRepository implements NotificationRepository {
         if (error) throw error;
     }
 
-    async deleteNotification(patientId: number, notificationId: string): Promise<void> {
+    async markNotificationAsDeleted(patientId: number, notificationId: string): Promise<void> {
         const { error } = await this.supabase
             .from('PatientNotifications')
-            .delete()
+            .update({ is_deleted: true })
             .eq('id', notificationId)
             .eq('patient_id', patientId);
 
@@ -76,5 +77,17 @@ export class SupabaseNotificationRepository implements NotificationRepository {
 
         if (error) throw error;
         return count ?? 0;
+    }
+
+    async deleteNotification(notificationId: string): Promise<boolean> {
+        const { data, error } = await this.supabase
+            .from('PatientNotifications')
+            .delete()
+            .eq('id', notificationId)
+            .select('id')
+            .maybeSingle();
+
+        if (error) throw error;
+        return !!data;
     }
 }
