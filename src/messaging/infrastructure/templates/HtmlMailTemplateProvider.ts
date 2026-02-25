@@ -46,7 +46,7 @@ export class HtmlMailTemplateProvider implements MailTemplateProvider {
             </div>
 
             <div style="text-align:center">
-                <a href="https://digital-therapy-platform.web.app/dashboard" style="background-color:#10b981;color:#ffffff;padding:16px 32px;text-decoration:none;border-radius:8px;font-weight:700;display:inline-block;font-size:15px" target="_blank">
+                <a href="https://digital-therapy-platform.web.app/patient/dashboard" style="background-color:#10b981;color:#ffffff;padding:16px 32px;text-decoration:none;border-radius:8px;font-weight:700;display:inline-block;font-size:15px" target="_blank">
                     VER PANEL DETALLADO
                 </a>
             </div>`;

@@ -68,7 +68,7 @@ describe('Integration | sendToPatient', () => {
         });
 
         expect(res.statusCode).toBe(404);
-        expect(res.json().error).toBe('Patient not found.');
+        expect(res.json().error).toBe('No data found');
     });
 
     it('returns 400 for missing required payload fields', async () => {

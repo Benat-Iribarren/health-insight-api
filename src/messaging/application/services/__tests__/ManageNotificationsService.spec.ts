@@ -8,7 +8,8 @@ describe('Unit | ManageNotificationsService', () => {
         markAsRead: jest.fn(),
         deleteNotification: jest.fn(),
         saveNotification: jest.fn(),
-        getPendingCount: jest.fn()
+        getPendingCount: jest.fn(),
+        markNotificationAsDeleted: jest.fn()
     };
 
     describe('GetPatientInboxService', () => {
@@ -49,7 +50,7 @@ describe('Unit | ManageNotificationsService', () => {
 
         it('returns OPERATION_FAILED if deletion fails', async () => {
             mockRepo.getNotificationDetail.mockResolvedValue({ id: 'uuid' } as Notification);
-            mockRepo.deleteNotification.mockRejectedValue(new Error());
+            mockRepo.markNotificationAsDeleted.mockRejectedValue(new Error());
             const result = await DeleteNotificationService(mockRepo, 1, 'uuid');
             expect(result).toBe('OPERATION_FAILED');
         });

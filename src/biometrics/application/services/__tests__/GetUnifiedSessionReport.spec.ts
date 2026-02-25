@@ -16,7 +16,7 @@ describe('Unit | GetUnifiedSessionReportService', () => {
 
     it('should calculate report metrics correctly', async () => {
         mockRepo.getFullSessionContext.mockResolvedValue({
-            sessions: [{ id: 101, state: 'completed', pre_evaluation: 3, post_evaluation: 7 }],
+            sessions: [{ session_id: 101, state: 'completed', pre_evaluation: 3, post_evaluation: 7 }],
             intervals: [{ session_id: 101, context_type: 'session', start_minute_utc: '2026-01-01T10:00:00Z', end_minute_utc: '2026-01-01T10:10:00Z' }],
             total: 1
         });

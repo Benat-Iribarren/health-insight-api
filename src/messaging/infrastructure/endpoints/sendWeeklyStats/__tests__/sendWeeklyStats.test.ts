@@ -72,7 +72,7 @@ describe('Integration | sendWeeklyStats', () => {
         });
 
         expect(res.statusCode).toBe(404);
-        expect(res.json().error).toBe('No data found to send weekly stats.');
+        expect(res.json().error).toBe('No data found');
     });
 
     it('returns 403 if cron secret is invalid', async () => {

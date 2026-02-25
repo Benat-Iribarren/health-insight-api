@@ -56,7 +56,7 @@ describe('Unit | IdentityMiddlewares', () => {
 
             expect(reply.status).toHaveBeenCalledWith(403);
             expect(reply.send).toHaveBeenCalledWith({
-                error: 'Only professionals or system tasks can access this resource'
+                error: 'Access restricted to professionals only'
             });
         });
 
