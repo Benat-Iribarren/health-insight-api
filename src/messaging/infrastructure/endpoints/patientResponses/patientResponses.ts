@@ -36,7 +36,7 @@ interface PatientResponsesDependencies {
 function patientResponses(dependencies: PatientResponsesDependencies) {
     return async function (fastify: FastifyInstance) {
         fastify.get(GET_RESPONSES_ENDPOINT, getResponsesSchema, async (_request, reply) => {
-            const result = await GetResponsesService(dependencies.patientResponseRepo);
+            const result = await GetResponsesService(dependencies.patientResponseRepo, dependencies.notificationRepo);
 
             if (typeof result === 'string') {
                 return reply.status(500).send({ error: 'Internal server error' });
@@ -47,29 +47,23 @@ function patientResponses(dependencies: PatientResponsesDependencies) {
 
         fastify.patch(MARK_RESPONSE_AS_READ_ENDPOINT, markResponseAsReadSchema, async (request, reply) => {
             const { responseId } = request.params as { responseId: string };
-
             const result = await ReadResponseService(dependencies.patientResponseRepo, responseId);
-
             if (result !== 'SUCCESSFUL') {
                 return reply.status(statusToCode[result]).send(statusToMessage[result]);
             }
-
             return reply.status(statusToCode.SUCCESSFUL).send({ message: 'Response marked as read.' });
         });
 
         fastify.delete(DELETE_RESPONSE_ENDPOINT, deleteResponseSchema, async (request, reply) => {
             const { responseId } = request.params as { responseId: string };
-
             const result = await DeleteResponseService(
                 dependencies.notificationRepo,
                 dependencies.patientResponseRepo,
                 responseId
             );
-
             if (result !== 'SUCCESSFUL') {
                 return reply.status(statusToCode[result]).send(statusToMessage[result]);
             }
-
             return reply.status(statusToCode.SUCCESSFUL).send({ message: 'Response deleted.' });
         });
     };

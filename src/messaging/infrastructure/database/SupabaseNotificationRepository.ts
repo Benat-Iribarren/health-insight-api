@@ -21,7 +21,6 @@ export class SupabaseNotificationRepository implements NotificationRepository {
             content,
             is_read: false,
         });
-
         if (error) throw error;
     }
 
@@ -31,7 +30,6 @@ export class SupabaseNotificationRepository implements NotificationRepository {
             .select('id, patient_id, subject, content, is_read, created_at, is_deleted')
             .eq('patient_id', patientId)
             .order('created_at', { ascending: false });
-
         if (error) throw error;
         return ((data ?? []) as NotificationRow[]) as Notification[];
     }
@@ -43,9 +41,20 @@ export class SupabaseNotificationRepository implements NotificationRepository {
             .eq('id', notificationId)
             .eq('patient_id', patientId)
             .maybeSingle();
-
         if (error) throw error;
         return (data as NotificationRow | null) as Notification | null;
+    }
+
+    async getNotificationContents(notificationIds: string[]): Promise<Record<string, string>> {
+        if (notificationIds.length === 0) return {};
+        const { data, error } = await this.supabase
+            .from('PatientNotifications')
+            .select('id, content')
+            .in('id', notificationIds);
+        if (error) throw error;
+        const map: Record<string, string> = {};
+        data?.forEach((row: { id: string, content: string }) => { map[row.id] = row.content; });
+        return map;
     }
 
     async markAsRead(patientId: number, notificationId: string): Promise<void> {
@@ -54,7 +63,6 @@ export class SupabaseNotificationRepository implements NotificationRepository {
             .update({ is_read: true })
             .eq('id', notificationId)
             .eq('patient_id', patientId);
-
         if (error) throw error;
     }
 
@@ -64,7 +72,6 @@ export class SupabaseNotificationRepository implements NotificationRepository {
             .update({ is_deleted: true })
             .eq('id', notificationId)
             .eq('patient_id', patientId);
-
         if (error) throw error;
     }
 
@@ -74,7 +81,6 @@ export class SupabaseNotificationRepository implements NotificationRepository {
             .select('*', { count: 'exact', head: true })
             .eq('patient_id', patientId)
             .eq('is_read', false);
-
         if (error) throw error;
         return count ?? 0;
     }
@@ -86,7 +92,6 @@ export class SupabaseNotificationRepository implements NotificationRepository {
             .eq('id', notificationId)
             .select('id')
             .maybeSingle();
-
         if (error) throw error;
         return !!data;
     }

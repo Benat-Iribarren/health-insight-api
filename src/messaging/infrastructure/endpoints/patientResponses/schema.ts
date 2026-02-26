@@ -20,6 +20,7 @@ const responseItemSchema = {
         message_id: { type: 'string' },
         is_read: { type: 'boolean' },
         created_at: { type: 'string' },
+        message: { type: 'string' }
     },
 };
 
