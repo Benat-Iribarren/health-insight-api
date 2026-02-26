@@ -40,7 +40,7 @@ export function build(): FastifyInstance {
             if (allowedOrigins.includes(origin)) return cb(null, true);
             return cb(new Error('Not allowed by CORS'), false);
         },
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', "PATCH"],
         allowedHeaders: ['Content-Type', 'Authorization'],
         maxAge: 86400,
     });
