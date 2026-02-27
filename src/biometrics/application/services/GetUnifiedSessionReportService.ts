@@ -89,13 +89,21 @@ export class GetUnifiedSessionReportService {
         const sessionStartMs = new Date(sessionStartIso).getTime();
         const sessionEndMs = new Date(sessionEndIso).getTime();
 
-        const preInt = intervals
-            .filter((i) => i.context_type === 'dashboard' && new Date(i.end_minute_utc).getTime() <= sessionStartMs)
+        const MAX_GAP_MS = 2 * 60 * 1000;
+
+        const preIntCandidate = intervals
+            .filter((i) => i.context_type === 'dashboard' && new Date(i.end_minute_utc).getTime() <= sessionStartMs + MAX_GAP_MS)
             .sort((a, b) => new Date(b.end_minute_utc).getTime() - new Date(a.end_minute_utc).getTime())[0];
 
-        const postInt = intervals
-            .filter((i) => i.context_type === 'dashboard' && new Date(i.start_minute_utc).getTime() >= sessionEndMs)
+        const isValidPre = preIntCandidate && (Math.abs(sessionStartMs - new Date(preIntCandidate.end_minute_utc).getTime()) <= MAX_GAP_MS);
+        const preInt = isValidPre ? preIntCandidate : undefined;
+
+        const postIntCandidate = intervals
+            .filter((i) => i.context_type === 'dashboard' && new Date(i.start_minute_utc).getTime() >= sessionEndMs - MAX_GAP_MS)
             .sort((a, b) => new Date(a.start_minute_utc).getTime() - new Date(b.start_minute_utc).getTime())[0];
+
+        const isValidPost = postIntCandidate && (Math.abs(new Date(postIntCandidate.start_minute_utc).getTime() - sessionEndMs) <= MAX_GAP_MS);
+        const postInt = isValidPost ? postIntCandidate : undefined;
 
         const limitStartMs = preInt ? new Date(preInt.start_minute_utc).getTime() : sessionStartMs;
         const limitEndMs = postInt ? new Date(postInt.end_minute_utc).getTime() : sessionEndMs;

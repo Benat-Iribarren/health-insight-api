@@ -23,11 +23,16 @@ export class RegisterPresenceMinuteService {
             const last = await this.repository.findLatestByPatient(params.patientId);
 
             if (last && last.contextType === params.contextType && last.sessionId === params.sessionId) {
-                if (new Date(endMinute) > new Date(last.endMinuteUtc)) {
-                    const updated = await this.repository.extendInterval(last.id, endMinute);
-                    return { intervalId: updated.id, action: 'extended' };
+                const lastEndMs = new Date(last.endMinuteUtc).getTime();
+                const currentMs = minute.getTime();
+
+                if (currentMs - lastEndMs <= 60000 && currentMs >= lastEndMs - 60000) {
+                    if (new Date(endMinute) > new Date(last.endMinuteUtc)) {
+                        const updated = await this.repository.extendInterval(last.id, endMinute);
+                        return { intervalId: updated.id, action: 'extended' };
+                    }
+                    return { intervalId: last.id, action: 'idempotent_no_change' };
                 }
-                return { intervalId: last.id, action: 'idempotent_no_change' };
             }
 
             const created = await this.repository.createInterval({
