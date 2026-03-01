@@ -1,98 +1,100 @@
-import { MailRepository } from '../../domain/interfaces/MailRepository';
-import { NotificationRepository } from '../../domain/interfaces/NotificationRepository';
-import { StatsRepository, PatientStats } from '../../domain/interfaces/StatsRepository';
-import { MailTemplateProvider } from '../../domain/interfaces/MailTemplateProvider';
+import { StatsRepository } from '../../domain/interfaces/StatsRepository';
 import { PatientContactRepository } from '../../domain/interfaces/PatientContactRepository';
 import { WeeklyDashboardImageGenerator } from '../../domain/interfaces/WeeklyDashboardImageGenerator';
-import { SendWeeklyStatsError } from '../types/SendWeeklyStatsError';
+import { MailTemplateProvider } from '../../domain/interfaces/MailTemplateProvider';
+import { MailRepository } from '../../domain/interfaces/MailRepository';
+import { SendWeeklyStatsError, invalidInputError, noEmailError, operationFailedError } from '../types/SendWeeklyStatsError';
+import { buildWeeklyInlineImageCid, deriveWeeklySummary, isValidOptionalPatientId } from '../../domain/logic/weeklyStatsEmail';
 
-export async function SendWeeklyStatsService(
-    statsRepo: StatsRepository,
-    mailRepo: MailRepository,
-    notificationRepo: NotificationRepository,
-    patientContactRepo: PatientContactRepository,
-    templateProvider: MailTemplateProvider,
-    imageGenerator: WeeklyDashboardImageGenerator,
-    patientId?: number
-): Promise<{ status: 'SUCCESSFUL' | SendWeeklyStatsError; processedCount: number }> {
-    let patientsData: PatientStats[];
-    if (patientId !== undefined) {
+export type WeeklySendResult = {
+    sent: number;
+    skippedNoEmail: number;
+};
+
+export class SendWeeklyStatsService {
+    constructor(
+        private readonly statsRepository: StatsRepository,
+        private readonly contactRepository: PatientContactRepository,
+        private readonly imageGenerator: WeeklyDashboardImageGenerator,
+        private readonly templateProvider: MailTemplateProvider,
+        private readonly mailRepository: MailRepository
+    ) {}
+
+    async execute(input: { patientId?: number }): Promise<WeeklySendResult | SendWeeklyStatsError> {
         try {
-            const patient = await statsRepo.getWeeklyStats(patientId);
-            patientsData = [patient];
+            if (!isValidOptionalPatientId(input.patientId)) return invalidInputError;
+
+            const imageCid = buildWeeklyInlineImageCid();
+
+            if (input.patientId !== undefined) {
+                const contact = await this.contactRepository.getPatientContact(input.patientId);
+                if (!contact.email) return noEmailError;
+
+                const stats = await this.statsRepository.getWeeklyStats(input.patientId);
+                const summary = deriveWeeklySummary(stats);
+                const image = await this.imageGenerator.generateWeeklyDashboardImage({ patientId: input.patientId });
+
+                const rendered = this.templateProvider.renderWeeklyStats({
+                    ...summary,
+                    name: contact.name ?? summary.name,
+                });
+
+                await this.mailRepository.sendMail({
+                    to: contact.email,
+                    subject: 'Resumen semanal',
+                    html: rendered,
+                    inlineAttachments: [
+                        {
+                            filename: 'stats.png',
+                            contentType: image.contentType,
+                            contentId: imageCid,
+                            content: image.buffer,
+                        },
+                    ],
+                });
+
+                return { sent: 1, skippedNoEmail: 0 };
+            }
+
+            const contacts = await this.contactRepository.getAllPatientsContacts();
+            let sent = 0;
+            let skippedNoEmail = 0;
+
+            for (const c of contacts) {
+                if (!c.email) {
+                    skippedNoEmail += 1;
+                    continue;
+                }
+
+                const stats = await this.statsRepository.getWeeklyStats(c.id);
+                const summary = deriveWeeklySummary(stats);
+                const image = await this.imageGenerator.generateWeeklyDashboardImage({ patientId: c.id });
+
+                const rendered = this.templateProvider.renderWeeklyStats({
+                    ...summary,
+                    name: c.name ?? summary.name,
+                });
+
+                await this.mailRepository.sendMail({
+                    to: c.email,
+                    subject: 'Resumen semanal',
+                    html: rendered,
+                    inlineAttachments: [
+                        {
+                            filename: 'stats.png',
+                            contentType: image.contentType,
+                            contentId: imageCid,
+                            content: image.buffer,
+                        },
+                    ],
+                });
+
+                sent += 1;
+            }
+
+            return { sent, skippedNoEmail };
         } catch {
-            return { status: 'NO_DATA', processedCount: 0 };
-        }
-    } else {
-        patientsData = await statsRepo.getAllPatientsStats();
-    }
-
-    let processedCount = 0;
-    const filteredPatients = patientsData;
-
-    if (filteredPatients.length === 0) return { status: 'NO_DATA', processedCount: 0 };
-
-    for (const patient of filteredPatients) {
-        const id = patient.id;
-        if (!id) continue;
-
-        const email = patient.email ?? (await patientContactRepo.getEmailByPatientId(id));
-        if (!email) continue;
-
-        const counters = calculateWeeklyCounters(patient);
-
-        const pendingCount = await notificationRepo.getPendingCount(id);
-
-        const imageBuffer = await imageGenerator.generateWeeklyDashboard({
-            completed: counters.completed,
-            inProgress: counters.inProgress,
-            notStarted: counters.notStarted,
-        });
-
-        const htmlContent = templateProvider.renderWeeklyStats({
-            completed: counters.completed,
-            inProgress: counters.inProgress,
-            pending: counters.notStarted,
-            nextWeekSessions: counters.nextWeekSessions,
-            name: patient.name || 'Paciente',
-        });
-
-        const sendResult = await mailRepo.send(email, 'Tu resumen semanal de salud', htmlContent, pendingCount, imageBuffer);
-
-        if (!sendResult.success) return { status: 'SUCCESSFUL', processedCount };
-
-        processedCount++;
-    }
-
-    return { status: 'SUCCESSFUL', processedCount };}
-
-function calculateWeeklyCounters(patient: PatientStats): {
-    completed: number;
-    inProgress: number;
-    notStarted: number;
-    nextWeekSessions: number;
-} {
-    const now = new Date();
-    const nextWeek = new Date(now.getTime());
-    nextWeek.setDate(now.getDate() + 7);
-
-    let completed = 0;
-    let inProgress = 0;
-    let notStarted = 0;
-    let nextWeekSessions = 0;
-
-    const sessions = patient.sessions ?? [];
-    for (const s of sessions) {
-        const sessionDate = new Date(s.scheduled_at);
-
-        if (sessionDate <= now) {
-            if (s.state === 'completed') completed += 1;
-            else if (s.state === 'in_progress') inProgress += 1;
-            else notStarted += 1;
-        } else if (sessionDate > now && sessionDate <= nextWeek) {
-            nextWeekSessions += 1;
+            return operationFailedError;
         }
     }
-
-    return { completed, inProgress, notStarted, nextWeekSessions };
 }

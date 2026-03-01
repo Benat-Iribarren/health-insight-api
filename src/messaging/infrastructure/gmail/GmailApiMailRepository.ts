@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { MailRepository } from '../../domain/interfaces/MailRepository';
+import { InlineAttachment, MailRepository } from '../../domain/interfaces/MailRepository';
 
 export class GmailApiMailRepository implements MailRepository {
     private oauth2Client;
@@ -8,10 +8,11 @@ export class GmailApiMailRepository implements MailRepository {
         this.oauth2Client = new google.auth.OAuth2(
             process.env.GMAIL_CLIENT_ID,
             process.env.GMAIL_CLIENT_SECRET,
-            "https://developers.google.com/oauthplayground"
+            'https://developers.google.com/oauthplayground'
         );
+
         this.oauth2Client.setCredentials({
-            refresh_token: process.env.GMAIL_REFRESH_TOKEN
+            refresh_token: process.env.GMAIL_REFRESH_TOKEN,
         });
     }
 
@@ -44,14 +45,20 @@ export class GmailApiMailRepository implements MailRepository {
         </table>`;
     }
 
-    async send(to: string, subject: string, content: string, pendingCount: number, attachment?: Buffer): Promise<{ success: boolean }> {
+    async sendMail(input: {
+        to: string;
+        subject: string;
+        html: string;
+        inlineAttachments?: InlineAttachment[];
+    }): Promise<void> {
         const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
-        const htmlContent = this.getMasterLayout(content);
-        const boundary = "__boundary_string__";
-        const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
+
+        const boundary = '__boundary_string__';
+        const htmlContent = this.getMasterLayout(input.html);
+        const utf8Subject = `=?utf-8?B?${Buffer.from(input.subject).toString('base64')}?=`;
 
         let rawMessage = [
-            `To: ${to}`,
+            `To: ${input.to}`,
             `Subject: ${utf8Subject}`,
             `MIME-Version: 1.0`,
             `Content-Type: multipart/related; boundary="${boundary}"`,
@@ -61,19 +68,19 @@ export class GmailApiMailRepository implements MailRepository {
             `Content-Transfer-Encoding: base64`,
             '',
             Buffer.from(htmlContent).toString('base64'),
-            ''
+            '',
         ].join('\r\n');
 
-        if (attachment) {
+        for (const a of input.inlineAttachments ?? []) {
             rawMessage += [
                 `--${boundary}`,
-                `Content-Type: image/png`,
+                `Content-Type: ${a.contentType}`,
                 `Content-Transfer-Encoding: base64`,
-                `Content-ID: <stats>`,
-                `Content-Disposition: inline; filename="stats.png"`,
+                `Content-ID: <${a.contentId}>`,
+                `Content-Disposition: inline; filename="${a.filename}"`,
                 '',
-                attachment.toString('base64'),
-                ''
+                a.content.toString('base64'),
+                '',
             ].join('\r\n');
         }
 
@@ -85,11 +92,9 @@ export class GmailApiMailRepository implements MailRepository {
             .replace(/\//g, '_')
             .replace(/=+$/, '');
 
-        try {
-            await gmail.users.messages.send({ userId: 'me', requestBody: { raw: encodedMessage } });
-            return { success: true };
-        } catch (error) {
-            return { success: false };
-        }
+        await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: { raw: encodedMessage },
+        });
     }
 }

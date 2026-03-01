@@ -1,5 +1,6 @@
 import { PresenceIntervalRepository } from '../../domain/interfaces/PresenceIntervalRepository';
 import { BiometricsError, invalidInputError, unknownError } from '../types/BiometricsError';
+import { decidePresenceMinute, isValidUtcMinute } from '../../domain/logic/presenceMinutePolicy';
 
 type Params = {
     patientId: number;
@@ -14,34 +15,37 @@ export class RegisterPresenceMinuteService {
     async execute(params: Params): Promise<{ intervalId: number; action: string } | BiometricsError> {
         const minute = params.minuteTsUtc ? new Date(params.minuteTsUtc) : new Date();
 
-        if (Number.isNaN(minute.getTime()) || minute.getUTCSeconds() !== 0 || minute.getUTCMilliseconds() !== 0) {
-            return invalidInputError;
-        }
+        if (!isValidUtcMinute(minute)) return invalidInputError;
 
         try {
-            const endMinute = new Date(minute.getTime() + 60000).toISOString();
             const last = await this.repository.findLatestByPatient(params.patientId);
 
-            if (last && last.contextType === params.contextType && last.sessionId === params.sessionId) {
-                const lastEndMs = new Date(last.endMinuteUtc).getTime();
-                const currentMs = minute.getTime();
+            const decision = decidePresenceMinute(last ?? null, {
+                patientId: params.patientId,
+                minute,
+                contextType: params.contextType,
+                sessionId: params.sessionId,
+            });
 
-                if (currentMs - lastEndMs <= 60000 && currentMs >= lastEndMs - 60000) {
-                    if (new Date(endMinute) > new Date(last.endMinuteUtc)) {
-                        const updated = await this.repository.extendInterval(last.id, endMinute);
-                        return { intervalId: updated.id, action: 'extended' };
-                    }
-                    return { intervalId: last.id, action: 'idempotent_no_change' };
-                }
+            if (decision.kind === 'extend') {
+                const updated = await this.repository.extendInterval(
+                    decision.intervalId,
+                    decision.newEndIso
+                );
+                return { intervalId: updated.id, action: 'extended' };
+            }
+
+            if (decision.kind === 'idempotent') {
+                return { intervalId: decision.intervalId, action: 'idempotentNoChange' };
             }
 
             const created = await this.repository.createInterval({
                 patientId: params.patientId,
                 contextType: params.contextType,
                 sessionId: params.sessionId,
-                startMinuteUtc: minute.toISOString(),
-                endMinuteUtc: endMinute,
-                attemptNo: params.contextType === 'session' ? 1 : null
+                startMinuteUtc: decision.startIso,
+                endMinuteUtc: decision.endIso,
+                attemptNo: decision.attemptNo,
             });
 
             return { intervalId: created.id, action: 'created' };

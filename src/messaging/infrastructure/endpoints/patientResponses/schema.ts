@@ -1,44 +1,40 @@
 import { errorSchema } from '@common/infrastructure/endpoints/errorSchema';
 
-const responseIdParamsSchema = {
+const responseItem = {
     type: 'object',
     additionalProperties: false,
-    required: ['responseId'],
-    properties: {
-        responseId: { type: 'string', minLength: 1 },
-    },
-};
-
-const responseItemSchema = {
-    type: 'object',
-    additionalProperties: false,
-    required: ['id', 'patient_id', 'subject', 'message_id', 'is_read', 'created_at'],
+    required: ['id', 'patientId', 'subject', 'messageId', 'isRead', 'createdAt', 'message'],
     properties: {
         id: { type: 'string' },
-        patient_id: { type: 'number' },
+        patientId: { type: 'number' },
         subject: { type: 'string' },
-        message_id: { type: 'string' },
-        is_read: { type: 'boolean' },
-        created_at: { type: 'string' },
-        message: { type: 'string' }
+        messageId: { type: 'string' },
+        isRead: { type: 'boolean' },
+        createdAt: { type: 'string' },
+        message: { type: 'string' },
     },
 };
 
 export const getResponsesSchema = {
     schema: {
         response: {
-            200: {
-                type: 'array',
-                items: responseItemSchema,
-            },
+            200: { type: 'array', items: responseItem },
+            400: errorSchema,
             401: errorSchema,
+            404: errorSchema,
             500: errorSchema,
         },
     },
 };
+
 export const markResponseAsReadSchema = {
     schema: {
-        params: responseIdParamsSchema,
+        params: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['responseId'],
+            properties: { responseId: { type: 'string' } },
+        },
         response: {
             200: {
                 type: 'object',
@@ -56,7 +52,12 @@ export const markResponseAsReadSchema = {
 
 export const deleteResponseSchema = {
     schema: {
-        params: responseIdParamsSchema,
+        params: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['responseId'],
+            properties: { responseId: { type: 'string' } },
+        },
         response: {
             200: {
                 type: 'object',

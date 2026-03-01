@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { supabaseClient } from '@src/common/infrastructure/database/supabaseClient';
-import { SupabasePresenceIntervalRepository } from '../../database/SupabasePresenceIntervalRepository';
+import { SupabasePresenceIntervalRepository } from '../../database/repositories/SupabasePresenceIntervalRepository';
 import { RegisterPresenceMinuteService } from '@src/biometrics/application/services/RegisterPresenceMinuteService';
 import { BiometricsError } from '../../../application/types/BiometricsError';
 import { presenceMinuteSchema } from './schema';

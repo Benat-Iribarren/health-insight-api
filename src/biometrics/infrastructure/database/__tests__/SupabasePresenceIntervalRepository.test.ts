@@ -1,6 +1,6 @@
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 import { initBiometricsTestDatabase } from '@common/infrastructure/database/test-seeds/biometrics.seed';
-import { SupabasePresenceIntervalRepository } from '../SupabasePresenceIntervalRepository';
+import { SupabasePresenceIntervalRepository } from '../repositories/SupabasePresenceIntervalRepository';
 
 describe('Integration | SupabasePresenceIntervalRepository', () => {
     const repo = new SupabasePresenceIntervalRepository(supabaseClient);

@@ -7,5 +7,5 @@ export interface PresenceInterval {
     sessionId: number | null;
     startMinuteUtc: string;
     endMinuteUtc: string;
-    attemptNo?: number | null;
+    attemptNo: number | null;
 }

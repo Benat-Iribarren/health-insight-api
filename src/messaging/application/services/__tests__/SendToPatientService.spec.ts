@@ -1,35 +1,67 @@
 import { SendToPatientService } from '../SendToPatientService';
-import { PatientContactRepository } from '../../../domain/interfaces/PatientContactRepository';
-import { MailRepository } from '../../../domain/interfaces/MailRepository';
-import { NotificationRepository } from '../../../domain/interfaces/NotificationRepository';
-import { MailTemplateProvider } from '../../../domain/interfaces/MailTemplateProvider';
+import { invalidInputError, noEmailError, operationFailedError } from '../../types/SendToPatientError';
 
 describe('Unit | SendToPatientService', () => {
-    const contactRepo = { getEmailByPatientId: jest.fn() } as unknown as jest.Mocked<PatientContactRepository>;
-    const mailRepo = { send: jest.fn() } as unknown as jest.Mocked<MailRepository>;
-    const notifyRepo = { saveNotification: jest.fn(), getPendingCount: jest.fn() } as unknown as jest.Mocked<NotificationRepository>;
-    const template = { renderMessageNotification: jest.fn() } as unknown as jest.Mocked<MailTemplateProvider>;
-
-    it('returns PATIENT_NOT_FOUND if contact email is missing', async () => {
-        contactRepo.getEmailByPatientId.mockResolvedValue(null);
-        const result = await SendToPatientService(contactRepo, mailRepo, notifyRepo, template, 1, 'S', 'B');
-        expect(result).toBe('PATIENT_NOT_FOUND');
+    const makeNotificationRepo = () => ({
+        create: jest.fn(),
     });
 
-    it('returns SEND_FAILED when saveNotification throws', async () => {
-        contactRepo.getEmailByPatientId.mockResolvedValue('test@test.com');
-        notifyRepo.saveNotification.mockRejectedValue(new Error('DB Error'));
-        const result = await SendToPatientService(contactRepo, mailRepo, notifyRepo, template, 1, 'S', 'B');
-        expect(result).toBe('SEND_FAILED');
+    const makeContactRepo = () => ({
+        getPatientContact: jest.fn(),
     });
 
-    it('returns SEND_FAILED when mail service fails', async () => {
-        contactRepo.getEmailByPatientId.mockResolvedValue('test@test.com');
-        notifyRepo.getPendingCount.mockResolvedValue(1);
-        template.renderMessageNotification.mockReturnValue('html');
-        mailRepo.send.mockResolvedValue({ success: false });
+    const makeMailRepo = () => ({
+        sendMail: jest.fn(),
+    });
 
-        const result = await SendToPatientService(contactRepo, mailRepo, notifyRepo, template, 1, 'S', 'B');
-        expect(result).toBe('SEND_FAILED');
+    test('returns INVALID_INPUT for invalid input', async () => {
+        const service = new SendToPatientService(makeNotificationRepo() as any, makeContactRepo() as any, makeMailRepo() as any);
+
+        const res = await service.execute({ patientId: 0, subject: '', content: '' });
+        expect(res).toBe(invalidInputError);
+    });
+
+    test('returns NO_EMAIL when contact has no email', async () => {
+        const notificationRepo = makeNotificationRepo();
+        const contactRepo = makeContactRepo();
+        const mailRepo = makeMailRepo();
+
+        notificationRepo.create.mockResolvedValue(undefined);
+        contactRepo.getPatientContact.mockResolvedValue({ id: 1, name: 'P', email: null });
+
+        const service = new SendToPatientService(notificationRepo as any, contactRepo as any, mailRepo as any);
+        const res = await service.execute({ patientId: 1, subject: 'S', content: '<p>x</p>' });
+
+        expect(res).toBe(noEmailError);
+        expect(mailRepo.sendMail).not.toHaveBeenCalled();
+    });
+
+    test('returns SUCCESSFUL when sent', async () => {
+        const notificationRepo = makeNotificationRepo();
+        const contactRepo = makeContactRepo();
+        const mailRepo = makeMailRepo();
+
+        notificationRepo.create.mockResolvedValue(undefined);
+        contactRepo.getPatientContact.mockResolvedValue({ id: 1, name: 'P', email: 'a@b.com' });
+        mailRepo.sendMail.mockResolvedValue(undefined);
+
+        const service = new SendToPatientService(notificationRepo as any, contactRepo as any, mailRepo as any);
+        const res = await service.execute({ patientId: 1, subject: 'S', content: '<p>x</p>' });
+
+        expect(res).toBe('SUCCESSFUL');
+        expect(mailRepo.sendMail).toHaveBeenCalledWith({ to: 'a@b.com', subject: 'S', html: '<p>x</p>' });
+    });
+
+    test('returns OPERATION_FAILED on exception', async () => {
+        const notificationRepo = makeNotificationRepo();
+        const contactRepo = makeContactRepo();
+        const mailRepo = makeMailRepo();
+
+        notificationRepo.create.mockRejectedValue(new Error('boom'));
+
+        const service = new SendToPatientService(notificationRepo as any, contactRepo as any, mailRepo as any);
+        const res = await service.execute({ patientId: 1, subject: 'S', content: 'x' });
+
+        expect(res).toBe(operationFailedError);
     });
 });

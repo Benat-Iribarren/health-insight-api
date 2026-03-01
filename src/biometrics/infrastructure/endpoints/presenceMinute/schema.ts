@@ -4,19 +4,21 @@ export const presenceMinuteSchema = {
     schema: {
         body: {
             type: 'object',
+            additionalProperties: false,
             properties: {
                 minuteTsUtc: { type: 'string' },
                 contextType: { type: 'string', enum: ['dashboard', 'session'] },
-                sessionId: { type: ['string', 'null'] },
+                sessionId: { type: ['number', 'null'] },
             },
             required: ['contextType'],
         },
         response: {
             200: {
                 type: 'object',
+                additionalProperties: false,
                 properties: {
                     action: { type: 'string' },
-                    intervalId: { type: 'string' },
+                    intervalId: { type: 'number' },
                     message: { type: 'string' },
                 },
                 required: ['action', 'intervalId', 'message'],

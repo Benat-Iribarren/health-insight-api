@@ -121,43 +121,7 @@ export type Database = {
           },
         ]
       }
-      Patient: {
-        Row: {
-          birth_date: string
-          created_at: string | null
-          email: string
-          gender: string
-          id: number
-          name: string
-          surname: string
-          user_id: string
-          username: string
-        }
-        Insert: {
-          birth_date: string
-          created_at?: string | null
-          email: string
-          gender: string
-          id?: never
-          name: string
-          surname: string
-          user_id: string
-          username: string
-        }
-        Update: {
-          birth_date?: string
-          created_at?: string | null
-          email?: string
-          gender?: string
-          id?: never
-          name?: string
-          surname?: string
-          user_id?: string
-          username?: string
-        }
-        Relationships: []
-      }
-      PatientNotifications: {
+      Notifications: {
         Row: {
           content: string
           created_at: string | null
@@ -195,47 +159,41 @@ export type Database = {
           },
         ]
       }
-      PatientResponses: {
+      Patient: {
         Row: {
-          created_at: string
-          id: string
-          is_read: boolean
-          message_id: string
-          patient_id: number
-          subject: string
+          birth_date: string
+          created_at: string | null
+          email: string
+          gender: string
+          id: number
+          name: string
+          surname: string
+          user_id: string
+          username: string
         }
         Insert: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          message_id: string
-          patient_id: number
-          subject: string
+          birth_date: string
+          created_at?: string | null
+          email: string
+          gender: string
+          id?: never
+          name: string
+          surname: string
+          user_id: string
+          username: string
         }
         Update: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          message_id?: string
-          patient_id?: number
-          subject?: string
+          birth_date?: string
+          created_at?: string | null
+          email?: string
+          gender?: string
+          id?: never
+          name?: string
+          surname?: string
+          user_id?: string
+          username?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_patientresponses_message"
-            columns: ["message_id"]
-            isOneToOne: true
-            referencedRelation: "PatientNotifications"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_patientresponses_patient"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "Patient"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       PatientSession: {
         Row: {
@@ -302,6 +260,48 @@ export type Database = {
           id?: number
         }
         Relationships: []
+      }
+      Responses: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message_id: string
+          patient_id: number
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_id: string
+          patient_id: number
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_id?: string
+          patient_id?: number
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_patientresponses_message"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "Notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_patientresponses_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "Patient"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       SecurityLogs: {
         Row: {

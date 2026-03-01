@@ -1,4 +1,4 @@
-import { SupabaseSessionMetricsRepository } from '../SupabaseSessionMetricsRepository';
+import { SupabaseSessionMetricsRepository } from '../repositories/SupabaseSessionMetricsRepository';
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 import { initBiometricsTestDatabase } from '@common/infrastructure/database/test-seeds/biometrics.seed';
 

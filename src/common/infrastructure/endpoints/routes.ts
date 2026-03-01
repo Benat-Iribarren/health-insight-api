@@ -9,18 +9,18 @@ import syncDailyBiometrics from '@src/biometrics/infrastructure/endpoints/syncDa
 import getSessionReport from '@src/biometrics/infrastructure/endpoints/getSessionReport/getSessionReport';
 
 import predictDropout from '@src/clinical-intelligence/infrastructure/endpoints/predictDropout/predictDropout';
-import { dropoutRepository } from '@src/clinical-intelligence/infrastructure/database/SupabaseDropoutRepository';
-
-import { SupabaseSessionMetricsRepository } from '@src/biometrics/infrastructure/database/SupabaseSessionMetricsRepository';
-import { SupabaseBiometricsRepository } from '@src/biometrics/infrastructure/database/SupabaseBiometricsRepository';
+import { SupabaseDropoutRepository } from '@src/clinical-intelligence/infrastructure/database/repositories/SupabaseDropoutRepository';
+import { SupabaseSessionMetricsRepository } from '@src/biometrics/infrastructure/database/repositories/SupabaseSessionMetricsRepository';
+import { SupabaseBiometricMinutesRepository } from '@src/biometrics/infrastructure/database/repositories/SupabaseBiometricMinutesRepository';
 
 import sendToPatient from '@src/messaging/infrastructure/endpoints/sendToPatient/sendToPatient';
 import sendWeeklyStats from '@src/messaging/infrastructure/endpoints/sendWeeklyStats/sendWeeklyStats';
 import patientNotifications from '@src/messaging/infrastructure/endpoints/patientNotifications/patientNotifications';
 
-import { SupabasePatientContactRepository } from '@src/messaging/infrastructure/database/SupabasePatientContactRepository';
-import { SupabaseStatsRepository } from '@src/messaging/infrastructure/database/SupabaseStatsRepository';
-import { SupabaseNotificationRepository } from '@src/messaging/infrastructure/database/SupabaseNotificationRepository';
+import { SupabasePatientContactRepository } from '@src/messaging/infrastructure/database/repositories/SupabasePatientContactRepository';
+import { SupabaseStatsRepository } from '@src/messaging/infrastructure/database/repositories/SupabaseStatsRepository';
+import { SupabaseNotificationRepository } from '@src/messaging/infrastructure/database/repositories/SupabaseNotificationRepository';
+import { SupabaseResponseRepository } from '@src/messaging/infrastructure/database/repositories/SupabaseResponseRepository';
 
 import { GmailApiMailRepository } from '@src/messaging/infrastructure/gmail/GmailApiMailRepository';
 import { HtmlMailTemplateProvider } from '@src/messaging/infrastructure/templates/HtmlMailTemplateProvider';
@@ -30,20 +30,18 @@ import { EmpaticaS3FileSource } from '@src/biometrics/infrastructure/aws/Empatic
 
 import respond from '@src/messaging/infrastructure/endpoints/respond/respond';
 import patientResponses from '@src/messaging/infrastructure/endpoints/patientResponses/patientResponses';
-import { SupabasePatientResponseRepository } from '@src/messaging/infrastructure/database/SupabasePatientResponseRepository';
 
 export function registerRoutes(fastify: FastifyInstance) {
     const userRepo = new SupabaseUserRepository(supabaseClient);
 
-    const dropoutRepo = dropoutRepository(supabaseClient);
+    const dropoutRepo = new SupabaseDropoutRepository(supabaseClient);
 
     const statsRepo = new SupabaseStatsRepository(supabaseClient);
     const patientContactRepo = new SupabasePatientContactRepository(supabaseClient);
     const notificationRepo = new SupabaseNotificationRepository(supabaseClient);
+    const responseRepo = new SupabaseResponseRepository(supabaseClient);
 
-    const patientResponseRepo = new SupabasePatientResponseRepository(supabaseClient);
-
-    const biometricsRepo = new SupabaseBiometricsRepository(supabaseClient);
+    const biometricsRepo = new SupabaseBiometricMinutesRepository(supabaseClient);
     const sessionMetricsRepo = new SupabaseSessionMetricsRepository(supabaseClient);
 
     const biometricsSource = new EmpaticaS3FileSource({
@@ -56,7 +54,7 @@ export function registerRoutes(fastify: FastifyInstance) {
 
     const mailRepo = new GmailApiMailRepository();
     const templateProvider = new HtmlMailTemplateProvider();
-    const imageGenerator = new HtmlImageGenerator();
+    const imageGenerator = new HtmlImageGenerator(statsRepo);
 
     const messagingDeps = {
         statsRepo,
@@ -80,7 +78,7 @@ export function registerRoutes(fastify: FastifyInstance) {
         professionalApp.register(predictDropout({ dropoutRepo }));
         professionalApp.register(sendToPatient(messagingDeps));
         professionalApp.register(getSessionReport({ sessionMetricsRepo }));
-        professionalApp.register(patientResponses({ patientResponseRepo, notificationRepo }));
+        professionalApp.register(patientResponses({ responseRepo, notificationRepo }));
     });
 
     fastify.register(async (patientApp) => {
@@ -90,7 +88,7 @@ export function registerRoutes(fastify: FastifyInstance) {
         patientApp.register(
             respond({
                 notificationRepo,
-                patientResponseRepo,
+                responseRepo,
             })
         );
     });

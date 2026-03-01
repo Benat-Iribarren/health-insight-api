@@ -1,3 +1,5 @@
+import { BiometricSample } from '../models/BiometricSample';
+
 export interface BiometricMinutesRepository {
-    upsertBiometricMinutes(rows: Array<Record<string, unknown>>): Promise<void>;
+    upsertBiometricMinutes(samples: BiometricSample[]): Promise<void>;
 }

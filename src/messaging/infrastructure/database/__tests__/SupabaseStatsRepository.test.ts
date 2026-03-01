@@ -1,4 +1,4 @@
-import { SupabaseStatsRepository } from '../SupabaseStatsRepository';
+import { SupabaseStatsRepository } from '../repositories/SupabaseStatsRepository';
 import { supabaseClient } from '@src/common/infrastructure/database/supabaseClient';
 import { initMessagingTestDatabase } from '@src/common/infrastructure/database/test-seeds/messaging.seed';
 

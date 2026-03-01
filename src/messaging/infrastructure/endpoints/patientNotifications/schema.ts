@@ -1,26 +1,23 @@
 import { errorSchema } from '@common/infrastructure/endpoints/errorSchema';
 
-const notificationProperties = {
-    id: { type: 'string' },
-    patient_id: { type: 'number' },
-    subject: { type: 'string' },
-    content: { type: 'string' },
-    is_read: { type: 'boolean' },
-    created_at: { type: 'string' },
+const notificationItem = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['id', 'patientId', 'subject', 'content', 'isRead', 'createdAt'],
+    properties: {
+        id: { type: 'string' },
+        patientId: { type: 'number' },
+        subject: { type: 'string' },
+        content: { type: 'string' },
+        isRead: { type: 'boolean' },
+        createdAt: { type: 'string' },
+    },
 };
 
 export const getNotificationsSchema = {
     schema: {
         response: {
-            200: {
-                type: 'array',
-                items: {
-                    type: 'object',
-                    additionalProperties: false,
-                    properties: notificationProperties,
-                    required: ['id', 'patient_id', 'subject', 'content', 'is_read', 'created_at'],
-                },
-            },
+            200: { type: 'array', items: notificationItem },
             400: errorSchema,
             401: errorSchema,
             404: errorSchema,
@@ -34,18 +31,11 @@ export const readNotificationSchema = {
         params: {
             type: 'object',
             additionalProperties: false,
-            properties: {
-                id: { type: 'string' },
-            },
             required: ['id'],
+            properties: { id: { type: 'string' } },
         },
         response: {
-            200: {
-                type: 'object',
-                additionalProperties: false,
-                properties: notificationProperties,
-                required: ['id', 'patient_id', 'subject', 'content', 'created_at'],
-            },
+            200: notificationItem,
             400: errorSchema,
             401: errorSchema,
             404: errorSchema,
@@ -59,20 +49,18 @@ export const deleteNotificationSchema = {
         params: {
             type: 'object',
             additionalProperties: false,
-            properties: {
-                id: { type: 'string' },
-            },
             required: ['id'],
+            properties: { id: { type: 'string' } },
         },
         response: {
             200: {
                 type: 'object',
                 additionalProperties: false,
+                required: ['id', 'message'],
                 properties: {
-                    message: { type: 'string' },
                     id: { type: 'string' },
+                    message: { type: 'string' },
                 },
-                required: ['message', 'id'],
             },
             400: errorSchema,
             401: errorSchema,
