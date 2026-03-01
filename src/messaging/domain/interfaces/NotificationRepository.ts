@@ -1,19 +1,12 @@
-export interface Notification {
-    id: string;
-    patient_id: number;
-    subject: string;
-    content: string;
-    is_read: boolean;
-    created_at: string;
-}
+import { Notification } from '../models/Notification';
 
 export interface NotificationRepository {
-    saveNotification(patientId: number, subject: string, content: string): Promise<void>;
-    getPatientNotifications(patientId: number): Promise<Notification[]>;
-    getNotificationDetail(patientId: number, notificationId: string): Promise<Notification | null>;
-    markAsRead(patientId: number, notificationId: string): Promise<void>;
-    markNotificationAsDeleted(patientId: number, notificationId: string): Promise<void>;
-    deleteNotification(notificationId: string): Promise<boolean>;
-    getPendingCount(patientId: number): Promise<number>;
-    getNotificationContents(notificationIds: string[]): Promise<Record<string, string>>;
+    create(input: { patientId: number; subject: string; content: string }): Promise<void>;
+    listByPatient(patientId: number): Promise<Notification[]>;
+    findByPatient(patientId: number, notificationId: string): Promise<Notification | null>;
+    markRead(patientId: number, notificationId: string): Promise<boolean>;
+    softDelete(patientId: number, notificationId: string): Promise<boolean>;
+    hardDelete(notificationId: string): Promise<boolean>;
+    pendingCount(patientId: number): Promise<number>;
+    getContentsByIds(notificationIds: string[]): Promise<Record<string, string>>;
 }

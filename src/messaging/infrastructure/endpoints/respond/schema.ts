@@ -5,33 +5,22 @@ export const respondSchema = {
         body: {
             type: 'object',
             additionalProperties: false,
-            required: ['subject', 'messageId'],
+            required: ['messageId', 'subject'],
             properties: {
-                subject: { type: 'string', minLength: 1 },
-                messageId: { type: 'string', minLength: 1 },
+                messageId: { type: 'string' },
+                subject: { type: 'string' },
             },
         },
         response: {
             200: {
                 type: 'object',
                 additionalProperties: false,
-                required: ['message', 'data'],
-                properties: {
-                    message: { type: 'string' },
-                    data: {
-                        type: 'object',
-                        additionalProperties: false,
-                        required: ['messageId', 'createdAt'],
-                        properties: {
-                            messageId: { type: 'string' },
-                            createdAt: { type: 'string' },
-                        },
-                    },
-                },
+                required: ['message'],
+                properties: { message: { type: 'string' } },
             },
             400: errorSchema,
-            404: errorSchema,
             401: errorSchema,
+            404: errorSchema,
             500: errorSchema,
         },
     },

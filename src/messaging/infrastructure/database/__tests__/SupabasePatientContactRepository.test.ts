@@ -1,4 +1,4 @@
-import { SupabasePatientContactRepository } from '../SupabasePatientContactRepository';
+import { SupabasePatientContactRepository } from '../repositories/SupabasePatientContactRepository';
 import { supabaseClient } from '@src/common/infrastructure/database/supabaseClient';
 import { initMessagingTestDatabase } from '@src/common/infrastructure/database/test-seeds/messaging.seed';
 

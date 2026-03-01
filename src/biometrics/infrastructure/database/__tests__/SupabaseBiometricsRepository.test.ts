@@ -1,9 +1,9 @@
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
-import { SupabaseBiometricsRepository } from '../SupabaseBiometricsRepository';
+import { SupabaseBiometricMinutesRepository } from '../repositories/SupabaseBiometricMinutesRepository';
 import { initBiometricsTestDatabase } from '@common/infrastructure/database/test-seeds/biometrics.seed';
 
 describe('Integration | SupabaseBiometricsRepository', () => {
-    const repo = new SupabaseBiometricsRepository(supabaseClient);
+    const repo = new SupabaseBiometricMinutesRepository(supabaseClient);
 
     it('upserts by timestamp_iso', async () => {
         const seed = await initBiometricsTestDatabase();

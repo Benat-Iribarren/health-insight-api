@@ -6,7 +6,7 @@ jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => 
     verifyPatient: () => async () => {},
 }));
 
-jest.mock('@src/biometrics/infrastructure/database/SupabaseSessionMetricsRepository', () => {
+jest.mock('@src/biometrics/infrastructure/database/repositories/SupabaseSessionMetricsRepository', () => {
     return {
         SupabaseSessionMetricsRepository: jest.fn().mockImplementation(() => ({
             getFullSessionContext: jest.fn().mockImplementation((pId, sId) => {

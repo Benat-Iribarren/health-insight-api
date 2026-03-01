@@ -1,4 +1,8 @@
+export const invalidInputError = 'INVALID_INPUT' as const;
+export const noEmailError = 'NO_EMAIL' as const;
+export const operationFailedError = 'OPERATION_FAILED' as const;
+
 export type SendToPatientError =
-    | 'INVALID_PATIENT_ID'
-    | 'PATIENT_NOT_FOUND'
-    | 'SEND_FAILED';
+    | typeof invalidInputError
+    | typeof noEmailError
+    | typeof operationFailedError;

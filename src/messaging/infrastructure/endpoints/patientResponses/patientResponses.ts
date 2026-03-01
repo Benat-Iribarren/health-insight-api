@@ -1,17 +1,14 @@
 import { FastifyInstance } from 'fastify';
-import { PatientResponseRepository } from '../../../domain/interfaces/PatientResponseRepository';
+import { ResponseRepository } from '../../../domain/interfaces/ResponseRepository';
 import { NotificationRepository } from '../../../domain/interfaces/NotificationRepository';
-import {
-    GetResponsesService,
-    ReadResponseService,
-    DeleteResponseService,
-    ManageResponsesError,
-} from '../../../application/services/ResponsesService';
+import { GetAllResponsesService } from '../../../application/services/GetAllResponsesService';
+import { MarkResponseAsReadService } from '../../../application/services/MarkResponseAsReadService';
+import { DeleteResponseService } from '../../../application/services/DeleteResponseService';
+import { ManageResponsesError } from '../../../application/types/ManageResponsesError';
 import { getResponsesSchema, markResponseAsReadSchema, deleteResponseSchema } from './schema';
 
 export const GET_RESPONSES_ENDPOINT = '/messaging/responses';
-export const MARK_RESPONSE_AS_READ_ENDPOINT = '/messaging/responses/:responseId';
-export const DELETE_RESPONSE_ENDPOINT = '/messaging/responses/:responseId';
+export const RESPONSE_BY_ID_ENDPOINT = '/messaging/responses/:responseId';
 
 type StatusCode = 200 | 400 | 404 | 500;
 
@@ -29,42 +26,34 @@ const statusToMessage: Record<ManageResponsesError, { error: string }> = {
 };
 
 interface PatientResponsesDependencies {
-    patientResponseRepo: PatientResponseRepository;
+    responseRepo: ResponseRepository;
     notificationRepo: NotificationRepository;
 }
 
-function patientResponses(dependencies: PatientResponsesDependencies) {
+function patientResponses(deps: PatientResponsesDependencies) {
     return async function (fastify: FastifyInstance) {
+        const getAll = new GetAllResponsesService(deps.responseRepo, deps.notificationRepo);
+        const markRead = new MarkResponseAsReadService(deps.responseRepo);
+        const del = new DeleteResponseService(deps.responseRepo, deps.notificationRepo);
+
         fastify.get(GET_RESPONSES_ENDPOINT, getResponsesSchema, async (_request, reply) => {
-            const result = await GetResponsesService(dependencies.patientResponseRepo, dependencies.notificationRepo);
-
-            if (typeof result === 'string') {
-                return reply.status(500).send({ error: 'Internal server error' });
-            }
-
-            return reply.status(200).send(result);
+            const result = await getAll.execute();
+            if (typeof result === 'string') return reply.status(statusToCode[result]).send(statusToMessage[result]);
+            return reply.status(statusToCode.SUCCESSFUL).send(result);
         });
 
-        fastify.patch(MARK_RESPONSE_AS_READ_ENDPOINT, markResponseAsReadSchema, async (request, reply) => {
+        fastify.patch(RESPONSE_BY_ID_ENDPOINT, markResponseAsReadSchema, async (request, reply) => {
             const { responseId } = request.params as { responseId: string };
-            const result = await ReadResponseService(dependencies.patientResponseRepo, responseId);
-            if (result !== 'SUCCESSFUL') {
-                return reply.status(statusToCode[result]).send(statusToMessage[result]);
-            }
-            return reply.status(statusToCode.SUCCESSFUL).send({ message: 'Response marked as read.' });
+            const result = await markRead.execute(responseId);
+            if (result !== 'SUCCESSFUL') return reply.status(statusToCode[result]).send(statusToMessage[result]);
+            return reply.status(statusToCode.SUCCESSFUL).send({ message: 'Marked as read' });
         });
 
-        fastify.delete(DELETE_RESPONSE_ENDPOINT, deleteResponseSchema, async (request, reply) => {
+        fastify.delete(RESPONSE_BY_ID_ENDPOINT, deleteResponseSchema, async (request, reply) => {
             const { responseId } = request.params as { responseId: string };
-            const result = await DeleteResponseService(
-                dependencies.notificationRepo,
-                dependencies.patientResponseRepo,
-                responseId
-            );
-            if (result !== 'SUCCESSFUL') {
-                return reply.status(statusToCode[result]).send(statusToMessage[result]);
-            }
-            return reply.status(statusToCode.SUCCESSFUL).send({ message: 'Response deleted.' });
+            const result = await del.execute(responseId);
+            if (result !== 'SUCCESSFUL') return reply.status(statusToCode[result]).send(statusToMessage[result]);
+            return reply.status(statusToCode.SUCCESSFUL).send({ message: 'Deleted successfully' });
         });
     };
 }

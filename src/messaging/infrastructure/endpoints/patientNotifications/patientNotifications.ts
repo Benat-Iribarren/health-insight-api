@@ -1,10 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { NotificationRepository } from '../../../domain/interfaces/NotificationRepository';
-import {
-    GetPatientInboxService,
-    ReadNotificationService,
-    DeleteNotificationService,
-} from '../../../application/services/ManageNotificationsService';
+import { GetPatientInboxService } from '../../../application/services/GetPatientInboxService';
+import { ReadNotificationService } from '../../../application/services/ReadNotificationService';
+import { DeleteNotificationService } from '../../../application/services/DeleteNotificationService';
 import { ManageNotificationsError } from '../../../application/types/ManageNotificationsError';
 import { getNotificationsSchema, readNotificationSchema, deleteNotificationSchema } from './schema';
 
@@ -32,35 +30,27 @@ interface NotificationsDependencies {
 
 function patientNotifications(dependencies: NotificationsDependencies) {
     return async function (fastify: FastifyInstance) {
+        const getInbox = new GetPatientInboxService(dependencies.notificationRepo);
+        const readNotification = new ReadNotificationService(dependencies.notificationRepo);
+        const deleteNotification = new DeleteNotificationService(dependencies.notificationRepo);
+
         fastify.get(GET_NOTIFICATIONS_ENDPOINT, getNotificationsSchema, async (request, reply) => {
-            const result = await GetPatientInboxService(dependencies.notificationRepo, request.auth!.patientId!);
-
-            if (typeof result === 'string') {
-                return reply.status(statusToCode[result]).send(statusToMessage[result]);
-            }
-
+            const result = await getInbox.execute(request.auth!.patientId!);
+            if (typeof result === 'string') return reply.status(statusToCode[result]).send(statusToMessage[result]);
             return reply.status(statusToCode.SUCCESSFUL).send(result);
         });
 
         fastify.patch(NOTIFICATION_BY_ID_ENDPOINT, readNotificationSchema, async (request, reply) => {
             const { id } = request.params as { id: string };
-            const result = await ReadNotificationService(dependencies.notificationRepo, request.auth!.patientId!, id);
-
-            if (typeof result === 'string') {
-                return reply.status(statusToCode[result]).send(statusToMessage[result]);
-            }
-
+            const result = await readNotification.execute({ patientId: request.auth!.patientId!, notificationId: id });
+            if (typeof result === 'string') return reply.status(statusToCode[result]).send(statusToMessage[result]);
             return reply.status(statusToCode.SUCCESSFUL).send(result);
         });
 
         fastify.delete(NOTIFICATION_BY_ID_ENDPOINT, deleteNotificationSchema, async (request, reply) => {
             const { id } = request.params as { id: string };
-            const result = await DeleteNotificationService(dependencies.notificationRepo, request.auth!.patientId!, id);
-
-            if (result !== 'SUCCESSFUL') {
-                return reply.status(statusToCode[result]).send(statusToMessage[result]);
-            }
-
+            const result = await deleteNotification.execute({ patientId: request.auth!.patientId!, notificationId: id });
+            if (result !== 'SUCCESSFUL') return reply.status(statusToCode[result]).send(statusToMessage[result]);
             return reply.status(statusToCode.SUCCESSFUL).send({ id, message: 'Notification deleted successfully' });
         });
     };

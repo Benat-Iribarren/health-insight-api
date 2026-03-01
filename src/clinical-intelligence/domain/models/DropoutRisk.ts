@@ -1,8 +1,10 @@
+export type DropoutStatus = 'CRITICAL' | 'MODERATE' | 'LOW';
+
 export interface DropoutRisk {
-    patientId: string;
+    patientId: number;
     name: string;
     riskScore: number;
-    status: 'CRITICAL' | 'MODERATE' | 'LOW';
+    status: DropoutStatus;
     bufferDays: number;
     factors: string[];
 }

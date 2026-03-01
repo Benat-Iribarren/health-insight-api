@@ -1,3 +1,4 @@
 export interface PatientContactRepository {
-    getEmailByPatientId(patientId: number): Promise<string | null>;
+    getPatientContact(patientId: number): Promise<{ email: string | null; name: string | null }>;
+    getAllPatientsContacts(): Promise<Array<{ id: number; email: string | null; name: string | null }>>;
 }

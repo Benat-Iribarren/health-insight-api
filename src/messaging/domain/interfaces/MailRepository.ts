@@ -1,9 +1,15 @@
+export type InlineAttachment = {
+    filename: string;
+    contentType: string;
+    contentId: string;
+    content: Buffer;
+};
+
 export interface MailRepository {
-    send(
-        to: string,
-        subject: string,
-        content: string,
-        pendingCount: number,
-        attachment?: Buffer
-    ): Promise<{ success: boolean }>;
+    sendMail(input: {
+        to: string;
+        subject: string;
+        html: string;
+        inlineAttachments?: InlineAttachment[];
+    }): Promise<void>;
 }

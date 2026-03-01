@@ -1,29 +1,44 @@
+import { NotificationRepository } from '../../domain/interfaces/NotificationRepository';
 import { PatientContactRepository } from '../../domain/interfaces/PatientContactRepository';
 import { MailRepository } from '../../domain/interfaces/MailRepository';
-import { NotificationRepository } from '../../domain/interfaces/NotificationRepository';
 import { MailTemplateProvider } from '../../domain/interfaces/MailTemplateProvider';
-import { SendToPatientError } from '../types/SendToPatientError';
+import { SendToPatientError, invalidInputError, noEmailError, operationFailedError } from '../types/SendToPatientError';
+import { isValidSendToPatientInput } from '../../domain/logic/sendToPatientPolicy';
 
-export async function SendToPatientService(
-    patientContactRepo: PatientContactRepository,
-    mailRepo: MailRepository,
-    notificationRepo: NotificationRepository,
-    templateProvider: MailTemplateProvider,
-    patientId: number,
-    subject: string,
-    body: string
-): Promise<'SUCCESSFUL' | SendToPatientError> {
-    const email = await patientContactRepo.getEmailByPatientId(patientId);
-    if (!email) return 'PATIENT_NOT_FOUND';
+export class SendToPatientService {
+    constructor(
+        private readonly notificationRepository: NotificationRepository,
+        private readonly contactRepository: PatientContactRepository,
+        private readonly mailRepository: MailRepository,
+        private readonly templateProvider: MailTemplateProvider
+    ) {}
 
-    try {
-        await notificationRepo.saveNotification(patientId, subject, body);
-        const pendingCount = await notificationRepo.getPendingCount(patientId);
-        const htmlContent = templateProvider.renderMessageNotification(pendingCount);
+    async execute(input: { patientId: number; subject: string; content: string }): Promise<'SUCCESSFUL' | SendToPatientError> {
+        if (!isValidSendToPatientInput(input)) return invalidInputError;
 
-        const result = await mailRepo.send(email, subject, htmlContent, pendingCount);
-        return result.success ? 'SUCCESSFUL' : 'SEND_FAILED';
-    } catch (error) {
-        return 'SEND_FAILED';
+        try {
+            await this.notificationRepository.create({
+                patientId: input.patientId,
+                subject: input.subject,
+                content: input.content,
+            });
+
+            const contact = await this.contactRepository.getPatientContact(input.patientId);
+            if (!contact.email) return noEmailError;
+
+            const pendingCount = await this.notificationRepository.pendingCount(input.patientId);
+
+            const emailHtml = this.templateProvider.renderMessageNotification(pendingCount);
+
+            await this.mailRepository.sendMail({
+                to: contact.email,
+                subject: input.subject,
+                html: emailHtml,
+            });
+
+            return 'SUCCESSFUL';
+        } catch {
+            return operationFailedError;
+        }
     }
 }

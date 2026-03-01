@@ -18,7 +18,7 @@ export async function teardownPatientData(
 
       await supabaseClient.from('ContextIntervals').delete().eq('patient_id', patientId);
 
-      await supabaseClient.from('PatientNotifications').delete().eq('patient_id', patientId);
+      await supabaseClient.from('Notifications').delete().eq('patient_id', patientId);
 
       await supabaseClient.from('SecurityLogs').delete().eq('patient_id', patientId);
     }

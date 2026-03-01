@@ -1,136 +1,121 @@
 import { errorSchema } from '@common/infrastructure/endpoints/errorSchema';
 
-const biometricMinuteProperties = {
-    timestamp_iso: { type: 'string' },
-    timestamp_unix_ms: { type: 'number' },
-    pulse_rate_bpm: { type: ['number', 'null'] },
-    eda_scl_usiemens: { type: ['number', 'null'] },
-    temperature_celsius: { type: ['number', 'null'] },
-    accel_std_g: { type: ['number', 'null'] },
-    respiratory_rate_brpm: { type: ['number', 'null'] },
-    body_position_type: { type: ['string', 'null'] },
+const biometricDetailProperties = {
+    timestampIso: { type: 'string' },
+    timestampUnixMs: { type: 'number' },
+    pulseRateBpm: { type: ['number', 'null'] },
+    edaSclUsiemens: { type: ['number', 'null'] },
+    temperatureCelsius: { type: ['number', 'null'] },
+    accelStdG: { type: ['number', 'null'] },
+    respiratoryRateBrpm: { type: ['number', 'null'] },
+    bodyPositionType: { type: ['string', 'null'] },
+};
+
+const statsSchema = {
+    type: 'object',
+    properties: { avg: { type: 'number' }, max: { type: 'number' }, min: { type: 'number' } },
+    required: ['avg', 'max', 'min'],
+    additionalProperties: false,
 };
 
 const summaryMetricSchema = {
     type: 'object',
-    properties: {
-        pre: {
-            type: 'object',
-            properties: { avg: { type: 'number' }, max: { type: 'number' }, min: { type: 'number' } },
-            required: ['avg', 'max', 'min'],
-            additionalProperties: false,
-        },
-        session: {
-            type: 'object',
-            properties: { avg: { type: 'number' }, max: { type: 'number' }, min: { type: 'number' } },
-            required: ['avg', 'max', 'min'],
-            additionalProperties: false,
-        },
-        post: {
-            type: 'object',
-            properties: { avg: { type: 'number' }, max: { type: 'number' }, min: { type: 'number' } },
-            required: ['avg', 'max', 'min'],
-            additionalProperties: false,
-        },
-    },
+    properties: { pre: statsSchema, session: statsSchema, post: statsSchema },
     required: ['pre', 'session', 'post'],
     additionalProperties: false,
 };
 
-const reportSchema = {
+const metricSummarySchema = {
     type: 'object',
     properties: {
-        session_id: { type: 'string' },
-        state: { type: 'string' },
-        dizziness_percentage: { type: 'number' },
-        no_biometrics: { type: 'boolean' },
-        subjective_analysis: {
-            type: 'object',
-            properties: {
-                pre_evaluation: { type: 'number' },
-                post_evaluation: { type: 'number' },
-                delta: { type: 'number' },
-            },
-            required: ['pre_evaluation', 'post_evaluation', 'delta'],
-            additionalProperties: false,
-        },
-        objective_analysis: {
-            type: 'object',
-            properties: {
-                summary: {
-                    type: 'object',
-                    properties: {
-                        eda_scl_usiemens: summaryMetricSchema,
-                        pulse_rate_bpm: summaryMetricSchema,
-                        temperature_celsius: summaryMetricSchema,
-                    },
-                    additionalProperties: false,
-                },
-                biometric_details: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: biometricMinuteProperties,
-                        required: ['timestamp_iso', 'timestamp_unix_ms'],
-                        additionalProperties: false,
-                    },
-                },
-            },
-            required: ['summary', 'biometric_details'],
-            additionalProperties: false,
-        },
+        edaSclUsiemens: summaryMetricSchema,
+        pulseRateBpm: summaryMetricSchema,
+        temperatureCelsius: summaryMetricSchema,
     },
-    required: ['session_id', 'state', 'dizziness_percentage', 'subjective_analysis', 'objective_analysis'],
+    required: ['edaSclUsiemens', 'pulseRateBpm', 'temperatureCelsius'],
     additionalProperties: false,
 };
 
-const paginationMetaSchema = {
+const unifiedSessionReportSchema = {
     type: 'object',
+    additionalProperties: false,
+    required: ['sessionId', 'state', 'dizzinessPercentage', 'subjectiveAnalysis', 'objectiveAnalysis'],
     properties: {
-        total: { type: 'number' },
-        page: { type: 'number' },
-        limit: { type: 'number' }
+        sessionId: { type: 'string' },
+        state: { type: 'string' },
+        dizzinessPercentage: { type: 'number' },
+        noBiometrics: { type: 'boolean' },
+        subjectiveAnalysis: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['preEvaluation', 'postEvaluation', 'delta'],
+            properties: {
+                preEvaluation: { type: 'number' },
+                postEvaluation: { type: 'number' },
+                delta: { type: 'number' },
+            },
+        },
+        objectiveAnalysis: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['summary', 'biometricDetails'],
+            properties: {
+                summary: { anyOf: [metricSummarySchema, { type: 'object', additionalProperties: false, properties: {} }] },
+                biometricDetails: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        additionalProperties: false,
+                        properties: biometricDetailProperties,
+                        required: Object.keys(biometricDetailProperties),
+                    },
+                },
+            },
+        },
     },
-    required: ['total', 'page', 'limit'],
-    additionalProperties: false
 };
 
 export const getSessionReportSchema = {
     schema: {
         params: {
             type: 'object',
+            additionalProperties: false,
+            required: ['patientId'],
             properties: {
-                patientId: { type: 'string' },
+                patientId: { type: 'string', minLength: 1 },
                 sessionId: { type: 'string' },
             },
-            required: ['patientId'],
-            additionalProperties: false,
         },
         querystring: {
             type: 'object',
+            additionalProperties: true,
             properties: {
-                page: { type: 'string', pattern: '^[0-9]+$' },
-                limit: { type: 'string', pattern: '^[0-9]+$' }
+                page: { type: 'string' },
+                limit: { type: 'string' },
             },
-            additionalProperties: false
         },
         response: {
             200: {
                 type: 'object',
-                properties: {
-                    data: {
-                        oneOf: [
-                            { type: 'array', items: reportSchema },
-                            reportSchema
-                        ]
-                    },
-                    meta: paginationMetaSchema
-                },
+                additionalProperties: false,
                 required: ['data'],
-                additionalProperties: false
+                properties: {
+                    data: { anyOf: [unifiedSessionReportSchema, { type: 'array', items: unifiedSessionReportSchema }] },
+                    meta: {
+                        type: 'object',
+                        additionalProperties: false,
+                        required: ['total', 'page', 'limit'],
+                        properties: {
+                            total: { type: 'number' },
+                            page: { type: 'number' },
+                            limit: { type: 'number' },
+                        },
+                    },
+                },
             },
             400: errorSchema,
             401: errorSchema,
+            403: errorSchema,
             404: errorSchema,
             500: errorSchema,
         },

@@ -6,11 +6,10 @@ export class HtmlMailTemplateProvider implements MailTemplateProvider {
         inProgress: number;
         pending: number;
         nextWeekSessions: number;
-        name: string
+        name: string;
     }): string {
-        const sessionsText = stats.nextWeekSessions === 1
-            ? '1 sesión programada'
-            : `${stats.nextWeekSessions} sesiones programadas`;
+        const sessionsText =
+            stats.nextWeekSessions === 1 ? '1 sesión programada' : `${stats.nextWeekSessions} sesiones programadas`;
 
         return `
             <div style="text-align:center;margin-bottom:30px">

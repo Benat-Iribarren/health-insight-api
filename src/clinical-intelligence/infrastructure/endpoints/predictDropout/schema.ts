@@ -1,17 +1,5 @@
 import { errorSchema } from '@common/infrastructure/endpoints/errorSchema';
 
-const dropoutRiskProperties = {
-    patientId: { type: 'string' },
-    name: { type: 'string' },
-    riskScore: { type: 'number' },
-    status: { type: 'string', enum: ['LOW', 'MODERATE', 'CRITICAL'] },
-    bufferDays: { type: 'number' },
-    factors: {
-        type: 'array',
-        items: { type: 'string' },
-    },
-};
-
 export const predictDropoutSchema = {
     schema: {
         params: {
@@ -26,12 +14,23 @@ export const predictDropoutSchema = {
                 type: 'array',
                 items: {
                     type: 'object',
-                    additionalProperties: false,
-                    properties: dropoutRiskProperties,
-                    required: ['patientId', 'name', 'riskScore', 'status'],
-                },
+                    properties: {
+                        patientId: { type: 'number' },
+                        name: { type: 'string' },
+                        riskScore: { type: 'number' },
+                        status: { type: 'string', enum: ['CRITICAL', 'MODERATE', 'LOW'] },
+                        bufferDays: { type: 'number' },
+                        factors: {
+                            type: 'array',
+                            items: { type: 'string' }
+                        }
+                    },
+                    required: ['patientId', 'name', 'riskScore', 'status', 'bufferDays', 'factors']
+                }
             },
             400: errorSchema,
+            401: errorSchema,
+            403: errorSchema,
             404: errorSchema,
             500: errorSchema,
         },

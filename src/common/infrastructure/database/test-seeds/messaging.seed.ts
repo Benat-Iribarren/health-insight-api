@@ -48,7 +48,7 @@ export async function seedMessagingContext(): Promise<MessagingContext> {
     ]);
 
     const { data: notification } = await supabaseClient
-        .from('PatientNotifications')
+        .from('Notifications')
         .insert([
             {
                 patient_id: patient!.id,

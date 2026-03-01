@@ -1,4 +1,4 @@
-import { dropoutRepository } from '../SupabaseDropoutRepository';
+import { dropoutRepository } from '../repositories/SupabaseDropoutRepository';
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 import { initClinicalIntelligenceTestDatabase } from '@common/infrastructure/database/test-seeds/clinicalIntelligence.seed';
 

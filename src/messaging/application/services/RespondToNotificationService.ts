@@ -1,25 +1,44 @@
+import { ResponseRepository } from '../../domain/interfaces/ResponseRepository';
 import { NotificationRepository } from '../../domain/interfaces/NotificationRepository';
-import { PatientResponseRepository } from '../../domain/interfaces/PatientResponseRepository';
-import { RespondToNotificationError } from '../types/RespondToNotificationError';
+import {
+    RespondToNotificationError,
+    invalidNotificationIdError,
+    alreadyRespondedError,
+    operationFailedError,
+} from '../types/RespondToNotificationError';
+import { canRespondToMessage, isValidMessageId } from '../../domain/logic/respondPolicy';
 
-export async function RespondToNotificationService(
-    notificationRepo: NotificationRepository,
-    patientResponseRepo: PatientResponseRepository,
-    patientId: number,
-    subject: string,
-    messageId: string
-): Promise<'SUCCESSFUL' | RespondToNotificationError> {
+export class RespondToNotificationService {
+    constructor(
+        private readonly responseRepository: ResponseRepository,
+        private readonly notificationRepository: NotificationRepository
+    ) {}
 
-    const notification = await notificationRepo.getNotificationDetail(patientId, messageId);
-    if (!notification) return 'NOTIFICATION_NOT_FOUND';
+    async execute(input: {
+        patientId: number;
+        messageId: string;
+        subject: string;
+    }): Promise<'SUCCESSFUL' | RespondToNotificationError> {
+        if (!isValidMessageId(input.messageId)) return invalidNotificationIdError;
 
-    const alreadyExists = await patientResponseRepo.existsByMessageId(messageId);
-    if (alreadyExists) return 'ALREADY_RESPONDED';
+        try {
+            const exists = await this.responseRepository.existsByMessageId(input.messageId);
+            if (!canRespondToMessage(exists)) return alreadyRespondedError;
 
-    try {
-        await patientResponseRepo.saveResponse(patientId, subject, messageId);
-        return 'SUCCESSFUL';
-    } catch {
-        return 'SAVE_FAILED';
+            const notification = await this.notificationRepository.findByPatient(input.patientId, input.messageId);
+            if (!notification) return invalidNotificationIdError;
+
+            await this.responseRepository.create({
+                patientId: input.patientId,
+                subject: input.subject,
+                messageId: input.messageId,
+            });
+
+            await this.notificationRepository.markRead(input.patientId, input.messageId);
+
+            return 'SUCCESSFUL';
+        } catch {
+            return operationFailedError;
+        }
     }
 }

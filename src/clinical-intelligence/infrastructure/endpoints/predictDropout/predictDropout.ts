@@ -1,12 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import { DropoutRepository } from '../../../domain/interfaces/DropoutRepository';
-import { ProcessDropoutAnalysisService } from '../../../application/services/DropoutAnalysisService';
+import { DropoutAnalysisService } from '../../../application/services/DropoutAnalysisService';
 import { PredictDropoutError } from '../../../application/types/PredictDropoutError';
 import { predictDropoutSchema } from './schema';
 
-export const PREDICT_DROPOUT_ENDPOINT =
-    '/clinical-intelligence/predict-dropout/:patientId?';
-
+export const PREDICT_DROPOUT_ENDPOINT = '/clinical-intelligence/predict-dropout/:patientId?';
 
 type StatusCode = 200 | 400 | 404 | 500;
 
@@ -29,32 +27,26 @@ interface PredictDropoutDependencies {
 
 function predictDropout(dependencies: PredictDropoutDependencies) {
     return async function (fastify: FastifyInstance) {
+        const useCase = new DropoutAnalysisService(dependencies.dropoutRepo);
+
         fastify.get(PREDICT_DROPOUT_ENDPOINT, predictDropoutSchema, async (request, reply) => {
-            try {
-                const { patientId: rawId } = request.params as { patientId?: string };
-                const patientId = rawId ? Number(rawId) : undefined;
+            const { patientId: rawId } = request.params as { patientId?: string };
 
-                if (isInvalidPatientId(rawId, patientId)) {
-                    return reply.status(statusToCode.INVALID_PATIENT_ID).send(statusToMessage.INVALID_PATIENT_ID);
-                }
+            const patientId = rawId ? Number(rawId) : undefined;
 
-                const result = await ProcessDropoutAnalysisService(dependencies.dropoutRepo, patientId);
-
-                if (typeof result === 'string') {
-                    return reply.status(statusToCode[result]).send(statusToMessage[result]);
-                }
-
-                return reply.status(statusToCode.SUCCESSFUL).send(result);
-            } catch (error) {
-                fastify.log.error(error);
-                throw error;
+            if (rawId !== undefined && (Number.isNaN(patientId as number) || (patientId as number) <= 0)) {
+                return reply.status(statusToCode.INVALID_PATIENT_ID).send(statusToMessage.INVALID_PATIENT_ID);
             }
+
+            const result = await useCase.execute(patientId);
+
+            if (typeof result === 'string') {
+                return reply.status(statusToCode[result]).send(statusToMessage[result]);
+            }
+
+            return reply.status(statusToCode.SUCCESSFUL).send(result);
         });
     };
-}
-
-function isInvalidPatientId(rawId: string | undefined, patientId: number | undefined): boolean {
-    return rawId !== undefined && (Number.isNaN(patientId as number) || (patientId as number) <= 0);
 }
 
 export default predictDropout;

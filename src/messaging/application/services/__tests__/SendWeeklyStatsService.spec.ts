@@ -1,60 +1,111 @@
 import { SendWeeklyStatsService } from '../SendWeeklyStatsService';
-import { StatsRepository, PatientStats } from '../../../domain/interfaces/StatsRepository';
-import { MailRepository } from '../../../domain/interfaces/MailRepository';
-import { NotificationRepository } from '../../../domain/interfaces/NotificationRepository';
-import { PatientContactRepository } from '../../../domain/interfaces/PatientContactRepository';
-import { MailTemplateProvider } from '../../../domain/interfaces/MailTemplateProvider';
-import { WeeklyDashboardImageGenerator } from '../../../domain/interfaces/WeeklyDashboardImageGenerator';
+import { invalidInputError, noEmailError, operationFailedError } from '../../types/SendWeeklyStatsError';
 
 describe('Unit | SendWeeklyStatsService', () => {
-    const statsRepo = { getAllPatientsStats: jest.fn() } as unknown as jest.Mocked<StatsRepository>;
-    const mailRepo = { send: jest.fn() } as unknown as jest.Mocked<MailRepository>;
-    const notifyRepo = { getPendingCount: jest.fn() } as unknown as jest.Mocked<NotificationRepository>;
-    const contactRepo = { getEmailByPatientId: jest.fn() } as unknown as jest.Mocked<PatientContactRepository>;
-    const template = { renderWeeklyStats: jest.fn() } as unknown as jest.Mocked<MailTemplateProvider>;
-    const image = { generateWeeklyDashboard: jest.fn() } as unknown as jest.Mocked<WeeklyDashboardImageGenerator>;
-
-    const fullPatient: PatientStats = {
-        id: 1,
-        email: 'test@test.com',
-        name: 'Test',
-        sessions: [],
-        completed: 0,
-        inProgress: 0,
-        notStarted: 0,
-        nextWeekSessions: 0
-    };
-
-    it('returns NO_DATA when filtered patient list is empty', async () => {
-        statsRepo.getAllPatientsStats.mockResolvedValue([fullPatient]);
-        const result = await SendWeeklyStatsService(statsRepo, mailRepo, notifyRepo, contactRepo, template, image, 999);
-        expect(result.status).toBe('NO_DATA');
+    const makeStatsRepo = () => ({
+        getWeeklyStats: jest.fn(),
     });
 
-    it('stops processing and returns SUCCESSFUL with current count if a mail send fails', async () => {
-        statsRepo.getAllPatientsStats.mockResolvedValue([fullPatient]);
-        notifyRepo.getPendingCount.mockResolvedValue(0);
-        image.generateWeeklyDashboard.mockResolvedValue(Buffer.from(''));
-        template.renderWeeklyStats.mockReturnValue('html');
-        mailRepo.send.mockResolvedValue({ success: false });
-
-        const result = await SendWeeklyStatsService(statsRepo, mailRepo, notifyRepo, contactRepo, template, image);
-        expect(result.processedCount).toBe(0);
-        expect(result.status).toBe('SUCCESSFUL');
+    const makeContactRepo = () => ({
+        getPatientContact: jest.fn(),
+        getAllPatientsContacts: jest.fn(),
     });
 
-    it('skips patients without email (undefined) and continues', async () => {
-        const p1 = { ...fullPatient, id: 1, email: undefined };
-        const p2 = { ...fullPatient, id: 2, email: 'p2@test.com' };
+    const makeImage = () => ({
+        generateWeeklyDashboardImage: jest.fn(),
+    });
 
-        statsRepo.getAllPatientsStats.mockResolvedValue([p1, p2]);
-        contactRepo.getEmailByPatientId.mockResolvedValue(null);
-        notifyRepo.getPendingCount.mockResolvedValue(0);
-        image.generateWeeklyDashboard.mockResolvedValue(Buffer.from(''));
-        template.renderWeeklyStats.mockReturnValue('h');
-        mailRepo.send.mockResolvedValue({ success: true });
+    const makeTemplate = () => ({
+        renderWeeklyStats: jest.fn(),
+    });
 
-        const result = await SendWeeklyStatsService(statsRepo, mailRepo, notifyRepo, contactRepo, template, image);
-        expect(result.processedCount).toBe(1);
+    const makeMail = () => ({
+        sendMail: jest.fn(),
+    });
+
+    test('returns INVALID_INPUT when patientId invalid', async () => {
+        const service = new SendWeeklyStatsService(
+            makeStatsRepo() as any,
+            makeContactRepo() as any,
+            makeImage() as any,
+            makeTemplate() as any,
+            makeMail() as any
+        );
+
+        const res = await service.execute({ patientId: -1 });
+        expect(res).toBe(invalidInputError);
+    });
+
+    test('single patient returns NO_EMAIL when missing email', async () => {
+        const statsRepo = makeStatsRepo();
+        const contactRepo = makeContactRepo();
+        const image = makeImage();
+        const template = makeTemplate();
+        const mail = makeMail();
+
+        contactRepo.getPatientContact.mockResolvedValue({ id: 1, name: 'P', email: null });
+
+        const service = new SendWeeklyStatsService(statsRepo as any, contactRepo as any, image as any, template as any, mail as any);
+        const res = await service.execute({ patientId: 1 });
+
+        expect(res).toBe(noEmailError);
+    });
+
+    test('bulk skips no-email and sends the rest', async () => {
+        const statsRepo = makeStatsRepo();
+        const contactRepo = makeContactRepo();
+        const image = makeImage();
+        const template = makeTemplate();
+        const mail = makeMail();
+
+        contactRepo.getAllPatientsContacts.mockResolvedValue([
+            { id: 1, name: 'A', email: null },
+            { id: 2, name: 'B', email: 'b@test.com' },
+        ]);
+
+        statsRepo.getWeeklyStats.mockResolvedValue({
+            patientId: 2,
+            email: 'b@test.com',
+            name: 'B',
+            sessions: [{ state: 'completed', assignedDate: new Date().toISOString() }],
+        });
+
+        image.generateWeeklyDashboardImage.mockResolvedValue({ contentType: 'image/png', buffer: Buffer.from('x') });
+        template.renderWeeklyStats.mockReturnValue('<html>ok</html>');
+        mail.sendMail.mockResolvedValue(undefined);
+
+        const service = new SendWeeklyStatsService(statsRepo as any, contactRepo as any, image as any, template as any, mail as any);
+        const res = await service.execute({});
+
+        expect(res).toEqual({ sent: 1, skippedNoEmail: 1 });
+        expect(mail.sendMail).toHaveBeenCalledTimes(1);
+        expect(mail.sendMail).toHaveBeenCalledWith(
+            expect.objectContaining({
+                to: 'b@test.com',
+                subject: 'Resumen semanal',
+                html: '<html>ok</html>',
+                inlineAttachments: [
+                    expect.objectContaining({
+                        contentType: 'image/png',
+                        contentId: 'stats',
+                    }),
+                ],
+            })
+        );
+    });
+
+    test('returns OPERATION_FAILED on exception', async () => {
+        const statsRepo = makeStatsRepo();
+        const contactRepo = makeContactRepo();
+        const image = makeImage();
+        const template = makeTemplate();
+        const mail = makeMail();
+
+        contactRepo.getAllPatientsContacts.mockRejectedValue(new Error('boom'));
+
+        const service = new SendWeeklyStatsService(statsRepo as any, contactRepo as any, image as any, template as any, mail as any);
+        const res = await service.execute({});
+
+        expect(res).toBe(operationFailedError);
     });
 });

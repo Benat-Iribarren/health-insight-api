@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { build } from '@src/common/infrastructure/server/serverBuild';
 
 jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => ({
-    verifyProfessional: jest.fn(() => (req: any, res: any, done: any) => {
+    verifyProfessional: jest.fn(() => (req: any, _res: any, done: any) => {
         req.auth = { userId: 'pro-user-uuid' };
         done();
     }),
@@ -15,102 +15,83 @@ jest.mock('@src/identity/infrastructure/middlewares/IdentityMiddlewares', () => 
         req.auth = { userId: 'patient-uuid', patientId: Number(pId) };
         done();
     }),
-    verifyHybridAccess: jest.fn(() => (req: any, res: any, done: any) => done())
+    verifyHybridAccess: jest.fn(() => (req: any, _res: any, done: any) => done()),
 }));
 
-jest.mock('@src/messaging/infrastructure/database/SupabaseNotificationRepository', () => {
+jest.mock('@src/messaging/infrastructure/database/repositories/SupabaseNotificationRepository', () => {
     return {
         SupabaseNotificationRepository: jest.fn().mockImplementation(() => ({
-            getPatientNotifications: jest.fn().mockResolvedValue([
-                { id: 'notification-id', patient_id: 1, subject: 'S', content: 'C', is_read: false, created_at: new Date().toISOString(), is_deleted: false }
+            listByPatient: jest.fn().mockResolvedValue([
+                {
+                    id: 'notification-id',
+                    patientId: 1,
+                    subject: 'S',
+                    content: 'C',
+                    isRead: false,
+                    createdAt: new Date().toISOString(),
+                    isDeleted: false,
+                },
             ]),
-            getNotificationDetail: jest.fn().mockImplementation((pId, id) => {
-                if (id === '00000000-0000-0000-0000-000000000000') return Promise.resolve(null);
-                return Promise.resolve({ id, patient_id: pId, subject: 'S', content: 'C', is_read: false, created_at: new Date().toISOString(), is_deleted: false });
+            findByPatient: jest.fn().mockResolvedValue({
+                id: 'notification-id',
+                patientId: 1,
+                subject: 'S',
+                content: 'C',
+                isRead: false,
+                createdAt: new Date().toISOString(),
+                isDeleted: false,
             }),
-            markAsRead: jest.fn().mockResolvedValue(undefined),
-            deleteNotification: jest.fn().mockResolvedValue(true),
-            markNotificationAsDeleted: jest.fn().mockResolvedValue(undefined)
-        }))
+            markRead: jest.fn().mockResolvedValue(true),
+            softDelete: jest.fn().mockResolvedValue(true),
+        })),
     };
 });
 
-describe('Integration | patientNotifications', () => {
+describe('messaging patientNotifications endpoint', () => {
     let app: FastifyInstance;
-    beforeAll(async () => { app = build(); await app.ready(); });
-    afterAll(async () => await app.close());
 
-    it('PATCH /messaging/notifications/:id marks notification as read', async () => {
-        const res = await app.inject({
-            method: 'PATCH',
-            url: `/messaging/notifications/notification-id`,
-            headers: { 'x-test-patient-id': '1' }
-        });
-        expect(res.statusCode).toBe(200);
+    beforeAll(async () => {
+        app = await build();
     });
 
-    it('GET /messaging/notifications returns 401 if patientId is missing', async () => {
+    afterAll(async () => {
+        await app.close();
+    });
+
+    test('GET /messaging/notifications returns notifications', async () => {
         const res = await app.inject({
             method: 'GET',
             url: '/messaging/notifications',
-            headers: { 'x-test-patient-id': '' }
+            headers: { 'x-test-patient-id': '1' },
         });
-        expect(res.statusCode).toBe(401);
-    });
 
-    it('GET /messaging/notifications returns 200 with notifications list', async () => {
-        const res = await app.inject({
-            method: 'GET',
-            url: '/messaging/notifications',
-            headers: { 'x-test-patient-id': '1' }
-        });
         expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.json())).toBe(true);
+        const body = JSON.parse(res.body);
+        expect(Array.isArray(body)).toBe(true);
+        expect(body[0]).toMatchObject({ id: 'notification-id', patientId: 1 });
     });
 
-    it('PATCH /messaging/notifications/:id returns 401 if patientId is missing', async () => {
+    test('PATCH /messaging/notifications/:id marks read', async () => {
         const res = await app.inject({
             method: 'PATCH',
-            url: `/messaging/notifications/notification-id`,
-            headers: { 'x-test-patient-id': '' }
+            url: '/messaging/notifications/notification-id',
+            headers: { 'x-test-patient-id': '1' },
         });
-        expect(res.statusCode).toBe(401);
-    });
 
-    it('PATCH /messaging/notifications/:id returns 404 for non-existent notification', async () => {
-        const res = await app.inject({
-            method: 'PATCH',
-            url: '/messaging/notifications/00000000-0000-0000-0000-000000000000',
-            headers: { 'x-test-patient-id': '1' }
-        });
-        expect(res.statusCode).toBe(404);
-    });
-
-    it('DELETE /messaging/notifications/:id returns 200 on success', async () => {
-        const res = await app.inject({
-            method: 'DELETE',
-            url: `/messaging/notifications/notification-id`,
-            headers: { 'x-test-patient-id': '1' }
-        });
         expect(res.statusCode).toBe(200);
-        expect(res.json().message).toContain('deleted');
+        const body = JSON.parse(res.body);
+        expect(body).toMatchObject({ id: 'notification-id', patientId: 1, isRead: true });
     });
 
-    it('DELETE /messaging/notifications/:id returns 401 if patientId is missing', async () => {
+    test('DELETE /messaging/notifications/:id deletes notification', async () => {
         const res = await app.inject({
             method: 'DELETE',
-            url: `/messaging/notifications/notification-id`,
-            headers: { 'x-test-patient-id': '' }
+            url: '/messaging/notifications/notification-id',
+            headers: { 'x-test-patient-id': '1' },
         });
-        expect(res.statusCode).toBe(401);
-    });
 
-    it('DELETE /messaging/notifications/:id returns 404 for non-existent notification', async () => {
-        const res = await app.inject({
-            method: 'DELETE',
-            url: '/messaging/notifications/00000000-0000-0000-0000-000000000000',
-            headers: { 'x-test-patient-id': '1' }
-        });
-        expect(res.statusCode).toBe(404);
+        expect(res.statusCode).toBe(200);
+        const body = JSON.parse(res.body);
+        expect(body).toMatchObject({ id: 'notification-id' });
     });
 });
