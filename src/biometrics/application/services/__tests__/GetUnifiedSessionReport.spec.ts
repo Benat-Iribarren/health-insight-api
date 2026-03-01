@@ -16,12 +16,12 @@ describe('Unit | GetUnifiedSessionReportService', () => {
 
     it('should calculate report metrics correctly', async () => {
         mockRepo.getFullSessionContext.mockResolvedValue({
-            sessions: [{ session_id: 101, state: 'completed', pre_evaluation: 3, post_evaluation: 7 }],
-            intervals: [{ session_id: 101, context_type: 'session', start_minute_utc: '2026-01-01T10:00:00Z', end_minute_utc: '2026-01-01T10:10:00Z' }],
+            sessions: [{ sessionId: 101, state: 'completed', preEvaluation: 3, postEvaluation: 7, assignedDate: null }],
+            intervals: [{ sessionId: 101, contextType: 'session', startMinuteUtc: new Date('2026-01-01T10:00:00Z'), endMinuteUtc: new Date('2026-01-01T10:10:00Z') }],
             total: 1
         });
         mockRepo.getBiometricData.mockResolvedValue([
-            { timestamp_iso: '2026-01-01T10:05:00Z', pulse_rate_bpm: 80, eda_scl_usiemens: 1.5, temperature_celsius: 36.5 }
+            { timestamp: new Date('2026-01-01T10:05:00Z'), pulseRateBpm: 80, edaSclUsiemens: 1.5, temperatureCelsius: 36.5, accelStdG: null, respiratoryRateBrpm: null, bodyPositionType: null }
         ]);
 
         const result = await service.execute(1) as any;
@@ -30,8 +30,8 @@ describe('Unit | GetUnifiedSessionReportService', () => {
         const reports = result.data;
 
         expect(Array.isArray(reports)).toBe(true);
-        expect(reports[0].session_id).toBe('101');
-        expect(reports[0].dizziness_percentage).toBeGreaterThan(0);
+        expect(reports[0].sessionId).toBe('101');
+        expect(reports[0].dizzinessPercentage).toBeGreaterThan(0);
         expect(result.meta.total).toBe(1);
     });
 });

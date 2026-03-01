@@ -11,14 +11,23 @@ jest.mock('@src/biometrics/infrastructure/database/repositories/SupabaseSessionM
         SupabaseSessionMetricsRepository: jest.fn().mockImplementation(() => ({
             getFullSessionContext: jest.fn().mockImplementation((pId, sId) => {
                 if (pId === 999999) return Promise.resolve({ sessions: [], intervals: [], total: 0 });
+                const sessionId = Number(sId || 2210);
                 return Promise.resolve({
-                    sessions: [{ session_id: sId || 2210, state: 'completed', pre_evaluation: 3, post_evaluation: 7 }],
-                    intervals: [{ session_id: sId || 2210, context_type: 'session', start_minute_utc: '2026-01-01T10:00:00Z', end_minute_utc: '2026-01-01T10:10:00Z' }],
+                    sessions: [{ sessionId, state: 'completed', preEvaluation: 3, postEvaluation: 7, assignedDate: null }],
+                    intervals: [{ sessionId, contextType: 'session', startMinuteUtc: new Date('2026-01-01T10:00:00Z'), endMinuteUtc: new Date('2026-01-01T10:10:00Z') }],
                     total: 1
                 });
             }),
             getBiometricData: jest.fn().mockResolvedValue([
-                { timestamp_iso: '2026-01-01T10:05:00Z', pulse_rate_bpm: 80, eda_scl_usiemens: 1.5, temperature_celsius: 36.5 }
+                {
+                    timestamp: new Date('2026-01-01T10:05:00Z'),
+                    pulseRateBpm: 80,
+                    edaSclUsiemens: 1.5,
+                    temperatureCelsius: 36.5,
+                    accelStdG: null,
+                    respiratoryRateBrpm: null,
+                    bodyPositionType: null,
+                },
             ])
         }))
     };
@@ -30,7 +39,7 @@ describe('Integration | GET /reports/:patientId/:sessionId?', () => {
     afterAll(async () => await app.close());
 
     it('returns 200 with paginated data for patientId', async () => {
-        const res = await app.inject({ method: 'GET', url: `/reports/1` });
+        const res = await app.inject({ method: 'GET', url: `/biometrics/session-report/1` });
         const body = res.json();
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(body.data)).toBe(true);
@@ -39,19 +48,19 @@ describe('Integration | GET /reports/:patientId/:sessionId?', () => {
     });
 
     it('returns 200 with object inside data for patientId + sessionId', async () => {
-        const res = await app.inject({ method: 'GET', url: `/reports/1/2210` });
+        const res = await app.inject({ method: 'GET', url: `/biometrics/session-report/1/2210` });
         const body = res.json();
         expect(res.statusCode).toBe(200);
-        expect(body.data.session_id).toBe('2210');
+        expect(body.data.sessionId).toBe('2210');
     });
 
     it('returns 400 for invalid patientId', async () => {
-        const res = await app.inject({ method: 'GET', url: '/reports/invalid' });
+        const res = await app.inject({ method: 'GET', url: '/biometrics/session-report/invalid' });
         expect(res.statusCode).toBe(400);
     });
 
     it('returns 404 when no data found', async () => {
-        const res = await app.inject({ method: 'GET', url: '/reports/999999' });
+        const res = await app.inject({ method: 'GET', url: '/biometrics/session-report/999999' });
         expect(res.statusCode).toBe(404);
     });
 });

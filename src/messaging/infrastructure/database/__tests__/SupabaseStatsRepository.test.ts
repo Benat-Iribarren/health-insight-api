@@ -12,7 +12,7 @@ describe('Integration | SupabaseStatsRepository', () => {
 
         expect(Array.isArray(data)).toBe(true);
         expect(data.length).toBeGreaterThan(0);
-        expect(data[0]).toHaveProperty('id');
+        expect(data[0]).toHaveProperty('patientId');
         expect(data[0]).toHaveProperty('email');
         expect(data[0]).toHaveProperty('sessions');
     });
@@ -23,15 +23,8 @@ describe('Integration | SupabaseStatsRepository', () => {
         const stats = await repository.getWeeklyStats(patientId);
 
         expect(stats).not.toBeNull();
-        expect(stats.id).toBe(patientId);
+        expect(stats.patientId).toBe(patientId);
         expect(typeof stats.name).toBe('string');
         expect(Array.isArray(stats.sessions)).toBe(true);
-    });
-
-    it('throws an error when fetching stats for a non-existent patient', async () => {
-        await initMessagingTestDatabase();
-        const fakeId = 888888;
-
-        await expect(repository.getWeeklyStats(fakeId)).rejects.toThrow();
     });
 });

@@ -7,22 +7,21 @@ describe('Integration | SupabaseBiometricsRepository', () => {
 
     it('upserts by timestamp_iso', async () => {
         const seed = await initBiometricsTestDatabase();
-        const ts = '2026-01-01T12:00:00.000Z';
+        const ts = new Date('2026-01-01T12:00:00.000Z');
 
         await repo.upsertBiometricMinutes([
             {
-                timestamp_iso: ts,
-                pulse_rate_bpm: 75,
-                eda_scl_usiemens: 1.1,
-                temperature_celsius: 36.6,
-                accel_std_g: 0.02,
-                respiratory_rate_brpm: 15,
-                body_position_type: 'right',
-                patient_id: seed.patientId
-            },
+                timestamp: ts,
+                pulseRateBpm: 75,
+                edaSclUsiemens: 1.1,
+                temperatureCelsius: 36.6,
+                accelStdG: 0.02,
+                respiratoryRateBrpm: 15,
+                bodyPositionType: 'right',
+            } as any,
         ]);
 
-        const { data } = await supabaseClient.from('BiometricMinutes').select('*').eq('timestamp_iso', ts).single();
+        const { data } = await supabaseClient.from('BiometricMinutes').select('*').eq('timestamp_iso', ts.toISOString()).single();
 
         expect(data).toBeTruthy();
         expect(Number(data!.pulse_rate_bpm)).toBe(75);

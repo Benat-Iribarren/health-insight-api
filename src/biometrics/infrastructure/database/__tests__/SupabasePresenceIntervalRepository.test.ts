@@ -21,6 +21,6 @@ describe('Integration | SupabasePresenceIntervalRepository', () => {
         await repo.extendInterval(latest!.id, newEnd);
 
         const updated = await repo.findLatestByPatient(seed.patientId);
-        expect(updated!.endMinuteUtc).toBe(newEnd);
+        expect(new Date(updated!.endMinuteUtc).toISOString()).toBe(newEnd);
     });
 });

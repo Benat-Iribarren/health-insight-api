@@ -43,9 +43,9 @@ describe('Unit | SyncDailyBiometricsService', () => {
         expect((result as any).status).toBe('success');
         expect(upserts.length).toBe(1);
         expect(upserts[0]).toMatchObject({
-            timestamp_iso: ts,
-            pulse_rate_bpm: 80,
-            eda_scl_usiemens: 1.5,
+            timestamp: new Date(ts),
+            pulseRateBpm: 80,
+            edaSclUsiemens: 1.5,
         });
     });
 });
