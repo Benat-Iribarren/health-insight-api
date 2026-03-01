@@ -7,6 +7,16 @@ jest.mock('@src/messaging/infrastructure/images/HtmlImageGenerator', () => ({
         generateWeeklyDashboard: jest.fn().mockResolvedValue(Buffer.from('abc'))
     }))
 }));
+jest.mock('@src/messaging/infrastructure/gmail/GmailApiMailRepository', () => ({
+    GmailApiMailRepository: jest.fn().mockImplementation(() => ({
+        sendMail: jest.fn().mockResolvedValue(undefined)
+    }))
+}));
+jest.mock('@src/messaging/application/services/SendWeeklyStatsService', () => ({
+    SendWeeklyStatsService: jest.fn().mockImplementation(() => ({
+        execute: jest.fn(async () => ({ sent: 2, skippedNoEmail: 0 })),
+    })),
+}));
 
 describe('Messaging E2E', () => {
     let app: FastifyInstance;
@@ -20,9 +30,10 @@ describe('Messaging E2E', () => {
     it('should trigger weekly stats automation', async () => {
         const res = await app.inject({
             method: 'POST',
-            url: '/messaging/send-weekly-stats',
+            url: '/messaging/weekly-stats',
             headers: { 'x-health-insight-cron': 'valid-test-secret' }
         });
-        expect([200, 202]).toContain(res.statusCode);
+        expect(res.statusCode).toBe(200);
+        expect(res.json()).toEqual(expect.objectContaining({ sent: expect.any(Number), skippedNoEmail: expect.any(Number) }));
     });
 });

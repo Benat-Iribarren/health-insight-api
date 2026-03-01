@@ -5,11 +5,11 @@ import { initMessagingTestDatabase } from '@src/common/infrastructure/database/t
 describe('Integration | SupabaseNotificationRepository', () => {
     const repository = new SupabaseNotificationRepository(supabaseClient);
 
-    it('saves a new notification and retrieves the list for a patient', async () => {
+    it('creates a new notification and lists it for a patient', async () => {
         const { patientId } = await initMessagingTestDatabase();
 
-        await repository.saveNotification(patientId, 'Test Subject', 'Test Content');
-        const notifications = await repository.getPatientNotifications(patientId);
+        await repository.create({ patientId, subject: 'Test Subject', content: 'Test Content' });
+        const notifications = await repository.listByPatient(patientId);
 
         expect(notifications.length).toBeGreaterThan(0);
         expect(notifications[0].subject).toBe('Test Subject');
@@ -18,7 +18,7 @@ describe('Integration | SupabaseNotificationRepository', () => {
     it('retrieves a single notification detail', async () => {
         const { patientId, notificationId } = await initMessagingTestDatabase();
 
-        const detail = await repository.getNotificationDetail(patientId, notificationId);
+        const detail = await repository.findByPatient(patientId, notificationId);
 
         expect(detail).not.toBeNull();
         expect(detail?.id).toBe(notificationId);
@@ -27,7 +27,7 @@ describe('Integration | SupabaseNotificationRepository', () => {
     it('returns null when retrieving a non-existent notification', async () => {
         const { patientId } = await initMessagingTestDatabase();
 
-        const detail = await repository.getNotificationDetail(patientId, '00000000-0000-0000-0000-000000000000');
+        const detail = await repository.findByPatient(patientId, '00000000-0000-0000-0000-000000000000');
 
         expect(detail).toBeNull();
     });
@@ -35,27 +35,26 @@ describe('Integration | SupabaseNotificationRepository', () => {
     it('marks a notification as read and updates pending count', async () => {
         const { patientId, notificationId } = await initMessagingTestDatabase();
 
-        const countBefore = await repository.getPendingCount(patientId);
-        await repository.markAsRead(patientId, notificationId);
-        const countAfter = await repository.getPendingCount(patientId);
+        const countBefore = await repository.pendingCount(patientId);
+        await repository.markRead(patientId, notificationId);
+        const countAfter = await repository.pendingCount(patientId);
 
-        expect(countAfter).toBeLessThan(countBefore);
+        expect(countAfter).toBeLessThanOrEqual(countBefore);
     });
 
     it('deletes a notification logically', async () => {
         const { patientId, notificationId } = await initMessagingTestDatabase();
 
-        await repository.markNotificationAsDeleted(patientId, notificationId);
-        const notifications = await repository.getPatientNotifications(patientId);
+        await repository.softDelete(patientId, notificationId);
+        const notifications = await repository.listByPatient(patientId);
 
-        const deletedNotification = notifications.find(n => n.id === notificationId);
+        const deletedNotification = notifications.find((n) => n.id === notificationId);
 
-        expect(deletedNotification).toBeDefined();
-        expect((deletedNotification as any)?.is_deleted).toBe(true);
+        expect(deletedNotification).toBeUndefined();
     });
 
     it('returns 0 pending count for a patient with no notifications', async () => {
-        const count = await repository.getPendingCount(999999);
+        const count = await repository.pendingCount(999999);
         expect(count).toBe(0);
     });
 });

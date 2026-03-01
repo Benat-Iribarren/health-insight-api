@@ -9,7 +9,6 @@ describe('Unit | RegisterPresenceMinuteService', () => {
             findLatestByPatient: async () => null,
             extendInterval: async () => { throw new Error('not used'); },
             createInterval: async () => { throw new Error('not used'); },
-            ContextType: contextTypeMock as any
         };
 
         const service = new RegisterPresenceMinuteService(repo);
@@ -38,7 +37,6 @@ describe('Unit | RegisterPresenceMinuteService', () => {
                 latest = { ...created, ...input, id: 101 };
                 return latest;
             },
-            ContextType: contextTypeMock as any
         };
 
         const service = new RegisterPresenceMinuteService(repo);

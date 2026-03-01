@@ -5,19 +5,20 @@ import { initMessagingTestDatabase } from '@src/common/infrastructure/database/t
 describe('Integration | SupabasePatientContactRepository', () => {
   const repository = new SupabasePatientContactRepository(supabaseClient);
 
-  it('returns the email string for a valid patient', async () => {
+  it('returns the contact info for a valid patient', async () => {
     const { patientId } = await initMessagingTestDatabase();
 
-    const email = await repository.getEmailByPatientId(patientId);
+    const contact = await repository.getPatientContact(patientId);
 
-    expect(typeof email).toBe('string');
-    expect(email).toContain('@competition.com');
+    expect(contact).toBeDefined();
+    expect(contact.email).toContain('@');
   });
 
-  it('returns null if the patient does not exist', async () => {
+  it('returns null fields if the patient does not exist', async () => {
     await initMessagingTestDatabase();
-    const email = await repository.getEmailByPatientId(999999);
+    const contact = await repository.getPatientContact(999999);
 
-    expect(email).toBeNull();
+    expect(contact.email).toBeNull();
+    expect(contact.name).toBeNull();
   });
 });

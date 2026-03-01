@@ -1,9 +1,9 @@
-import { dropoutRepository } from '../repositories/SupabaseDropoutRepository';
+import { SupabaseDropoutRepository } from '../repositories/SupabaseDropoutRepository';
 import { supabaseClient } from '@common/infrastructure/database/supabaseClient';
 import { initClinicalIntelligenceTestDatabase } from '@common/infrastructure/database/test-seeds/clinicalIntelligence.seed';
 
-describe('Integration | dropoutRepository (Supabase)', () => {
-    const repository = dropoutRepository(supabaseClient);
+describe('Integration | SupabaseDropoutRepository', () => {
+    const repository = new SupabaseDropoutRepository(supabaseClient as any);
 
     it('returns patient session data with required fields', async () => {
         await initClinicalIntelligenceTestDatabase();
@@ -24,6 +24,6 @@ describe('Integration | dropoutRepository (Supabase)', () => {
         const filtered = await repository.getPatientSessionData(targetId);
 
         expect(filtered.length).toBeGreaterThan(0);
-        expect(filtered.every((r) => r.patientId === targetId)).toBe(true);
+        expect(filtered.every((r: any) => r.patientId === targetId)).toBe(true);
     });
 });
