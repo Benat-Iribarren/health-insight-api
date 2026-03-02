@@ -2,8 +2,6 @@ import { FastifyInstance, FastifyReply } from 'fastify';
 import { GetUnifiedSessionReportService } from '@src/biometrics/application/services/GetUnifiedSessionReportService';
 import { BiometricsError } from '../../../application/types/BiometricsError';
 import { getSessionReportSchema } from './schema';
-import { BiometricSample } from '../../../domain/models/BiometricSample';
-import { UnifiedSessionReport } from '../../../domain/models/UnifiedSessionReport';
 import { SessionMetricsRepository } from '../../../domain/interfaces/SessionMetricsRepository';
 
 type StatusCode = 200 | 400 | 404 | 500;
@@ -20,51 +18,6 @@ const statusToMessage: Record<BiometricsError, { error: string }> = {
     NO_DATA_FOUND: { error: 'No data found' },
     UNKNOWN_ERROR: { error: 'Internal server error' },
 };
-
-type BiometricDetailDto = {
-    timestampIso: string;
-    timestampUnixMs: number;
-    pulseRateBpm: number | null;
-    edaSclUsiemens: number | null;
-    temperatureCelsius: number | null;
-    accelStdG: number | null;
-    respiratoryRateBrpm: number | null;
-    bodyPositionType: string | null;
-};
-
-type UnifiedSessionReportDto = Omit<UnifiedSessionReport, 'objectiveAnalysis'> & {
-    objectiveAnalysis: {
-        summary: UnifiedSessionReport['objectiveAnalysis']['summary'];
-        biometricDetails: BiometricDetailDto[];
-    };
-};
-
-function mapBiometricDetailDto(b: BiometricSample): BiometricDetailDto {
-    return {
-        timestampIso: b.timestamp.toISOString(),
-        timestampUnixMs: b.timestamp.getTime(),
-        pulseRateBpm: b.pulseRateBpm,
-        edaSclUsiemens: b.edaSclUsiemens,
-        temperatureCelsius: b.temperatureCelsius,
-        accelStdG: b.accelStdG,
-        respiratoryRateBrpm: b.respiratoryRateBrpm,
-        bodyPositionType: b.bodyPositionType,
-    };
-}
-
-function mapUnifiedSessionReportDto(r: UnifiedSessionReport): UnifiedSessionReportDto {
-    return {
-        sessionId: r.sessionId,
-        state: r.state,
-        dizzinessPercentage: r.dizzinessPercentage,
-        noBiometrics: r.noBiometrics,
-        subjectiveAnalysis: r.subjectiveAnalysis,
-        objectiveAnalysis: {
-            summary: r.objectiveAnalysis.summary,
-            biometricDetails: r.objectiveAnalysis.biometricDetails.map(mapBiometricDetailDto),
-        },
-    };
-}
 
 export const GET_SESSION_REPORT_ENDPOINT = '/biometrics/session-report/:patientId/:sessionId?';
 
@@ -93,11 +46,7 @@ export default function getSessionReport(deps: GetSessionReportDeps) {
                 return reply.status(statusToCode[result]).send(statusToMessage[result]);
             }
 
-            const mapped = Array.isArray(result.data)
-                ? result.data.map(mapUnifiedSessionReportDto)
-                : mapUnifiedSessionReportDto(result.data);
-
-            return reply.status(statusToCode.SUCCESSFUL).send({ data: mapped, meta: result.meta });
+            return reply.status(statusToCode.SUCCESSFUL).send({ data: result.data, meta: result.meta });
         });
     };
 }

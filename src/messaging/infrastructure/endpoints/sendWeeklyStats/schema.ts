@@ -19,6 +19,13 @@ export const sendWeeklyStatsSchema = {
                     skippedNoEmail: { type: 'number' },
                 },
             },
+            202: {
+                type: 'object',
+                additionalProperties: false,
+                properties: {
+                    message: { type: 'string' },
+                },
+            },
             400: errorSchema,
             401: errorSchema,
             404: errorSchema,

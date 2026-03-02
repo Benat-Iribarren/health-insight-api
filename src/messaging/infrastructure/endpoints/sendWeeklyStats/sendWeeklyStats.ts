@@ -10,10 +10,11 @@ import { sendWeeklyStatsSchema } from './schema';
 
 export const SEND_WEEKLY_STATS_ENDPOINT = '/messaging/weekly-stats/:patientId?';
 
-type StatusCode = 200 | 400 | 404 | 500;
+type StatusCode = 200 | 202 | 400 | 404 | 500;
 
-const statusToCode: Record<SendWeeklyStatsError | 'SUCCESSFUL', StatusCode> = {
+const statusToCode: Record<SendWeeklyStatsError | 'SUCCESSFUL' | 'ACCEPTED', StatusCode> = {
     SUCCESSFUL: 200,
+    ACCEPTED: 202,
     INVALID_INPUT: 400,
     NO_EMAIL: 404,
     OPERATION_FAILED: 500,
@@ -49,6 +50,16 @@ function sendWeeklyStats(deps: WeeklyDependencies) {
 
             if (rawId !== undefined && (Number.isNaN(patientId as number) || (patientId as number) <= 0)) {
                 return reply.status(statusToCode.INVALID_INPUT).send(statusToMessage.INVALID_INPUT);
+            }
+
+            if (request.auth?.userId === 'cron') {
+                useCase.execute({ patientId }).catch((err) => {
+                    fastify.log.error(err);
+                });
+
+                return reply.status(statusToCode.ACCEPTED).send({
+                    message: 'Weekly stats task accepted'
+                });
             }
 
             const result = await useCase.execute({ patientId });

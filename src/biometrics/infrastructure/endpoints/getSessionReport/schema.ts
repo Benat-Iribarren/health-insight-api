@@ -9,6 +9,7 @@ const biometricDetailProperties = {
     accelStdG: { type: ['number', 'null'] },
     respiratoryRateBrpm: { type: ['number', 'null'] },
     bodyPositionType: { type: ['string', 'null'] },
+    phase: { type: 'string', enum: ['pre', 'session', 'post'] },
 };
 
 const statsSchema = {

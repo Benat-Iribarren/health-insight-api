@@ -101,7 +101,30 @@ export class GetUnifiedSessionReportService {
             },
             objectiveAnalysis: {
                 summary,
-                biometricDetails: sessionData,
+                biometricDetails: sessionData.map((b) => {
+                    const t = b.timestamp.getTime();
+                    let phase: 'pre' | 'session' | 'post' | undefined;
+
+                    if (preInt && t >= preInt.startMinuteUtc.getTime() && t <= preInt.endMinuteUtc.getTime()) {
+                        phase = 'pre';
+                    } else if (t >= sessionStart.getTime() && t <= sessionEnd.getTime()) {
+                        phase = 'session';
+                    } else if (postInt && t >= postInt.startMinuteUtc.getTime() && t <= postInt.endMinuteUtc.getTime()) {
+                        phase = 'post';
+                    }
+
+                    return {
+                        timestampIso: b.timestamp.toISOString(),
+                        timestampUnixMs: t,
+                        pulseRateBpm: b.pulseRateBpm,
+                        edaSclUsiemens: b.edaSclUsiemens,
+                        temperatureCelsius: b.temperatureCelsius,
+                        accelStdG: b.accelStdG,
+                        respiratoryRateBrpm: b.respiratoryRateBrpm,
+                        bodyPositionType: b.bodyPositionType,
+                        phase,
+                    };
+                }),
             },
         };
     }
