@@ -4,15 +4,10 @@ import { ContextInterval } from '../../domain/models/ContextInterval';
 import { BiometricSample } from '../../domain/models/BiometricSample';
 import { UnifiedSessionReport } from '../../domain/models/UnifiedSessionReport';
 import { BiometricsError, noDataFoundError, unknownError } from '../types/BiometricsError';
-
 import { getGlobalRange } from '../../domain/logic/getGlobalRange';
 import { selectSessionIntervals } from '../../domain/logic/selectSessionIntervals';
 import { calculateMetrics } from '../../domain/logic/calculateMetrics';
 import { calculateDizziness } from '../../domain/logic/calculateDizziness';
-
-export type UnifiedSessionReportWithMeta = UnifiedSessionReport & {
-    meta?: { total: number; page: number; limit: number };
-};
 
 export class GetUnifiedSessionReportService {
     constructor(private readonly repository: SessionMetricsRepository) {}
@@ -22,7 +17,7 @@ export class GetUnifiedSessionReportService {
         sessionId?: string,
         page: number = 1,
         limit: number = 10
-    ): Promise<{ data: UnifiedSessionReport[] | UnifiedSessionReport; meta?: any } | BiometricsError> {
+    ): Promise<{ data: UnifiedSessionReport[] | UnifiedSessionReport; meta: any } | BiometricsError> {
         try {
             const parsedSessionId = sessionId ? Number(sessionId) : undefined;
             const offset = (page - 1) * limit;
@@ -36,23 +31,24 @@ export class GetUnifiedSessionReportService {
 
             if (!sessions.length) return noDataFoundError;
 
+            const meta = { total: Number(total) || sessions.length, page, limit };
+
             if (!intervals.length) {
                 const empty = sessions.map((s) => this.mapEmptyUnifiedSessionReport(s));
-                return parsedSessionId
-                    ? { data: empty[0] ?? noDataFoundError }
-                    : { data: empty, meta: { total: total || sessions.length, page, limit } };
+                return parsedSessionId ? { data: empty[0], meta } : { data: empty, meta };
             }
 
             const { globalStart, globalEnd } = getGlobalRange(intervals);
             const biometrics = await this.repository.getBiometricData(globalStart.toISOString(), globalEnd.toISOString());
 
-            const reports = sessions
-                .map((s) => this.buildReport(s, intervals, biometrics))
-                .sort((a, b) => Number(b.sessionId) - Number(a.sessionId));
+            const reports = sessions.map((s) => this.buildReport(s, intervals, biometrics));
 
-            if (parsedSessionId) return reports[0] ? { data: reports[0] } : noDataFoundError;
+            if (parsedSessionId) {
+                const single = reports.find(r => r.sessionId === String(parsedSessionId));
+                return single ? { data: single, meta } : noDataFoundError;
+            }
 
-            return { data: reports, meta: { total: total || sessions.length, page, limit } };
+            return { data: reports, meta };
         } catch {
             return unknownError;
         }
@@ -60,14 +56,13 @@ export class GetUnifiedSessionReportService {
 
     private buildReport(session: Session, intervals: ContextInterval[], biometrics: BiometricSample[]): UnifiedSessionReport {
         const sIntervals = intervals
-            .filter((i) => (i.sessionId ?? -1) === session.sessionId && i.contextType === 'session')
+            .filter((i) => i.sessionId === session.sessionId && i.contextType === 'session')
             .sort((a, b) => a.startMinuteUtc.getTime() - b.startMinuteUtc.getTime());
 
         if (!sIntervals.length) return this.mapEmptyUnifiedSessionReport(session);
 
         const sessionStart = sIntervals[0].startMinuteUtc;
         const sessionEnd = sIntervals[sIntervals.length - 1].endMinuteUtc;
-
         const { preInt, postInt } = selectSessionIntervals(intervals, sessionStart, sessionEnd);
 
         const limitStart = preInt?.startMinuteUtc ?? sessionStart;
@@ -97,21 +92,16 @@ export class GetUnifiedSessionReportService {
             subjectiveAnalysis: {
                 preEvaluation: Number(session.preEvaluation) || 0,
                 postEvaluation: Number(session.postEvaluation) || 0,
-                delta: session.state === 'completed' ? Number(session.postEvaluation) - Number(session.preEvaluation) : 0,
+                delta: session.state === 'completed' ? (Number(session.postEvaluation) || 0) - (Number(session.preEvaluation) || 0) : 0,
             },
             objectiveAnalysis: {
                 summary,
                 biometricDetails: sessionData.map((b) => {
                     const t = b.timestamp.getTime();
                     let phase: 'pre' | 'session' | 'post' | undefined;
-
-                    if (preInt && t >= preInt.startMinuteUtc.getTime() && t <= preInt.endMinuteUtc.getTime()) {
-                        phase = 'pre';
-                    } else if (t >= sessionStart.getTime() && t <= sessionEnd.getTime()) {
-                        phase = 'session';
-                    } else if (postInt && t >= postInt.startMinuteUtc.getTime() && t <= postInt.endMinuteUtc.getTime()) {
-                        phase = 'post';
-                    }
+                    if (preInt && t >= preInt.startMinuteUtc.getTime() && t <= preInt.endMinuteUtc.getTime()) phase = 'pre';
+                    else if (t >= sessionStart.getTime() && t <= sessionEnd.getTime()) phase = 'session';
+                    else if (postInt && t >= postInt.startMinuteUtc.getTime() && t <= postInt.endMinuteUtc.getTime()) phase = 'post';
 
                     return {
                         timestampIso: b.timestamp.toISOString(),

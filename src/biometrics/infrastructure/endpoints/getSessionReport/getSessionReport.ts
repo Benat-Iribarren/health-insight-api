@@ -32,13 +32,16 @@ export default function getSessionReport(deps: GetSessionReportDeps) {
             const { page, limit } = request.query as { page?: string; limit?: string };
 
             const pId = Number(patientId);
-            if (Number.isNaN(pId) || pId <= 0) return reply.status(statusToCode.INVALID_INPUT).send(statusToMessage.INVALID_INPUT);
+            if (isNaN(pId) || pId <= 0) {
+                return reply.status(statusToCode.INVALID_INPUT).send(statusToMessage.INVALID_INPUT);
+            }
 
             const pg = page ? Number(page) : 1;
             const lm = limit ? Number(limit) : 10;
 
-            if (!Number.isFinite(pg) || pg <= 0) return reply.status(statusToCode.INVALID_INPUT).send(statusToMessage.INVALID_INPUT);
-            if (!Number.isFinite(lm) || lm <= 0) return reply.status(statusToCode.INVALID_INPUT).send(statusToMessage.INVALID_INPUT);
+            if (isNaN(pg) || pg <= 0 || isNaN(lm) || lm <= 0) {
+                return reply.status(statusToCode.INVALID_INPUT).send(statusToMessage.INVALID_INPUT);
+            }
 
             const result = await useCase.execute(pId, sessionId, pg, lm);
 
@@ -46,7 +49,14 @@ export default function getSessionReport(deps: GetSessionReportDeps) {
                 return reply.status(statusToCode[result]).send(statusToMessage[result]);
             }
 
-            return reply.status(statusToCode.SUCCESSFUL).send({ data: result.data, meta: result.meta });
+            return reply.status(statusToCode.SUCCESSFUL).send({
+                data: result.data,
+                meta: {
+                    total: Number(result.meta.total),
+                    page: Number(result.meta.page),
+                    limit: Number(result.meta.limit)
+                }
+            });
         });
     };
 }

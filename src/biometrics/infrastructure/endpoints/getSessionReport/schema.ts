@@ -1,39 +1,24 @@
 import { errorSchema } from '@common/infrastructure/endpoints/errorSchema';
 
-const biometricDetailProperties = {
-    timestampIso: { type: 'string' },
-    timestampUnixMs: { type: 'number' },
-    pulseRateBpm: { type: ['number', 'null'] },
-    edaSclUsiemens: { type: ['number', 'null'] },
-    temperatureCelsius: { type: ['number', 'null'] },
-    accelStdG: { type: ['number', 'null'] },
-    respiratoryRateBrpm: { type: ['number', 'null'] },
-    bodyPositionType: { type: ['string', 'null'] },
-    phase: { type: 'string', enum: ['pre', 'session', 'post'] },
-};
-
 const statsSchema = {
     type: 'object',
-    properties: { avg: { type: 'number' }, max: { type: 'number' }, min: { type: 'number' } },
+    properties: {
+        avg: { type: 'number' },
+        max: { type: 'number' },
+        min: { type: 'number' }
+    },
     required: ['avg', 'max', 'min'],
     additionalProperties: false,
 };
 
 const summaryMetricSchema = {
     type: 'object',
-    properties: { pre: statsSchema, session: statsSchema, post: statsSchema },
-    required: ['pre', 'session', 'post'],
-    additionalProperties: false,
-};
-
-const metricSummarySchema = {
-    type: 'object',
     properties: {
-        edaSclUsiemens: summaryMetricSchema,
-        pulseRateBpm: summaryMetricSchema,
-        temperatureCelsius: summaryMetricSchema,
+        pre: statsSchema,
+        session: statsSchema,
+        post: statsSchema
     },
-    required: ['edaSclUsiemens', 'pulseRateBpm', 'temperatureCelsius'],
+    required: ['pre', 'session', 'post'],
     additionalProperties: false,
 };
 
@@ -61,14 +46,38 @@ const unifiedSessionReportSchema = {
             additionalProperties: false,
             required: ['summary', 'biometricDetails'],
             properties: {
-                summary: { anyOf: [metricSummarySchema, { type: 'object', additionalProperties: false, properties: {} }] },
+                summary: {
+                    anyOf: [
+                        {
+                            type: 'object',
+                            additionalProperties: false,
+                            required: ['edaSclUsiemens', 'pulseRateBpm', 'temperatureCelsius'],
+                            properties: {
+                                edaSclUsiemens: summaryMetricSchema,
+                                pulseRateBpm: summaryMetricSchema,
+                                temperatureCelsius: summaryMetricSchema,
+                            },
+                        },
+                        { type: 'object', additionalProperties: false, properties: {} }
+                    ]
+                },
                 biometricDetails: {
                     type: 'array',
                     items: {
                         type: 'object',
                         additionalProperties: false,
-                        properties: biometricDetailProperties,
-                        required: Object.keys(biometricDetailProperties),
+                        required: ['timestampIso', 'timestampUnixMs', 'pulseRateBpm', 'edaSclUsiemens', 'temperatureCelsius', 'accelStdG', 'respiratoryRateBrpm', 'bodyPositionType'],
+                        properties: {
+                            timestampIso: { type: 'string' },
+                            timestampUnixMs: { type: 'number' },
+                            pulseRateBpm: { type: ['number', 'null'] },
+                            edaSclUsiemens: { type: ['number', 'null'] },
+                            temperatureCelsius: { type: ['number', 'null'] },
+                            accelStdG: { type: ['number', 'null'] },
+                            respiratoryRateBrpm: { type: ['number', 'null'] },
+                            bodyPositionType: { type: ['string', 'null'] },
+                            phase: { type: ['string', 'null'], enum: ['pre', 'session', 'post', null] },
+                        },
                     },
                 },
             },
@@ -99,9 +108,14 @@ export const getSessionReportSchema = {
             200: {
                 type: 'object',
                 additionalProperties: false,
-                required: ['data'],
+                required: ['data', 'meta'],
                 properties: {
-                    data: { anyOf: [unifiedSessionReportSchema, { type: 'array', items: unifiedSessionReportSchema }] },
+                    data: {
+                        anyOf: [
+                            { type: 'array', items: unifiedSessionReportSchema },
+                            unifiedSessionReportSchema
+                        ]
+                    },
                     meta: {
                         type: 'object',
                         additionalProperties: false,
