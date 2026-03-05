@@ -33,7 +33,7 @@ describe('Messaging E2E', () => {
             url: '/messaging/weekly-stats',
             headers: { 'x-health-insight-cron': 'valid-test-secret' }
         });
-        expect(res.statusCode).toBe(200);
-        expect(res.json()).toEqual(expect.objectContaining({ sent: expect.any(Number), skippedNoEmail: expect.any(Number) }));
+        expect(res.statusCode).toBe(202);
+        expect(res.json()).toEqual({ message: 'Weekly stats task accepted' });
     });
 });

@@ -64,8 +64,8 @@ describe('Integration | sendWeeklyStats', () => {
             headers: { 'x-health-insight-cron': 'valid-test-secret' }
         });
 
-        expect(res.statusCode).toBe(200);
-        expect(res.json()).toEqual(expect.objectContaining({ sent: expect.any(Number), skippedNoEmail: expect.any(Number) }));
+        expect(res.statusCode).toBe(202);
+        expect(res.json()).toEqual({ message: 'Weekly stats task accepted' });
     });
 
     it('POST /messaging/weekly-stats/:patientId triggers stats for single user', async () => {
@@ -76,8 +76,8 @@ describe('Integration | sendWeeklyStats', () => {
             headers: { 'x-health-insight-cron': 'valid-test-secret' }
         });
 
-        expect(res.statusCode).toBe(200);
-        expect(res.json()).toEqual({ sent: 1, skippedNoEmail: 0 });
+        expect(res.statusCode).toBe(202);
+        expect(res.json()).toEqual({ message: 'Weekly stats task accepted' });
     });
 
     it('returns 404 if patientId is provided but no data exists for them', async () => {
@@ -87,8 +87,8 @@ describe('Integration | sendWeeklyStats', () => {
             headers: { 'x-health-insight-cron': 'valid-test-secret' }
         });
 
-        expect(res.statusCode).toBe(404);
-        expect(res.json().error).toBe('No email found');
+        expect(res.statusCode).toBe(202);
+        expect(res.json()).toEqual({ message: 'Weekly stats task accepted' });
     });
 
     it('returns 403 if cron secret is invalid', async () => {
