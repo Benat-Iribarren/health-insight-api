@@ -36,7 +36,7 @@ export async function seedClinicalIntelligenceContext(): Promise<ClinicalIntelli
 
   const { data: sData, error: sErr } = await supabaseClient
     .from('Session')
-    .insert([{ number: 1, day_offset: 1 }])
+    .insert([{ number: Math.floor(Date.now() % 1000000000), day_offset: 1 }])
     .select();
 
   if (pErr || sErr || !pData || !sData) throw new Error('Fallo Seed Clinical Intelligence');
