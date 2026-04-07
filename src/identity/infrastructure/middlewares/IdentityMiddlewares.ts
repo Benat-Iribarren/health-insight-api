@@ -1,10 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
+import bcrypt from 'bcrypt';
 import { UserRepository } from '../../domain/interfaces/repositories/UserRepository';
 import { authenticate } from '../http/authenticate';
-
-// TODO: DIFERENCIA MIDDLEWARE vs CONTROLADOR
-// Middleware (preHandler): Es el guardián. Valida identidad/roles y bloquea el acceso si no hay permiso.
-// Evita que la lógica de negocio se ejecute innecesariamente, centralizando la seguridad.
 
 declare module 'fastify' {
     interface FastifyRequest {
@@ -18,11 +15,15 @@ declare module 'fastify' {
 export const verifyHybridAccess = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         const cronSecret = request.headers['x-health-insight-cron'];
+        const cronSecretHash = process.env.CRON_SECRET_KEY_HASH;
 
+        if (typeof cronSecret === 'string' && cronSecretHash) {
+            const isValidCronSecret = await bcrypt.compare(cronSecret, cronSecretHash);
 
-        if (cronSecret && cronSecret === process.env.CRON_SECRET_KEY) {
-            request.auth = { userId: 'cron' };
-            return;
+            if (isValidCronSecret) {
+                request.auth = { userId: 'cron' };
+                return;
+            }
         }
 
         const ok = await authenticate(request, reply);
@@ -41,13 +42,16 @@ export const verifyHybridAccess = (userRepository: UserRepository) => {
         }
     };
 };
+
 export const verifyProfessional = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         const ok = await authenticate(request, reply);
         if (!ok) return;
 
         const userId = request.auth?.userId;
-        if (!userId) return;
+        if (!userId) {
+            return reply.status(401).send({ error: 'Unauthorized' });
+        }
 
         const isProp = await userRepository.isProfessional(userId);
         if (!isProp) {
@@ -64,7 +68,9 @@ export const verifyPatient = (userRepository: UserRepository) => {
         if (!ok) return;
 
         const userId = request.auth?.userId;
-        if (!userId) return;
+        if (!userId) {
+            return reply.status(401).send({ error: 'Unauthorized' });
+        }
 
         const isPatient = await userRepository.isPatient(userId);
         if (!isPatient) {
