@@ -26,9 +26,6 @@ export const verifyHybridAccess = (userRepository: UserRepository) => {
             }
         }
 
-        const ok = await authenticate(request, reply);
-        if (!ok) return;
-
         const userId = request.auth?.userId;
         if (!userId) {
             return reply.status(401).send({ error: 'Unauthorized' });
