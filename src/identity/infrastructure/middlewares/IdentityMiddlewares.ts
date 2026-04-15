@@ -19,7 +19,6 @@ export const verifyHybridAccess = (userRepository: UserRepository) => {
 
         if (typeof cronSecret === 'string' && cronSecretHash) {
             const isValidCronSecret = await bcrypt.compare(cronSecret, cronSecretHash);
-
             if (isValidCronSecret) {
                 request.auth = { userId: 'cron' };
                 return;
@@ -29,7 +28,6 @@ export const verifyHybridAccess = (userRepository: UserRepository) => {
         return verifyProfessional(userRepository)(request, reply);
     };
 };
-
 export const verifyProfessional = (userRepository: UserRepository) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         const ok = await authenticate(request, reply);

@@ -26,7 +26,7 @@ export async function seedMessagingContext(): Promise<MessagingContext> {
         .from('Session')
         .insert([
             {
-                number: Math.floor(Date.now() % 1000000000),
+                number: 1,
                 day_offset: 0,
             },
         ])

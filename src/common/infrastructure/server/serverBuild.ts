@@ -77,7 +77,7 @@ function registerSwagger(app: FastifyInstance) {
         openapi: {
             info: {
                 title: 'HealthInsight API',
-                description: 'API de Telerehabilitación con análisis de mareo',
+                description: 'API de Telerehabilitación con análisis de estrés',
                 version: '1.0.0',
             },
         },
