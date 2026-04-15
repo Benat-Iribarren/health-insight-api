@@ -26,17 +26,7 @@ export const verifyHybridAccess = (userRepository: UserRepository) => {
             }
         }
 
-        const userId = request.auth?.userId;
-        if (!userId) {
-            return reply.status(401).send({ error: 'Unauthorized' });
-        }
-
-        const isProp = await userRepository.isProfessional(userId);
-        if (!isProp) {
-            return reply.status(403).send({
-                error: 'Access restricted to professionals only'
-            });
-        }
+        return verifyProfessional(userRepository)(request, reply);
     };
 };
 
