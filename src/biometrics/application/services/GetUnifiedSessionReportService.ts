@@ -120,6 +120,9 @@ export class GetUnifiedSessionReportService {
     }
 
     private mapEmptyUnifiedSessionReport(session: Session): UnifiedSessionReport {
+        const pre = Number(session.preEvaluation) || 0;
+        const post = Number(session.postEvaluation) || 0;
+
         return {
             sessionId: String(session.sessionId),
             state: session.state,
@@ -128,8 +131,7 @@ export class GetUnifiedSessionReportService {
             subjectiveAnalysis: {
                 preEvaluation: Number(session.preEvaluation) || 0,
                 postEvaluation: Number(session.postEvaluation) || 0,
-                delta: 0,
-            },
+                delta: session.state === 'completed' ? post - pre : 0,            },
             objectiveAnalysis: { summary: {}, biometricDetails: [] },
         };
     }
