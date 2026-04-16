@@ -71,7 +71,12 @@ export class SupabaseSessionMetricsRepository implements SessionMetricsRepositor
             .lte('timestamp_iso', endIso)
             .order('timestamp_iso', { ascending: true });
 
-        if (error || !data) return [];
+        if (error) {
+            console.error('BiometricMinutes query failed', { startIso, endIso, error });
+            throw error;
+        }
+
+        if (!data) return [];
 
         return data.map(mapBiometricSample);
     }
