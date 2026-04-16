@@ -18,7 +18,9 @@ export class SupabaseSessionMetricsRepository implements SessionMetricsRepositor
     ): Promise<{ sessions: Session[]; intervals: ContextInterval[]; total: number }> {
         let sessionQuery = this.client
             .from('PatientSession')
-            .select('session_id, state, pre_evaluation, post_evaluation, assigned_date', { count: 'exact' })
+            .select('session_id, state, pre_evaluation, post_evaluation, assigned_date', {
+                count: 'exact',
+            })
             .eq('patient_id', patientId)
             .eq('state', 'completed')
             .order('session_id', { ascending: false });
@@ -31,34 +33,44 @@ export class SupabaseSessionMetricsRepository implements SessionMetricsRepositor
 
         const { data: sessionsData, count, error: sessionError } = await sessionQuery;
 
-        if (sessionError || !sessionsData || sessionsData.length === 0) {
+        if (sessionError) {
+            throw sessionError;
+        }
+
+        if (!sessionsData || sessionsData.length === 0) {
             return { sessions: [], intervals: [], total: 0 };
         }
 
         const sessions = sessionsData.map(mapSession);
+        const totalCount = count !== null ? count : sessions.length;
 
-        const validSessionIds = sessions
-            .map((s) => s.sessionId)
-            .filter((id) => id !== null && !isNaN(id));
-
-        const orFilter = validSessionIds.length > 0
-            ? `session_id.in.(${validSessionIds.join(',')}),context_type.eq.dashboard`
-            : 'context_type.eq.dashboard';
-
-        const { data: intervalsData, error: intervalsError } = await this.client
+        let intervalsQuery = this.client
             .from('ContextIntervals')
             .select('start_minute_utc, end_minute_utc, context_type, session_id')
             .eq('patient_id', patientId)
-            .or(orFilter)
             .order('start_minute_utc', { ascending: true });
 
-        const totalCount = count !== null ? count : sessions.length;
+        if (sessionId !== undefined) {
+            intervalsQuery = intervalsQuery.eq('session_id', sessionId);
+        } else {
+            const validSessionIds = sessions
+                .map((s) => s.sessionId)
+                .filter((id): id is number => id !== null && !Number.isNaN(id));
 
-        if (intervalsError || !intervalsData) {
-            return { sessions, intervals: [], total: totalCount };
+            if (validSessionIds.length === 0) {
+                return { sessions, intervals: [], total: totalCount };
+            }
+
+            intervalsQuery = intervalsQuery.in('session_id', validSessionIds);
         }
 
-        const intervals = intervalsData.map(mapContextInterval);
+        const { data: intervalsData, error: intervalsError } = await intervalsQuery;
+
+        if (intervalsError) {
+            throw intervalsError;
+        }
+
+        const intervals = (intervalsData ?? []).map(mapContextInterval);
 
         return { sessions, intervals, total: totalCount };
     }
@@ -76,7 +88,9 @@ export class SupabaseSessionMetricsRepository implements SessionMetricsRepositor
             throw error;
         }
 
-        if (!data) return [];
+        if (!data) {
+            return [];
+        }
 
         return data.map(mapBiometricSample);
     }
