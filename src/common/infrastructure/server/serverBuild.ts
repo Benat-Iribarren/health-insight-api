@@ -27,8 +27,8 @@ export function build(): FastifyInstance {
 
     // 2. CORS: Control de acceso por origen (Capa de Red)
     const allowedOrigins = [
-        'https://digital-therapy-platform.web.app',
-        'https://digital-therapy-platform.firebaseapp.com',
+        'https://musical-therapy-platform.web.app',
+        'https://musical-therapy-platform.firebaseapp.com',
         'http://localhost:4174',
         'http://localhost:4173',
     ];
