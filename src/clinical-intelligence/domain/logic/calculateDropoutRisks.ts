@@ -32,7 +32,7 @@ export function calculateDropoutRisks(data: PatientSessionData[], now: Date = ne
 
         if (lastCompleted && lastCompleted.postEval > 7) {
             riskScore += 20;
-            factors.push('Mareo elevado en ultima sesion');
+            factors.push('Estrés elevado en la última sesión');
         }
 
         const clamped = clamp(riskScore, 0, 100);

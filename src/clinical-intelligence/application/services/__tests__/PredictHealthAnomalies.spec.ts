@@ -112,7 +112,7 @@ describe('Unit | processDropoutAnalysis', () => {
         if (!Array.isArray(result)) return;
 
         expect(result[0].patientId).toBe(2);
-        expect(result[0].factors).toContain('Mareo elevado en ultima sesion');
+        expect(result[0].factors).toContain('Estrés elevado en la última sesión');
         expect(result[0].riskScore).toBe(20);
         expect(result[0].status).toBe('LOW');
     });
