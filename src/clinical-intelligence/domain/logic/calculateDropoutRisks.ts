@@ -37,7 +37,7 @@ export function calculateDropoutRisks(data: PatientSessionData[], now: Date = ne
 
         const clamped = clamp(riskScore, 0, 100);
 
-        const status: DropoutStatus = clamped > 70 ? 'CRITICAL' : clamped > 40 ? 'MODERATE' : 'LOW';
+        const status: DropoutStatus = clamped >= 70 ? 'CRITICAL' : clamped >= 40 ? 'MODERATE' : 'LOW';
 
         return { patientId, name: p.name, riskScore: clamped, status, bufferDays, factors };
     });
