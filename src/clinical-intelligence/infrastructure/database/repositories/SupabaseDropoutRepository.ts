@@ -9,7 +9,7 @@ export class SupabaseDropoutRepository implements DropoutRepository {
     async getPatientSessionData(patientId?: number): Promise<PatientSessionData[]> {
         let sessionQuery = this.client
             .from('PatientSession')
-            .select('patient_id, id, state, assigned_date, created_at, post_evaluation');
+            .select('patient_id, id, state, assigned_date, completed_date, created_at, post_evaluation');
 
         if (patientId !== undefined) sessionQuery = sessionQuery.eq('patient_id', patientId);
 

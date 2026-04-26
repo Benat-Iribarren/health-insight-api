@@ -3,7 +3,8 @@ export interface PatientSessionData {
     name: string;
     sessionId: number;
     sessionStatus: string;
-    assignedDate: string;
+    assignedDate: string | null;
+    completedDate: string | null;
     sessionUpdate: string | null;
     postEval: number;
 }
